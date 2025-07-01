@@ -1,0 +1,63 @@
+package "linear-program"
+
+import(
+  "Luna-Flow/linear-algebra/mutable"
+  "Luna-Flow/luna-generic"
+)
+
+// Values
+
+// Types and methods
+type Constraint[V]
+fn[V] Constraint::add_eqpoly(Self[V], Poly[V], V) -> Unit
+fn[V] Constraint::add_ineqpoly(Self[V], Poly[V], String, V) -> Unit
+fn[V] Constraint::change_eqpoly(Self[V], Int, Poly[V], V) -> Unit
+fn[V] Constraint::change_ineqpoly(Self[V], Int, Poly[V], String, V) -> Unit
+fn[V : Eq + Compare + @luna-generic.Semiring] Constraint::from_array(eq_array~ : Array[(Array[V], V)] = .., ineq_array~ : Array[(Array[V], String, V)] = .., Array[Variable]) -> Self[V]
+fn[V] Constraint::new() -> Self[V]
+fn[V : @luna-generic.Zero] Constraint::to_matrix(Self[V], Array[Variable]) -> Array[Array[V]]
+impl[V : Show + Eq + @luna-generic.Semiring] Show for Constraint[V]
+
+type Lp[V]
+fn[V : Eq + Compare + @luna-generic.Semiring] Lp::cons_from_Array(Self[V], eq_array~ : Array[(Array[V], V)] = .., ineq_array~ : Array[(Array[V], String, V)] = ..) -> Self[V]
+fn[V : Eq + Compare + @luna-generic.Semiring] Lp::from_matrix(@mutable.Matrix[V], Array[Variable], String) -> Self[V]
+fn[V] Lp::get_b_vector(Self[V]) -> Array[V]
+fn[V] Lp::get_coeff_matrix(Self[V]) -> @mutable.Matrix[V]
+fn[V] Lp::get_objfunc_vector(Self[V]) -> Array[V]
+fn[V : @luna-generic.Zero] Lp::new(Obj_func[V], Array[Variable]) -> Self[V]
+fn[V : Compare + @luna-generic.Semiring + @luna-generic.Zero] Lp::reset_obj_byarray(Self[V], Array[V]) -> Self[V]
+fn[V : Eq + @luna-generic.Semiring + Compare + Neg + @luna-generic.Zero] Lp::to_standard(Self[V]) -> Self[V]
+impl[V : Show + Eq + @luna-generic.Semiring] Show for Lp[V]
+
+type Obj_func[V]
+fn[V : Eq + @luna-generic.Semiring + Compare + @luna-generic.Zero] Obj_func::add_term_inplace(Self[V], Variable, V) -> Unit
+fn[V : Eq + Compare + @luna-generic.Semiring] Obj_func::from_array(String, Array[V], Array[Variable]) -> Self[V]
+fn[V] Obj_func::new(String) -> Self[V]
+fn[V] Obj_func::set_poly(Self[V], Poly[V]) -> Self[V]
+fn[V : Eq + @luna-generic.Semiring + Compare + @luna-generic.Zero + Neg] Obj_func::to_min(Self[V]) -> Self[V]
+fn[V : @luna-generic.Zero] Obj_func::to_vector(Self[V], Int) -> Array[V]
+impl[V : Eq + Show + @luna-generic.Semiring] Show for Obj_func[V]
+
+type Poly[V]
+fn[V : Eq + @luna-generic.Semiring + Compare + @luna-generic.Zero] Poly::add_term_inplace(Self[V], Variable, V) -> Unit
+fn[V : Eq + @luna-generic.Semiring + Compare + @luna-generic.Zero] Poly::copy(Self[V]) -> Self[V]
+fn[V : Eq + Compare + @luna-generic.Semiring] Poly::from_var_array(Array[V], Array[Variable]) -> Self[V]
+fn[V] Poly::new() -> Self[V]
+fn[V] Poly::to_Array(Self[V]) -> Array[V]
+fn[V : @luna-generic.Zero] Poly::to_vector(Self[V], Array[Variable]) -> Array[V]
+impl[V : Eq] Eq for Poly[V]
+impl[V : Eq + @luna-generic.Semiring + Compare + @luna-generic.Zero + Neg] Neg for Poly[V]
+impl[V : Eq + Show + @luna-generic.Semiring + @luna-generic.One] Show for Poly[V]
+
+type Variable
+fn Variable::new(String, Double, Double) -> Self
+fn Variable::show_all(Self) -> String
+impl @luna-generic.One for Variable
+impl Compare for Variable
+impl Eq for Variable
+impl Show for Variable
+
+// Type aliases
+
+// Traits
+
