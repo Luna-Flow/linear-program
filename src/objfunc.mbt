@@ -80,6 +80,14 @@ pub fn[V : Zero] Obj_func::to_vector(
 }
 
 ///|
+pub fn[V] judge_max(self : Obj_func[V]) -> Bool {
+  match self.sense {
+    Maximize => true
+    Minimize => false
+  }
+}
+
+///|
 test "show" {
   let x1 : Variable = { name: "x1", low_bound: -1.0, up_bound: 1.0 }
   let x2 : Variable = { name: "x2", low_bound: -1.0, up_bound: 1.0 }

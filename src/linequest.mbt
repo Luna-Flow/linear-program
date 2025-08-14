@@ -86,7 +86,7 @@ pub fn[V : Eq + Semiring] Lp::from_matrix(
     vars: vars_for_matrix,
     obj_func: Obj_func::from_array(
       obj_type,
-      lp_matrix.row_to_array(0)[:col_num].to_array(),
+      lp_matrix.row_to_array(0)[:col_num - 1].to_array(),
       vars_for_matrix,
     ),
     constraint: Constraint::from_array(eq_array~, vars_for_matrix),
@@ -405,7 +405,7 @@ test "artificial_matrix" {
     [-1, 4, 7, 1, 2],
   ])
   let lp = Lp::from_matrix(matrix, vars, "min")
-  // LP问题的矩阵形式,第一行为目标函数：
+  // The matrix form of LP problem, the first line is the objective function:
   inspect(
     lp.matrix,
     content=(
@@ -416,7 +416,7 @@ test "artificial_matrix" {
     ),
   )
   let x = lp.add_artificial()
-  // 添加人工变量后的LP矩阵
+  // LP matrix after adding artificial variables
   inspect(
     x.0,
     content=(
@@ -426,9 +426,9 @@ test "artificial_matrix" {
       #||-1, 4, 7, 1, 0, 0, 1, 2|
     ),
   )
-  // 初始解
+  // Initial Solution
   inspect(x.1, content="[0, 0, 0, 0, 1, 0, 2]")
-  // 单位列的索引
+  // Index of artificial Column
   inspect(x.2, content="[4, 5, 6]")
 
   //test 2
@@ -442,7 +442,7 @@ test "artificial_matrix" {
     .cons_from_Array(ineq_array=ineq)
     .to_standard()
 
-  // LP问题的矩阵形式,第一行为目标函数
+  // The matrix form of LP problem, the first line is the objective function:
   inspect(
     lp.matrix,
     content=(
@@ -452,7 +452,7 @@ test "artificial_matrix" {
     ),
   )
   let x = lp.add_artificial()
-  // 添加人工变量后的LP矩阵：
+  // LP matrix after adding artificial variables
   inspect(
     x.0,
     content=(
@@ -461,9 +461,9 @@ test "artificial_matrix" {
       #||1, 3, 0, 1, 10|
     ),
   )
-  // 初始解
+  // Initial Solution
   inspect(x.1, content="[0, 0, 12, 10]")
-  // 单位列的索引
+  // Index of artificial Column
   inspect(x.2, content="[0, 0]")
 }
 
@@ -479,6 +479,7 @@ pub fn[V : Zero + Compare + Div + Mul + Sub] Lp::pivot(
   let pivot_val = matrix[row][col]
   if pivot_val == V::zero() {
     println("pivot error, (\{row}, \{col}) is zero!")
+    abort("pivot error, (\{row}, \{col}) is zero!")
   } else {
     for j in 0..<m_col {
       matrix[row][j] = matrix[row][j] / pivot_val
@@ -515,14 +516,78 @@ test "pivot" {
   )
 }
 
+///| universal simplex interation function
+pub fn[V : Zero + Compare + Sub + Mul + Div + Show] Lp::simplex_iteration(
+  matrix : Matrix[V],
+  max_iterations~ : Int = 1000,
+  debug~ : Bool = false,
+) -> Unit {
+  let row = matrix.row()
+  let col = matrix.col()
+  let mut iteration_count = 0
+  while iteration_count < max_iterations {
+    iteration_count += 1
+
+    // find entering variable (most negative coefficient in the objective function row)
+    let mut entering_var = -1
+    let mut min_coeff = V::zero()
+    for j in 0..<(col - 1) {
+      if matrix[0][j] < min_coeff {
+        min_coeff = matrix[0][j]
+        entering_var = j
+      }
+    }
+
+    // no negative coefficients, optimal soulution found
+    if entering_var == -1 {
+      if debug {
+        println(
+          "Optimal solution found after \{iteration_count - 1} iterations",
+        )
+      }
+      break
+    }
+
+    // find leaving variable (minimum ratio test)
+    let mut leaving_var = -1
+    let mut min_ratio = V::zero()
+    let mut first_positive = true
+    for i in 1..<row {
+      if matrix[i][entering_var] > V::zero() {
+        let ratio = matrix[i][col - 1] / matrix[i][entering_var]
+        if ratio >= V::zero() && (first_positive || ratio < min_ratio) {
+          min_ratio = ratio
+          leaving_var = i
+          first_positive = false
+        }
+      }
+    }
+
+    // can't find leaving variable, problem is unbounded
+    if leaving_var == -1 {
+      println("Problem is unbounded")
+      abort("Problem is unbounded")
+    }
+
+    // do pivot operation
+    Lp::pivot(matrix, leaving_var, entering_var)
+    if debug {
+      println(
+        "Iteration \{iteration_count}: pivot at (\{leaving_var}, \{entering_var})",
+      )
+      println(matrix)
+    }
+  }
+  if iteration_count >= max_iterations {
+    println("Maximum iterations reached, may not have converged")
+  }
+}
+
 ///|
-pub fn[V : Zero + One + Compare + Sub + Compare + Div + Mul] Lp::phase_1(
+pub fn[V : Zero + One + Compare + Sub + Compare + Div + Mul + Show] Lp::phase_1(
   p1_matrix : Matrix[V],
   artificial_index : Array[Int],
 ) -> Matrix[V] {
-  // let (matrix, _, artificial_index) = self.add_artificial()
-  // let p1_matrix = matrix
-  let row = p1_matrix.row()
   let col = p1_matrix.col()
   for index, col_num in artificial_index {
     if p1_matrix[0][col_num] == V::one() {
@@ -531,55 +596,7 @@ pub fn[V : Zero + One + Compare + Sub + Compare + Div + Mul] Lp::phase_1(
       }
     }
   }
-
-  //println(p1_matrix)
-  //println(artificial_index)
-  while true {
-
-    // find in_base_var
-    let mut in_base_index = 0
-    let mut flag = true
-    for i in 0..<(col - 1) {
-      if p1_matrix[0][i] < V::zero() &&
-        p1_matrix[0][i] <= p1_matrix[0][in_base_index] {
-        in_base_index = i
-        flag = false
-      }
-    } else {
-      if flag {
-        break
-      }
-    }
-
-    // find out_base_var
-    let mut per_ratio = V::zero()
-    let mut out_base_index = -1
-    flag = true
-    for j in 1..<row {
-      if p1_matrix[j][in_base_index] == V::zero() ||
-        p1_matrix[j][col - 1] / p1_matrix[j][in_base_index] <= V::zero() {
-        continue
-      } else {
-        let ratio = p1_matrix[j][col - 1] / p1_matrix[j][in_base_index]
-        if flag == true || per_ratio > ratio {
-          per_ratio = ratio
-          out_base_index = j
-          flag = false
-        }
-      }
-    } else {
-      if flag {
-        //println("Phase1 no_bound result")
-        break
-      }
-    }
-
-    //println("main value:(\{out_base_index}, \{in_base_index})") 
-    //println("By col index, in_base_index: \{in_base_index}, out_base_index: \{artificial_index[out_base_index-1]}")
-
-    Lp::pivot(p1_matrix, out_base_index, in_base_index)
-    //println(p1_matrix)
-  }
+  Lp::simplex_iteration(p1_matrix, max_iterations=1000, debug=false)
   p1_matrix
 }
 
@@ -615,9 +632,9 @@ test "phase1" {
   inspect(
     x,
     content=(
-      #||0, 0, 0.9999999999999998, 1.0000000000000002, 1.3322676295501878e-15|
-      #||0, 1, 0.5999999999999999, -0.39999999999999997, 1.0000000000000004|
-      #||1, 0, -0.39999999999999997, 0.6, 1.9999999999999998|
+      #||0, 0, 1.0000000000000002, 0.9999999999999998, -4.440892098500626e-16|
+      #||0, 1, 0.6, -0.39999999999999997, 1.0000000000000002|
+      #||1, 0, -0.39999999999999997, 0.5999999999999999, 1.9999999999999998|
     ),
   )
   let vars = [
@@ -644,36 +661,105 @@ test "phase1" {
 }
 
 ///| get base_best_solve from phase1 matrix
-pub fn[V : Zero + Compare + One + Neg] Lp::phase_2(
+pub fn[
+  V : Zero + One + Eq + ApproximatelyZero + Div + Sub + Mul + Show + Compare,
+] Lp::phase_2(
   var_array : Array[Variable],
-  matrix : Matrix[V],
-) -> Array[V] {
-  let row = matrix.row()
-  let col = matrix.col()
+  original_obj : Array[V],
+  phase1_matrix : Matrix[V],
+) -> (Array[V], V) {
+  let row = phase1_matrix.row()
+  let col = phase1_matrix.col()
   let var_num = var_array.length()
-  guard var_num == col - 1 ||
-    (matrix[0][col - 1] < V::one() && matrix[0][col - 1] > -V::one()) else {
+  // W* is zero OR artificial_var_num is zero
+  guard var_num == col - 1 || V::is_zero_eps(phase1_matrix[0][col - 1]) else {
+    println("W* from Phase1 isn't zero, Lp doesn't have solution ")
     abort("W* from Phase1 isn't zero, Lp doesn't have solution ")
   }
-  let best_base_solve = Array::make(var_num, V::zero())
+  // create phase2_matrix, it excludes artificial variables
+  let phase2_matrix = Matrix::new(row, var_num + 1, V::zero())
 
-  // Count the number of non-zero elements in each column
-  let nozeronum_bycol = Array::make(var_num, 0)
-  for i in 0..<row {
+  // copy phase1_matrix to phase2_matrix, excluding artificial variables
+  for i in 1..<row {
     for j in 0..<var_num {
-      if matrix[i][j] != V::zero() {
+      phase2_matrix[i][j] = phase1_matrix[i][j]
+    }
+    phase2_matrix[i][var_num] = phase1_matrix[i][col - 1] // RHS
+  }
+
+  // set the objective function row in phase2_matrix
+  for j in 0..<var_num {
+    phase2_matrix[0][j] = original_obj[j]
+  }
+  phase2_matrix[0][var_num] = V::zero()
+
+  // find the number of non-zero elements in each column
+  let nozeronum_bycol = Array::make(var_num, 0)
+  for i in 1..<row {
+    for j in 0..<var_num {
+      if !V::is_zero_eps(phase2_matrix[i][j]) {
         nozeronum_bycol[j] += 1
+      }
+    }
+  }
+
+  // clean up the objective function row by eliminating basic variables
+  for i in 1..<row {
+    for j in 0..<var_num {
+      if V::is_zero_eps(phase2_matrix[i][j] - V::one()) &&
+        nozeronum_bycol[j] == 1 {
+        // j 是基变量，需要消除目标函数行中的系数
+        if !V::is_zero_eps(phase2_matrix[0][j]) {
+          let factor = phase2_matrix[0][j]
+          for k in 0..=var_num {
+            phase2_matrix[0][k] = phase2_matrix[0][k] -
+              factor * phase2_matrix[i][k]
+          }
+        }
+        break
+      }
+    }
+  }
+  // call simplex iteration on phase2_matrix
+  Lp::simplex_iteration(phase2_matrix, debug=false)
+
+  // find the best solution from phase2_matrix
+  let best_solution = Array::make(var_num, V::zero())
+  let nozeronum_bycol_final = Array::make(var_num, 0)
+  for i in 1..<row {
+    for j in 0..<var_num {
+      if !V::is_zero_eps(phase2_matrix[i][j]) {
+        nozeronum_bycol_final[j] += 1
       }
     }
   }
   for i in 1..<row {
     for j in 0..<var_num {
-      if matrix[i][j] == V::one() && nozeronum_bycol[j] == 1 {
-        best_base_solve[j] = matrix[i][col - 1]
+      if V::is_zero_eps(phase2_matrix[i][j] - V::one()) &&
+        nozeronum_bycol_final[j] == 1 {
+        best_solution[j] = phase2_matrix[i][var_num]
+        break
       }
     }
   }
-  best_base_solve
+  // // Count the number of non-zero elements in each column
+  // let nozeronum_bycol = Array::make(var_num, 0)
+  // for i in 0..<row {
+  //   for j in 0..<var_num {
+  //     if matrix[i][j] != V::zero() {
+  //       nozeronum_bycol[j] += 1
+  //     }
+  //   }
+  // }
+  // for i in 1..<row {
+  //   for j in 0..<var_num {
+  //     if p1_matrix[i][j] == V::one() && nozeronum_bycol[j] == 1 {
+  //       best_base_solve[j] = matrix[i][col - 1]
+  //     }
+  //   }
+  // }
+  let optimal_value = phase2_matrix[0][var_num]
+  (best_solution, optimal_value)
 }
 
 ///|
@@ -709,14 +795,9 @@ test "phase2" {
       #||1, 0, -0.33333333333333337, -0.3333333333333333, 0.6666666666666666, 1.9999999999999991|
     ),
   )
-  let phase2 = Lp::phase_2(vars, phase1)
-  let obj_func = lp.get_objfunc_vector()
-  let mut res = 0.0
-  for index, x in obj_func {
-    res = res + x * phase2[index]
-  }
+  let phase2 = Lp::phase_2(vars, lp.get_objfunc_vector(), phase1)
   inspect(
-    "variables：\{vars}, The_best_base_solve：\{phase2}\nThe Object_function result：\{res}",
+    "variables：\{vars}, The_best_base_solve：\{phase2.0}\nThe Object_function result：\{-phase2.1}",
     content=(
       #|variables：[x1, x2, x3], The_best_base_solve：[1.9999999999999991, 4.000000000000001, 0]
       #|The Object_function result：-10
@@ -725,18 +806,24 @@ test "phase2" {
 }
 
 ///| make sure the to_standard() has been done
-pub fn[V : Eq + Zero + One + Compare + Mul + Div + Sub + Add + Neg] Lp::two_stage(
+pub fn[
+  V : Eq + Zero + One + Compare + Mul + Div + Sub + ApproximatelyZero + Show + Neg,
+] Lp::two_stage(
   self : Lp[V],
 ) -> (Array[V], V) {
   let artificial = self.add_artificial()
-  let phase1 = Lp::phase_1(artificial.0, artificial.2)
-  let phase2 = Lp::phase_2(self.vars, phase1)
+  let phase1_matrix = Lp::phase_1(artificial.0, artificial.2)
   let obj_func = self.get_objfunc_vector()
-  let mut res = V::zero()
-  for index, x in obj_func {
-    res = res + x * phase2[index]
+  let (solution, optimal_value) = Lp::phase_2(
+    self.vars,
+    obj_func,
+    phase1_matrix,
+  )
+  if self.obj_func.judge_max() {
+    (solution, optimal_value)
+  } else {
+    (solution, -optimal_value)
   }
-  (phase2, res)
 }
 
 ///|
@@ -776,7 +863,6 @@ test "two_stage" {
   inspect(vars, content="[x1, x2]")
   inspect(res.0, content="[5.199999999999999, 1.6000000000000005, 0, 0]")
   inspect(-res.1, content="22") //because source problem is "MAX", so real_res = -res
-
   // example 3  constrains'labels are '>=' 
   // min cx
   // s.t.  Ax >= b
@@ -821,34 +907,35 @@ test "two_stage" {
   inspect(res.0, content="[0, 0, 12, 10]")
   inspect(res.1, content="0")
 
-  // special example 2
+  // special example 2 ; this example will make abort() brcause no feasible solution
   // max cx
   // s.t. Ax >= b
-  let vars = [
-    Variable::new("x1", 0.0, @double.max_value),
-    Variable::new("x2", 0.0, @double.max_value),
-  ]
-  let obj_func = Obj_func::from_array("max", [3.0, 4.0], vars)
-  let ineq = [([2.0, 1.0], ">=", 12.0), ([1.0, 3.0], ">=", 10.0)]
-  let lp = Lp::new(obj_func, vars)
-    .cons_from_Array(ineq_array=ineq)
-    .to_standard()
-  inspect(
-    lp,
-    content=(
-      #|min  -3x1 + -4x2
-      #|s.t. 2x1 + x2 + -1y1 = 12
-      #|     x1 + 3x2 + -1y2 = 10
-      #|      x1 : [0, 1.7976931348623157e+308] x2 : [0, 1.7976931348623157e+308] y1 : [0, 1.7976931348623157e+308] y2 : [0, 1.7976931348623157e+308]
-      #|
-    ),
-  )
-  let res = lp.two_stage()
-  inspect(vars, content="[x1, x2]")
-  inspect(res.0, content="[5.199999999999999, 1.6000000000000005, 0, 0]")
-  inspect(res.1, content="-22")
+  // let vars = [
+  //   Variable::new("x1", 0.0, @double.max_value),
+  //   Variable::new("x2", 0.0, @double.max_value),
+  // ]
+  // let obj_func = Obj_func::from_array("max", [3.0, 4.0], vars)
+  // let ineq = [([2.0, 1.0], ">=", 12.0), ([1.0, 3.0], ">=", 10.0)]
+  // let lp = Lp::new(obj_func, vars)
+  //   .cons_from_Array(ineq_array=ineq)
+  //   .to_standard()
+  // inspect(
+  //   lp,
+  //   content=(
+  //     #|min  -3x1 + -4x2
+  //     #|s.t. 2x1 + x2 + -1y1 = 12
+  //     #|     x1 + 3x2 + -1y2 = 10
+  //     #|      x1 : [0, 1.7976931348623157e+308] x2 : [0, 1.7976931348623157e+308] y1 : [0, 1.7976931348623157e+308] y2 : [0, 1.7976931348623157e+308]
+  //     #|
+  //   ),
+  // )
+  // let res = lp.two_stage()
+  // inspect(vars)
+  // inspect(res.0)
+  // inspect(res.1)
+  // inspect("\n")
 
-  // no-solve example 1
+  // no-solve example 1; this example will make abort() brcause no feasible solution
   // let vars = [
   //   Variable::new("x1", 0.0, @double.max_value),
   //   Variable::new("x2", 0.0, @double.max_value)
@@ -870,4 +957,15 @@ test "two_stage" {
   // inspect(res.1)
   // inspect("\n")
 
+}
+
+///| test ApproxomatelyZero
+pub fn[V : ApproximatelyZero] double_equal_to_zero(x : V) -> Bool {
+  V::is_zero_eps(x)
+}
+
+///|
+test "equal_to_0" {
+  let x = 1.5e-17
+  inspect(double_equal_to_zero(x), content="true")
 }

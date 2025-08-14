@@ -7,6 +7,7 @@ import(
 )
 
 // Values
+fn[V : ApproximatelyZero] double_equal_to_zero(V) -> Bool
 
 // Types and methods
 type Constraint[V]
@@ -26,17 +27,19 @@ fn[V] Lp::get_b_vector(Self[V]) -> Array[V]
 fn[V] Lp::get_coeff_matrix(Self[V]) -> @mutable.Matrix[V]
 fn[V] Lp::get_objfunc_vector(Self[V]) -> Array[V]
 fn[V : @luna-generic.Zero] Lp::new(Obj_func[V], Array[Variable]) -> Self[V]
-fn[V : @luna-generic.Zero + @luna-generic.One + Compare + Sub + Compare + Div + Mul] Lp::phase_1(@mutable.Matrix[V], Array[Int]) -> @mutable.Matrix[V]
-fn[V : @luna-generic.Zero + Compare + @luna-generic.One + Neg] Lp::phase_2(Array[Variable], @mutable.Matrix[V]) -> Array[V]
+fn[V : @luna-generic.Zero + @luna-generic.One + Compare + Sub + Compare + Div + Mul + Show] Lp::phase_1(@mutable.Matrix[V], Array[Int]) -> @mutable.Matrix[V]
+fn[V : @luna-generic.Zero + @luna-generic.One + Eq + ApproximatelyZero + Div + Sub + Mul + Show + Compare] Lp::phase_2(Array[Variable], Array[V], @mutable.Matrix[V]) -> (Array[V], V)
 fn[V : @luna-generic.Zero + Compare + Div + Mul + Sub] Lp::pivot(@mutable.Matrix[V], Int, Int) -> Unit
 fn[V : Compare + @luna-generic.Semiring + @luna-generic.Zero] Lp::reset_obj_byarray(Self[V], Array[V]) -> Self[V]
+fn[V : @luna-generic.Zero + Compare + Sub + Mul + Div + Show] Lp::simplex_iteration(@mutable.Matrix[V], max_iterations~ : Int = .., debug~ : Bool = ..) -> Unit
 fn[V : Eq + @luna-generic.Semiring + Compare + Neg + @luna-generic.Zero] Lp::to_standard(Self[V]) -> Self[V]
-fn[V : Eq + @luna-generic.Zero + @luna-generic.One + Compare + Mul + Div + Sub + Add + Neg] Lp::two_stage(Self[V]) -> (Array[V], V)
+fn[V : Eq + @luna-generic.Zero + @luna-generic.One + Compare + Mul + Div + Sub + ApproximatelyZero + Show + Neg] Lp::two_stage(Self[V]) -> (Array[V], V)
 impl[V : Show + Eq + @luna-generic.Semiring] Show for Lp[V]
 
 type Obj_func[V]
 fn[V : Eq + @luna-generic.Semiring + @luna-generic.Zero] Obj_func::add_term_inplace(Self[V], Variable, V) -> Unit
 fn[V : Eq + @luna-generic.Semiring] Obj_func::from_array(String, Array[V], Array[Variable]) -> Self[V]
+fn[V] Obj_func::judge_max(Self[V]) -> Bool
 fn[V] Obj_func::new(String) -> Self[V]
 fn[V] Obj_func::set_poly(Self[V], Poly[V]) -> Self[V]
 fn[V : Eq + @luna-generic.Semiring + @luna-generic.Zero + Neg] Obj_func::to_min(Self[V]) -> Self[V]
@@ -65,4 +68,9 @@ impl Show for Variable
 // Type aliases
 
 // Traits
+pub trait ApproximatelyZero {
+  is_zero_eps(Self) -> Bool
+}
+impl ApproximatelyZero for Int
+impl ApproximatelyZero for Double
 
