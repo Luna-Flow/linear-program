@@ -495,7 +495,7 @@ msgid "6. Code review"
 msgstr ""
 
 #: manual/contributing.md:105
-msgid "If you are not a maintainer or collaborator, contact them before modifying dependencies or version numbers in `moon.mod.json`."
+msgid "If you are not a maintainer or collaborator, contact them before modifying dependencies or version numbers in `moon.mod`."
 msgstr ""
 
 #: manual/contributing.md:106
