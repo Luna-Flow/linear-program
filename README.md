@@ -1,5 +1,7 @@
 A Moonbit library for defining and solving linear programming problems
 
+Documentation: <https://luna-flow.github.io/en/linear-program/> (English source in [`doc/manual`](doc/manual/index.md), translations in `doc/locale`).
+
 /** how to define a linear-program */      
 (1) general step       
 1. define variables_array  

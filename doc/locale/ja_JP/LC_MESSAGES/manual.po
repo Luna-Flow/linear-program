@@ -1,0 +1,907 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Luna-Flow documentation\n"
+"Report-Msgid-Bugs-To: https://github.com/Luna-Flow\n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: conf.json:summary
+msgid "A MoonBit library for defining linear programs and solving them with the two-phase simplex method."
+msgstr "線形計画問題を定義し、二段階単体法で解くための MoonBit ライブラリ。"
+
+#: manual/api/core.md:1
+msgid "core API"
+msgstr "core API"
+
+#: manual/api/core.md:3
+msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/linear-program.mbti`](../../../src/linear-program.mbti). The coefficient type `V` is generic; the solver needs the traits listed in each signature, and `Double` satisfies all of them."
+msgstr "`src` のパッケージが linear-program の公開インターフェースのすべてです。インターフェースファイルは [`src/linear-program.mbti`](../../../src/linear-program.mbti) です。係数型 `V` はジェネリックで、ソルバーは各シグネチャに挙げた trait を必要とします。`Double` はそのすべてを満たします。"
+
+#: manual/api/core.md:5
+msgid "Matrices in this package are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://luna-flow.github.io/en/linear-algebra/). Row 0 of a program matrix holds the objective coefficients, the other rows hold one equality constraint each, and the last column holds the right-hand sides."
+msgstr "このパッケージの行列は [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) の `mutable` パッケージにある `@mutable.Matrix[V]` です。問題行列の第 0 行は目的関数の係数、それ以外の各行は等式制約を一つずつ保持し、最後の列は右辺を保持します。"
+
+#: manual/api/core.md:7
+msgid "Variables"
+msgstr "変数"
+
+#: manual/api/core.md:11
+msgid "`Variable` is a named decision variable with a lower and an upper bound."
+msgstr "`Variable` は下限と上限を持つ名前付きの決定変数です。"
+
+#: manual/api/core.md:23
+msgid "`Variable::new(name, low, up)` creates a variable. Two variables are equal when their names are equal, and they are ordered by name. `Show` prints the name; `show_all` prints the name with its bounds, for example `x1 : [0, 100]`. `One::one()` is the unnamed variable that `Poly::from_var_array` uses for a constant term."
+msgstr "`Variable::new(name, low, up)` は変数を作成します。二つの変数は名前が等しければ等しく、名前の順に並べられます。`Show` は名前を出力し、`show_all` は名前と範囲を出力します（例：`x1 : [0, 100]`）。`One::one()` は名前のない変数で、`Poly::from_var_array` が定数項に使います。"
+
+#: manual/api/core.md:25
+msgid "The bounds are stored and printed, but the solver does not read them: every variable is treated as non-negative. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
+msgstr "範囲は保存され出力されますが、ソルバーはそれを読みません。すべての変数は非負として扱われます。`Lp::to_standard` は追加する変数に `y1`、`y2`、... と名前を付けるので、自分の変数にはこれらの名前を使わないでください。"
+
+#: manual/api/core.md:27
+msgid "Linear expressions"
+msgstr "線形式"
+
+#: manual/api/core.md:31
+msgid "`Poly[V]` is a linear expression: a map from variables to non-zero coefficients, kept in the order of the variable names."
+msgstr "`Poly[V]` は線形式です。変数から非零係数への写像で、変数名の順に保持されます。"
+
+#: manual/api/core.md:46
+#: manual/api/core.md:77
+#: manual/api/core.md:107
+#: manual/api/core.md:139
+msgid "Function"
+msgstr "関数"
+
+#: manual/api/core.md:46
+#: manual/api/core.md:77
+#: manual/api/core.md:107
+#: manual/api/core.md:139
+msgid "Meaning"
+msgstr "意味"
+
+#: manual/api/core.md:48
+msgid "The empty expression."
+msgstr "空の式。"
+
+#: manual/api/core.md:49
+msgid "Pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient beyond the last variable becomes the constant term."
+msgstr "`coeffs[i]` を `vars[i]` と組にし、零係数は飛ばします。最後の変数を超える係数は定数項になります。"
+
+#: manual/api/core.md:50
+msgid "Adds `coeff` to the coefficient of `var` and removes the term when the sum is zero."
+msgstr "`var` の係数に `coeff` を加え、和が零になればその項を削除します。"
+
+#: manual/api/core.md:51
+msgid "A copy that does not share storage with the original."
+msgstr "元の式と記憶領域を共有しないコピー。"
+
+#: manual/api/core.md:52
+msgid "The stored coefficients in the order of the variable names."
+msgstr "変数名の順に並べた、保持されている係数。"
+
+#: manual/api/core.md:53
+msgid "One coefficient per entry of `vars`, with zero for a variable that does not occur."
+msgstr "`vars` の各要素に一つずつ対応する係数。現れない変数は零になります。"
+
+#: manual/api/core.md:55
+msgid "`Show` prints an expression such as `3.5x1 + 1.5x2 + -2x3`, and `-poly` negates every coefficient."
+msgstr "`Show` は `3.5x1 + 1.5x2 + -2x3` のような式を出力し、`-poly` はすべての係数の符号を反転します。"
+
+#: manual/api/core.md:57
+msgid "Objective functions"
+msgstr "目的関数"
+
+#: manual/api/core.md:61
+msgid "`Obj_func[V]` is an objective: a linear expression with the sense minimise or maximise."
+msgstr "`Obj_func[V]` は目的関数です。最小化または最大化の向きを持つ線形式です。"
+
+#: manual/api/core.md:75
+msgid "`Obj_func::new(sense)` creates an objective with an empty expression. The sense is `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"` or `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"` or `\"Maximize\"` for maximisation; any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` also sets the expression from coefficients, like `Poly::from_var_array`."
+msgstr "`Obj_func::new(sense)` は式が空の目的関数を作成します。向きは、最小化なら `\"min\"`、`\"Min\"`、`\"MIN\"`、`\"minimize\"`、`\"Minimize\"`、最大化なら `\"max\"`、`\"Max\"`、`\"MAX\"`、`\"maximize\"`、`\"Maximize\"` で、それ以外の文字列は中断（abort）します。`Obj_func::from_array(sense, coeffs, vars)` は、`Poly::from_var_array` と同様に係数から式も設定します。"
+
+#: manual/api/core.md:79
+msgid "A new objective with the same sense and the expression `poly`."
+msgstr "同じ向きで式が `poly` の新しい目的関数。"
+
+#: manual/api/core.md:80
+msgid "Adds a term to the expression in place."
+msgstr "式にその場で項を加えます。"
+
+#: manual/api/core.md:81
+msgid "`true` for a maximisation objective."
+msgstr "最大化の目的関数なら `true`。"
+
+#: manual/api/core.md:82
+msgid "The equivalent minimisation objective; a maximisation objective is negated."
+msgstr "等価な最小化の目的関数。最大化の目的関数は符号が反転されます。"
+
+#: manual/api/core.md:83
+msgid "The coefficients of `to_array`, padded with zeros to length `n + 1`, the width of a tableau row."
+msgstr "`to_array` の係数を、単体表の一行の幅である長さ `n + 1` まで零で埋めたもの。"
+
+#: manual/api/core.md:85
+msgid "`Show` prints the sense and the expression, for example `max  3.5x1 + 1.5x2 + -2x3`."
+msgstr "`Show` は向きと式を出力します（例：`max  3.5x1 + 1.5x2 + -2x3`）。"
+
+#: manual/api/core.md:87
+msgid "Constraints"
+msgstr "制約"
+
+#: manual/api/core.md:91
+msgid "`Constraint[V]` is the constraint set of a program: equalities `poly = b` and inequalities `poly <= b` or `poly >= b`."
+msgstr "`Constraint[V]` は問題の制約の集合です。等式 `poly = b` と不等式 `poly <= b` または `poly >= b` からなります。"
+
+#: manual/api/core.md:105
+msgid "`Constraint::from_array(eq_array~, ineq_array~, vars)` builds the set from rows of coefficients. An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is `\">=\"` or `\"<=\"`. Any other relation aborts."
+msgstr "`Constraint::from_array(eq_array~, ineq_array~, vars)` は係数の行から制約の集合を作ります。等式の行は `(coeffs, b)`、不等式の行は `(coeffs, relation, b)` で、`relation` は `\">=\"` または `\"<=\"` です。それ以外の関係は中断します。"
+
+#: manual/api/core.md:109
+msgid "The empty set."
+msgstr "空の集合。"
+
+#: manual/api/core.md:110
+msgid "Appends `poly = b`."
+msgstr "`poly = b` を追加します。"
+
+#: manual/api/core.md:111
+msgid "Appends `poly relation b`; `relation` should be `\">=\"` or `\"<=\"`."
+msgstr "`poly relation b` を追加します。`relation` は `\">=\"` または `\"<=\"` にしてください。"
+
+#: manual/api/core.md:112
+msgid "Replaces the equality at the 1-based position `i`; aborts when `i` is out of range."
+msgstr "1 から数えて `i` 番目の等式を置き換えます。`i` が範囲外なら中断します。"
+
+#: manual/api/core.md:113
+msgid "Replaces the inequality at the 1-based position `i`; aborts when `i` is out of range."
+msgstr "1 から数えて `i` 番目の不等式を置き換えます。`i` が範囲外なら中断します。"
+
+#: manual/api/core.md:114
+msgid "One row `[coefficients..., b]` per equality, with columns in the order of `vars`. Inequalities are left out, so call it on a program in standard form."
+msgstr "等式ごとに一行 `[coefficients..., b]` を返し、列は `vars` の順です。不等式は含まれないので、標準形の問題に対して呼び出してください。"
+
+#: manual/api/core.md:116
+msgid "`Show` prints the set after `s.t.`, one constraint per line."
+msgstr "`Show` は `s.t.` に続けて、一行に一つずつ制約を出力します。"
+
+#: manual/api/core.md:118
+msgid "Programs"
+msgstr "線形計画問題"
+
+#: manual/api/core.md:122
+msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the matrix built from them."
+msgstr "`Lp[V]` は線形計画問題です。変数、目的関数、制約、そしてそれらから作られる行列からなります。"
+
+#: manual/api/core.md:137
+msgid "Every function returns a new program and leaves its argument unchanged."
+msgstr "どの関数も新しい問題を返し、引数は変更しません。"
+
+#: manual/api/core.md:141
+msgid "A program with objective `obj`, variables `vars` and no constraints."
+msgstr "目的関数 `obj`、変数 `vars` を持ち、制約のない問題。"
+
+#: manual/api/core.md:142
+msgid "The program with its constraints replaced, as in `Constraint::from_array`."
+msgstr "`Constraint::from_array` と同じ方法で制約を置き換えた問題。"
+
+#: manual/api/core.md:143
+msgid "The program with new objective coefficients and the same sense."
+msgstr "目的関数の係数を新しくし、向きはそのままの問題。"
+
+#: manual/api/core.md:144
+msgid "A program from a matrix: row 0 without its last entry gives the objective, every other row `[a..., b]` gives the equality `a · x = b`."
+msgstr "行列から作る問題。最後の要素を除いた第 0 行が目的関数を、それ以外の各行 `[a..., b]` が等式 `a · x = b` を与えます。"
+
+#: manual/api/core.md:145
+msgid "The equivalent program in standard form: a minimisation objective, equality constraints only, and non-negative right-hand sides. Each inequality receives a slack or surplus variable `y1`, `y2`, ... appended to the variables."
+msgstr "等価な標準形の問題。目的関数は最小化、制約は等式のみ、右辺は非負です。各不等式にはスラック変数または余剰変数 `y1`、`y2`、... が与えられ、変数の末尾に追加されます。"
+
+#: manual/api/core.md:146
+msgid "The constraint coefficients $A$ of the program matrix."
+msgstr "問題行列の制約係数 $A$。"
+
+#: manual/api/core.md:147
+msgid "Row 0 of the program matrix without its last entry."
+msgstr "問題行列の第 0 行から最後の要素を除いたもの。"
+
+#: manual/api/core.md:148
+msgid "The right-hand sides $b$ of the program matrix."
+msgstr "問題行列の右辺 $b$。"
+
+#: manual/api/core.md:150
+msgid "The program matrix is built from the objective and the equality constraints, so the three accessors describe a program with inequalities only after `to_standard`. `Show` prints the objective, the constraints and every variable with its bounds."
+msgstr "問題行列は目的関数と等式制約から作られるため、不等式を含む問題をこの三つのアクセサが表すのは `to_standard` の後だけです。`Show` は目的関数、制約、そして各変数とその範囲を出力します。"
+
+#: manual/api/core.md:152
+msgid "Solving"
+msgstr "求解"
+
+#: manual/api/core.md:156
+msgid "`two_stage` solves a program in standard form with the two-phase simplex method."
+msgstr "`two_stage` は標準形の問題を二段階単体法で解きます。"
+
+#: manual/api/core.md:162
+msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, and the optimal value of the standard form, which is always a minimisation. For a program that maximises, the maximum is the negation of the returned value."
+msgstr "`to_standard` の結果に対して呼び出してください。追加された `y` 変数を含む標準形のすべての変数の値と、標準形の最適値を返します。標準形は常に最小化問題です。最大化の問題では、最大値は返された値の符号を反転したものです。"
+
+#: manual/api/core.md:164
+msgid "The solver aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints a message if it has not converged."
+msgstr "問題が実行不可能（第一段階が非零の人工目的関数で終わる）な場合と非有界な場合、ソルバーは中断します。単体法の各実行は 1000 回の反復で停止し、収束していなければメッセージを出力します。"
+
+#: manual/api/core.md:168
+msgid "`pivot` performs one Gauss–Jordan pivot of a tableau in place."
+msgstr "`pivot` は単体表に対して Gauss–Jordan のピボット操作をその場で一回行います。"
+
+#: manual/api/core.md:174
+msgid "`Lp::pivot(matrix, row, col)` divides row `row` by the pivot element and eliminates column `col` from every other row. It aborts when the position lies outside the matrix or the pivot element is zero."
+msgstr "`Lp::pivot(matrix, row, col)` は第 `row` 行をピボット要素で割り、他のすべての行から第 `col` 列を消去します。位置が行列の外にある場合やピボット要素が零の場合は中断します。"
+
+#: manual/api/core.md:178
+msgid "`simplex_iteration` runs the simplex method on a tableau in place."
+msgstr "`simplex_iteration` は単体表に対してその場で単体法を実行します。"
+
+#: manual/api/core.md:184
+msgid "Row 0 of the tableau is the objective row and the last column holds the right-hand sides. Each iteration enters the column with the most negative objective coefficient and leaves the row chosen by the minimum ratio test. The run stops when no objective coefficient is negative or after `max_iterations` iterations (1000 by default), and aborts when the program is unbounded. With `debug=true` it prints every pivot and the tableau after it."
+msgstr "単体表の第 0 行は目的行で、最後の列は右辺を保持します。各反復では目的係数が最も負である列を基底に入れ、最小比テストで選んだ行を基底から出します。負の目的係数がなくなるか、`max_iterations` 回（既定値 1000）反復すると停止し、問題が非有界なら中断します。`debug=true` を指定すると、各ピボットとその後の単体表を出力します。"
+
+#: manual/api/core.md:186
+msgid "`Lp::phase_1` and `Lp::phase_2`"
+msgstr "`Lp::phase_1` と `Lp::phase_2`"
+
+#: manual/api/core.md:188
+msgid "`phase_1` and `phase_2` are the two halves of `two_stage`."
+msgstr "`phase_1` と `phase_2` は `two_stage` の前半と後半です。"
+
+#: manual/api/core.md:195
+msgid "`Lp::phase_1(tableau, artificial_index)` takes a tableau extended with artificial variables, where `artificial_index[i]` is the column of the artificial variable of constraint `i`. It eliminates the artificial columns from the objective row, runs `simplex_iteration` and returns the tableau."
+msgstr "`Lp::phase_1(tableau, artificial_index)` は人工変数で拡張した単体表を受け取ります。`artificial_index[i]` は制約 `i` の人工変数の列です。目的行から人工変数の列を消去し、`simplex_iteration` を実行して単体表を返します。"
+
+#: manual/api/core.md:197
+msgid "`Lp::phase_2(vars, objective, tableau)` drops the artificial columns of the phase 1 tableau, restores the original `objective`, runs `simplex_iteration` again and returns the basic solution with the value in the objective row. It aborts when phase 1 did not reach zero, because the program then has no feasible solution."
+msgstr "`Lp::phase_2(vars, objective, tableau)` は第一段階の単体表から人工変数の列を除き、元の `objective` を戻して再び `simplex_iteration` を実行し、基底解と目的行の値を返します。第一段階が零に達しなかった場合、問題には実行可能解がないため中断します。"
+
+#: manual/api/core.md:199
+msgid "Numeric tolerance"
+msgstr "数値の許容誤差"
+
+#: manual/api/core.md:203
+msgid "`ApproximatelyZero` decides whether a value is zero for the purposes of the solver."
+msgstr "`ApproximatelyZero` は、ソルバーにとって値が零とみなせるかどうかを判定します。"
+
+#: manual/api/core.md:214
+msgid "An `Int` is zero only when it equals `0`; a `Double` is zero when its absolute value is below $10^{-15}$. `double_equal_to_zero(x)` calls `is_zero_eps(x)`."
+msgstr "`Int` は `0` に等しいときだけ零で、`Double` は絶対値が $10^{-15}$ 未満のとき零です。`double_equal_to_zero(x)` は `is_zero_eps(x)` を呼び出します。"
+
+#: manual/contributing.md:1
+msgid "Contribution guidelines"
+msgstr "貢献ガイドライン"
+
+#: manual/contributing.md:3
+msgid "To contributors"
+msgstr "貢献者の皆様へ"
+
+#: manual/contributing.md:5
+msgid "We warmly welcome developers familiar with linear programming and optimization libraries to join the project, contribute code, and share their valuable experiences. At the same time, we encourage beginners to learn linear programming methods by participating in development and improving documentation. In this project, we hope that both experienced developers and beginners can find contribution goals that interest them by reviewing the project's documentation, tables, and code examples."
+msgstr "線形計画法や最適化ライブラリに詳しい開発者の皆様の参加、コードの貢献、そして貴重な経験の共有を心より歓迎します。同時に、初心者の方には開発やドキュメントの改善に参加しながら線形計画法を学ぶことをお勧めします。経験豊富な開発者も初心者も、プロジェクトのドキュメント、表、コード例を通じて、興味のある貢献目標を見つけられることを願っています。"
+
+#: manual/contributing.md:7
+msgid "We sincerely thank all the developers who have contributed to this project. Whether through submitting code, improving documentation, or providing valuable feedback, every effort you make helps to make this project better. Your enthusiasm and wisdom in the development process continually drive the project forward, and bring more opportunities for collaboration within the community. We appreciate your support and dedication, and we look forward to achieving more together, driving this project toward an even brighter future!"
+msgstr "本プロジェクトに貢献してくださったすべての開発者の皆様に心より感謝申し上げます。コードの提出、ドキュメントの改善、貴重なフィードバックなど、皆様一人ひとりの努力がこのプロジェクトをより良いものにしています。開発における皆様の熱意と知恵がプロジェクトを前進させ続け、コミュニティに新たな協力の機会をもたらしています。皆様のご支援と献身に感謝するとともに、共にさらなる成果を上げ、このプロジェクトをより明るい未来へと導いていけることを楽しみにしています。"
+
+#: manual/contributing.md:9
+msgid "1. Code style"
+msgstr "1. コードスタイル"
+
+#: manual/contributing.md:11
+msgid "The project follows the formatting style enforced by the MoonBit Toolchain. Format your code automatically using the following command:"
+msgstr "本プロジェクトは MoonBit ツールチェインが採用するフォーマット規則に従う。以下のコマンドを実行してコードを自動でフォーマットすること。"
+
+#: manual/contributing.md:17
+msgid "Ensure that you run `moon fmt` before committing your code to maintain consistency."
+msgstr "コードの一貫性を保つために、コミット前に `moon fmt` を実行すること。"
+
+#: manual/contributing.md:19
+msgid "Alternatively, you can use the `ready_to_pr.sh` script to automatically format the code, run checks, generate test coverage files, and create `.mbti` files."
+msgstr "また、`ready_to_pr.sh` スクリプトを実行してコードのフォーマット、チェック、テストカバレッジファイルの生成、`.mbti` ファイルの生成を行うことも可能。"
+
+#: manual/contributing.md:21
+msgid "2. Naming conventions"
+msgstr "2. 名前の命名規則"
+
+#: manual/contributing.md:23
+msgid "2.1 Variable naming"
+msgstr "2.1 変数の命名"
+
+#: manual/contributing.md:25
+msgid "Use **lowercase letters with underscores** as separators (e.g., `my_var`)."
+msgstr "小文字とアンダースコア（ `_` ）を使用（例: `my_var`）。"
+
+#: manual/contributing.md:26
+msgid "Variable names should be descriptive and clearly indicate their purpose."
+msgstr "変数名は意味が明確で、用途が直感的に理解できるものにする。"
+
+#: manual/contributing.md:28
+msgid "2.2 Function naming"
+msgstr "2.2 関数の命名"
+
+#: manual/contributing.md:30
+msgid "Use **lowercase letters with underscores** as separators (e.g., `calc_total_price()`)."
+msgstr "小文字とアンダースコア（ `_` ）を使用（例: `calc_total_price()`）。"
+
+#: manual/contributing.md:31
+msgid "Function names should be concise and descriptive, clearly expressing their functionality."
+msgstr "関数名は簡潔かつ説明的にし、機能が明確に分かるようにする。"
+
+#: manual/contributing.md:33
+msgid "2.3 Struct and trait naming"
+msgstr "2.3 ストラクトとトレイトの命名"
+
+#: manual/contributing.md:35
+msgid "Use **PascalCase** (e.g., `MyStruct`, `MyTrait`)."
+msgstr "パスカルケース（PascalCase）を使用（例: `MyStruct`, `MyTrait`）。"
+
+#: manual/contributing.md:36
+msgid "Names should intuitively reflect the function or role of the struct or trait, avoiding overly abstract or non-descriptive names."
+msgstr "機能や役割を直感的に表す名前を使用し、抽象的すぎる名前は避ける。"
+
+#: manual/contributing.md:38
+msgid "2.4 Constant naming"
+msgstr "2.4 定数の命名"
+
+#: manual/contributing.md:40
+msgid "**Note:** In the MoonBit context, \"variables\" are typically referred to as \"bindings\" and are immutable by default unless marked with `mut`. Thus, there is no strict distinction between constant and variable naming."
+msgstr "**注意：** MoonBit では「変数」は通常「束縛（binding）」と呼ばれ、`mut` を付けない限り既定で不変です。そのため、定数と変数の命名に厳密な区別はありません。"
+
+#: manual/contributing.md:41
+msgid "Use **lowercase letters with underscores** as separators (e.g., `machine_dbl_epsilon`)."
+msgstr "小文字とアンダースコア（ `_` ）を使用（例: `machine_dbl_epsilon`）。"
+
+#: manual/contributing.md:42
+msgid "Prefix constants with a descriptive category where applicable (e.g., `machine_dbl_epsilon`, where `machine` indicates a machine-related constant)."
+msgstr "必要に応じてカテゴリーをプレフィックスとして付与（例: `machine_dbl_epsilon` は機械関連の定数）。"
+
+#: manual/contributing.md:43
+msgid "Constant names should be concise and descriptive to facilitate understanding."
+msgstr "分かりやすく、簡潔な名前を付ける。"
+
+#: manual/contributing.md:45
+msgid "2.5 Result Err construction and Err code"
+msgstr "2.5 結果エラーのエラーコードの設計"
+
+#: manual/contributing.md:47
+msgid "Use **uppercase letters with underscores** as separators (e.g., `E_MAX_ITER`)."
+msgstr "大文字とアンダースコア（ `_` ）を使用（例: `E_MAX_ITER`）。"
+
+#: manual/contributing.md:48
+msgid "Err codes should be prefixed with `E` to indicate an error-related construct."
+msgstr "エラーコードには `E` をプレフィックスとして付与。"
+
+#: manual/contributing.md:49
+msgid "Err codes should be concise and descriptive for easy comprehension."
+msgstr "短く分かりやすいエラーコードを心掛ける。"
+
+#: manual/contributing.md:51
+msgid "3. Comments"
+msgstr "3. コメント"
+
+#: manual/contributing.md:53
+msgid "**Conciseness**: Comments should be clear and to the point, avoiding unnecessary verbosity."
+msgstr "簡潔さ：冗長にならず、明確に記述する。"
+
+#: manual/contributing.md:54
+msgid "**Consistency**: Use uniform terminology and style across the codebase."
+msgstr "一貫性：コード全体で統一された用語とスタイルを使用する。"
+
+#: manual/contributing.md:55
+msgid "**Clarity**: Ensure comments are easy to understand, avoiding complex jargon or ambiguous wording."
+msgstr "明確さ：分かりやすい表現を用い、曖昧な表現や専門用語の多用を避ける。"
+
+#: manual/contributing.md:56
+msgid "**Accuracy**: Comments must accurately reflect the functionality and purpose of the code."
+msgstr "正確さ：コードの動作や目的を正しく反映する。"
+
+#: manual/contributing.md:57
+msgid "**Up-to-date**: Comments should be updated alongside code changes to maintain relevance."
+msgstr "最新状態の維持：コードの変更に応じてコメントを更新する。"
+
+#: manual/contributing.md:59
+msgid "Developers are encouraged to use MoonBit LSP’s AI-generated code comments to improve efficiency, but AI-generated comments should be reviewed to ensure correctness."
+msgstr "開発者は MoonBit LSP の AI によるコードコメント生成機能を活用できるが、AI が生成したコメントは必ずレビューし、正確性を確認すること。"
+
+#: manual/contributing.md:61
+msgid "4. File standards"
+msgstr "4. ファイルの規格"
+
+#: manual/contributing.md:63
+msgid "4.1 Folder naming"
+msgstr "4.1 フォルダ名の命名"
+
+#: manual/contributing.md:65
+msgid "Use **lowercase letters** for folder names."
+msgstr "小文字のみを使用。"
+
+#: manual/contributing.md:66
+msgid "Folder names should be concise, descriptive, and separated using underscores (`_`). Avoid numbers and special characters."
+msgstr "フォルダ名は簡潔で内容がわかるものにし、単語はアンダースコア（`_`）で区切ってください。数字や特殊文字は避けてください。"
+
+#: manual/contributing.md:68
+msgid "4.2 File organization"
+msgstr "4.2 ファイルの構成"
+
+#: manual/contributing.md:70
+msgid "Files should be organized based on functionality, with each file focusing on a specific feature. Use **lowercase letters with underscores** for file names."
+msgstr "ファイルは機能ごとに整理し、それぞれ特定の機能に焦点を当てる。ファイル名には**小文字とアンダースコア**を使用する。"
+
+#: manual/contributing.md:71
+msgid "File names should be descriptive and clearly indicate the core functionality they implement."
+msgstr "ファイル名は説明的にし、実装している中心的な機能を明確に示すものにする。"
+
+#: manual/contributing.md:73
+#: manual/contributing.md:89
+msgid "Examples:"
+msgstr "例："
+
+#: manual/contributing.md:75
+msgid "`constraint.mbt`: Implements the constraints of a linear program."
+msgstr "`constraint.mbt`：線形計画問題の制約を実装します。"
+
+#: manual/contributing.md:76
+msgid "`objfunc.mbt`: Implements objective functions."
+msgstr "`objfunc.mbt`：目的関数を実装します。"
+
+#: manual/contributing.md:78
+msgid "**Note:** Avoid overly generic or vague file names such as `utils.mbt`. Instead, ensure file names correspond to their function or module."
+msgstr "注意：`utils.mbt` のような汎用的すぎる名前は避け、機能を明確に表す名前を使用すること。"
+
+#: manual/contributing.md:80
+msgid "5. Commit guidelines"
+msgstr "5. コミット規則"
+
+#: manual/contributing.md:82
+msgid "5.1 Commit messages"
+msgstr "5.1 コミットメッセージ"
+
+#: manual/contributing.md:84
+msgid "Use the `ready_to_pr.sh` script before committing to format code, run checks, generate test coverage files, and create `.mbti` files."
+msgstr "`ready_to_pr.sh` スクリプトを実行し、コードフォーマット、チェック、テストカバレッジ生成、`.mbti` ファイル生成を行うこと。"
+
+#: manual/contributing.md:85
+msgid "Each commit should have a clear description of the changes made."
+msgstr "コミットごとに変更内容を明確に記述する。"
+
+#: manual/contributing.md:86
+msgid "Commit messages should be in **English**, concise, and precise."
+msgstr "コミットメッセージは英語で、簡潔かつ明確に記述する。"
+
+#: manual/contributing.md:87
+msgid "Use prefixes such as `fix:`, `feat:`, `refactor:`, and `doc:` to indicate the type of change."
+msgstr "`fix:`, `feat:`, `refactor:`, `doc:` などのプレフィックスを使用。"
+
+#: manual/contributing.md:98
+msgid "5.2 Commit frequency"
+msgstr "5.2 コミットの頻度"
+
+#: manual/contributing.md:100
+msgid "Keep commits small and focused on a single feature or fix."
+msgstr "コミットは小さく、一つの機能や修正に集中させる。"
+
+#: manual/contributing.md:101
+msgid "Avoid large, monolithic commits that include multiple unrelated changes."
+msgstr "複数の変更を一つの大きなコミットにまとめないこと。"
+
+#: manual/contributing.md:103
+msgid "6. Code review"
+msgstr "6. コードレビュー"
+
+#: manual/contributing.md:105
+msgid "If you are not a maintainer or collaborator, contact them before modifying dependencies or version numbers in `moon.mod.json`."
+msgstr "`moon.mod.json` の依存関係やバージョンを変更する前に、メンテナーまたはコラボレーターに確認すること。"
+
+#: manual/contributing.md:106
+msgid "All code submissions must undergo **code review**."
+msgstr "すべてのコードはコードレビューを受ける必要がある。"
+
+#: manual/contributing.md:107
+msgid "Code reviews should focus on code quality, style, performance, and security."
+msgstr "コードレビューでは、コードの品質、スタイル、パフォーマンス、セキュリティを重視する。"
+
+#: manual/contributing.md:108
+msgid "Reviewers should provide constructive feedback to improve the code."
+msgstr "レビュアーは建設的なフィードバックを提供し、コードの改善に努める。"
+
+#: manual/design/core.md:1
+msgid "core design"
+msgstr "core 設計"
+
+#: manual/design/core.md:3
+msgid "linear-program keeps variables, linear expressions, objectives, constraints and the solver in one package at `src`. This page explains how a program is represented and how it is solved."
+msgstr "linear-program は変数、線形式、目的関数、制約、ソルバーを `src` の一つのパッケージにまとめています。このページでは、問題の表現方法と解き方を説明します。"
+
+#: manual/design/core.md:5
+msgid "Representation"
+msgstr "表現"
+
+#: manual/design/core.md:7
+msgid "A program is described twice. The symbolic description is an objective (`Obj_func`) and a constraint set (`Constraint`), both built from linear expressions (`Poly`) over named variables. The numeric description is the program matrix: row 0 holds the objective coefficients, every other row holds one equality constraint, and the last column holds the right-hand sides."
+msgstr "問題は二通りに記述されます。記号的な記述は目的関数（`Obj_func`）と制約の集合（`Constraint`）で、どちらも名前付き変数上の線形式（`Poly`）から作られます。数値的な記述は問題行列で、第 0 行は目的関数の係数、それ以外の各行は等式制約を一つずつ、最後の列は右辺を保持します。"
+
+#: manual/design/core.md:9
+msgid "Every function that builds an `Lp` rebuilds the matrix from the symbolic description, and `Lp::from_matrix` goes the other way. A program can therefore be written either way and printed in readable form with `Show`."
+msgstr "`Lp` を作る関数はどれも記号的な記述から行列を作り直し、`Lp::from_matrix` はその逆を行います。そのため問題はどちらの方法でも書くことができ、`Show` で読みやすい形に出力できます。"
+
+#: manual/design/core.md:11
+msgid "A linear expression is a sorted map from variables to coefficients. Variables are identified and ordered by name alone, and zero coefficients are never stored, so adding a term that cancels an existing one removes it."
+msgstr "線形式は変数から係数への順序付き写像です。変数は名前だけで識別され並べられ、零係数は保持されないので、既存の項と打ち消し合う項を加えるとその項は削除されます。"
+
+#: manual/design/core.md:13
+msgid "Standard form"
+msgstr "標準形"
+
+#: manual/design/core.md:15
+msgid "The solver works on the standard form"
+msgstr "ソルバーは次の標準形を扱います。"
+
+#: manual/design/core.md:21
+msgid "`Lp::to_standard` produces it: a maximisation objective is negated, a constraint with a negative right-hand side is multiplied by $-1$, and every inequality receives its own slack or surplus variable, named `y1`, `y2`, ... in order. Variable bounds are kept for display, but the standard form assumes $x \\ge 0$ for every variable."
+msgstr "`Lp::to_standard` が標準形を作ります。最大化の目的関数は符号を反転し、右辺が負の制約には $-1$ を掛け、各不等式には `y1`、`y2`、... の順に名付けたスラック変数または余剰変数を一つずつ与えます。変数の範囲は表示のために保持されますが、標準形ではすべての変数について $x \\ge 0$ を仮定します。"
+
+#: manual/design/core.md:23
+msgid "Two-phase simplex"
+msgstr "二段階単体法"
+
+#: manual/design/core.md:25
+msgid "`Lp::two_stage` solves the standard form in two phases on a dense tableau."
+msgstr "`Lp::two_stage` は密な単体表の上で標準形を二段階で解きます。"
+
+#: manual/design/core.md:27
+msgid "Phase 1 adds an artificial variable to every row that has no unit column yet and minimises the sum of the artificial variables (`Lp::phase_1`). A non-zero optimum means that the program is infeasible."
+msgstr "第一段階では、まだ単位列を持たない各行に人工変数を加え、人工変数の和を最小化します（`Lp::phase_1`）。最適値が非零なら問題は実行不可能です。"
+
+#: manual/design/core.md:28
+msgid "Phase 2 drops the artificial columns, restores the original objective, eliminates the basic columns from the objective row and runs the simplex method again (`Lp::phase_2`)."
+msgstr "第二段階では人工変数の列を除き、元の目的関数を戻し、目的行から基底変数の列を消去して、再び単体法を実行します（`Lp::phase_2`）。"
+
+#: manual/design/core.md:30
+msgid "Both phases use `Lp::simplex_iteration`: Dantzig's rule picks the column with the most negative objective coefficient, the minimum ratio test picks the row, and `Lp::pivot` performs a Gauss–Jordan step. The steps are public so that a tableau can be examined or driven by hand."
+msgstr "どちらの段階も `Lp::simplex_iteration` を使います。Dantzig の規則で目的係数が最も負の列を選び、最小比テストで行を選び、`Lp::pivot` が Gauss–Jordan の一ステップを行います。これらのステップは公開されているので、単体表を調べたり手で進めたりできます。"
+
+#: manual/design/core.md:32
+msgid "Floating-point tableaux rarely produce exact zeros, so phase 2 compares values with `ApproximatelyZero`, which treats a `Double` below $10^{-15}$ in absolute value as zero."
+msgstr "浮動小数点の単体表で厳密な零が現れることはまれなので、第二段階では `ApproximatelyZero` で値を比較します。これは絶対値が $10^{-15}$ 未満の `Double` を零とみなします。"
+
+#: manual/design/core.md:34
+msgid "Boundaries"
+msgstr "対象外"
+
+#: manual/design/core.md:36
+msgid "Errors are not values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program."
+msgstr "エラーは値として返されません。実行不可能な問題や非有界な問題、零のピボット、不正な引数はプログラムを中断させます。"
+
+#: manual/design/core.md:37
+msgid "Variable bounds other than $x \\ge 0$ are not enforced."
+msgstr "$x \\ge 0$ 以外の変数の範囲は強制されません。"
+
+#: manual/design/core.md:38
+msgid "There is no anti-cycling rule beyond the iteration limit of 1000 per simplex run."
+msgstr "単体法の各実行に対する 1000 回の反復上限のほかに、巡回を防ぐ規則はありません。"
+
+#: manual/design/core.md:39
+msgid "The tableau is dense; the package does not exploit sparsity."
+msgstr "単体表は密であり、このパッケージは疎性を利用しません。"
+
+#: manual/design/core.md:40
+msgid "Integer and mixed-integer programming are out of scope."
+msgstr "整数計画法と混合整数計画法は対象外です。"
+
+#: manual/index.md:1
+msgid "linear-program"
+msgstr "linear-program"
+
+#: manual/index.md:3
+msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
+msgstr "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
+
+#: manual/index.md:5
+msgid "Introduction"
+msgstr "紹介"
+
+#: manual/index.md:7
+msgid "linear-program is a [**MoonBit**](https://www.moonbitlang.cn/) library for defining linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://luna-flow.github.io/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://luna-flow.github.io/en/linear-algebra/)."
+msgstr "linear-program は、線形計画問題を定義し二段階単体法で解くための [**MoonBit**](https://www.moonbitlang.cn/) ライブラリです。係数は [luna-generic](https://luna-flow.github.io/en/luna-generic/) の代数 trait に対してジェネリックであり、単体表には [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) の可変行列を使います。"
+
+#: manual/index.md:9
+msgid "Features"
+msgstr "機能"
+
+#: manual/index.md:11
+msgid "Decision variables, linear expressions, objective functions and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`)."
+msgstr "決定変数、線形式、目的関数、制約（`Variable`、`Poly`、`Obj_func`、`Constraint`）。"
+
+#: manual/index.md:12
+msgid "Programs built from coefficient arrays (`Lp::new`, `Lp::cons_from_Array`) or from a coefficient matrix (`Lp::from_matrix`)."
+msgstr "係数配列（`Lp::new`、`Lp::cons_from_Array`）または係数行列（`Lp::from_matrix`）からの問題の構築。"
+
+#: manual/index.md:13
+msgid "Conversion to standard form with slack and surplus variables (`Lp::to_standard`)."
+msgstr "スラック変数と余剰変数による標準形への変換（`Lp::to_standard`）。"
+
+#: manual/index.md:14
+msgid "A two-phase simplex solver (`Lp::two_stage`) whose steps are also public: `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1` and `Lp::phase_2`."
+msgstr "二段階単体法ソルバー（`Lp::two_stage`）。その各ステップ `Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2` も公開されています。"
+
+#: manual/index.md:16
+msgid "All public names live in the single package at `src`. The [API reference](api/core.md) lists them, the [design notes](design/core.md) explain the model and the solver, and the [tutorial](tutorial/core.md) solves two small programs from start to finish."
+msgstr "公開されている名前はすべて `src` にある唯一のパッケージに含まれます。[API リファレンス](api/core.md)はそれらを一覧にし、[設計ノート](design/core.md)はモデルとソルバーを説明し、[チュートリアル](tutorial/core.md)は小さな問題を二つ最初から最後まで解きます。"
+
+#: manual/index.md:18
+msgid "How to contribute"
+msgstr "貢献方法"
+
+#: manual/index.md:20
+msgid "We welcome contributions from the community, external developers, and individual enthusiasts! Whether you want to fix a bug, add a new feature, or improve the documentation, your participation is highly encouraged. To help you contribute smoothly, here are some simple steps:"
+msgstr "コミュニティ、外部開発者、個人の愛好者からの貢献を歓迎します！バグ修正、新機能の追加、ドキュメントの改善など、どんな形でも貢献をお待ちしています。スムーズに貢献できるよう、以下の簡単な手順をお知らせします。"
+
+#: manual/index.md:22
+msgid "Please choose a task from the current `issue` list that interests you. We recommend selecting something you are interested in or familiar with, as it will make it easier to get started and enjoy the process."
+msgstr "まず、現在の`issue`リストから、興味のあるタスクを選んでください。自分の興味や得意分野に関連した内容を選ぶことをお勧めします。そうすることで、よりスムーズに作業を始められ、プロセスを楽しむことができます。"
+
+#: manual/index.md:23
+msgid "Fork our project and create a new branch in your personal repository. This way, you can start working on your changes without affecting the main project."
+msgstr "プロジェクトをフォークし、個人リポジトリ内で新しいブランチを作成します。これで、メインプロジェクトに影響を与えることなく、変更作業を進めることができます。"
+
+#: manual/index.md:24
+msgid "During development, please adhere to the coding style and guidelines in the [contribution guidelines](contributing.md). If your changes involve new features or bug fixes, please make sure to perform thorough testing to ensure everything works as expected."
+msgstr "開発中は、[貢献ガイドライン](contributing.md)に記載されているコードスタイルやガイドラインに従ってください。新しい機能追加やバグ修正が含まれている場合は、十分なテストを実施し、すべてが正常に動作することを確認してください。"
+
+#: manual/index.md:25
+msgid "Once you're done, submit your PR and provide a clear description of your changes to help us understand the modifications you've made. This will help us review and merge your code more quickly."
+msgstr "作業が完了したら、PR を提出し、行った変更の明確な説明を提供してください。これにより、コードレビューとマージがスムーズに進みます。"
+
+#: manual/index.md:26
+msgid "We will review your PR and may suggest improvements to ensure code quality. After approval, your contributions will be merged into the main branch."
+msgstr "PR をレビューし、コード品質を確保するために改善案を提案することがあります。レビューが完了次第、あなたの貢献をメインブランチにマージします。"
+
+#: manual/index.md:28
+msgid "Thank you again for your participation and contributions! Every effort helps make this project better. We look forward to seeing your great code!"
+msgstr "再度、貢献していただきありがとうございます！皆様の努力が、このプロジェクトをより良くしていきます。あなたの素晴らしいコードを楽しみにしています！"
+
+#: manual/tutorial/core.md:1
+msgid "core tutorial"
+msgstr "core チュートリアル"
+
+#: manual/tutorial/core.md:3
+msgid "This tutorial solves two small linear programs: one written with coefficient arrays and one written as a matrix. The examples are taken from the tests in [`src/linequest.mbt`](../../../src/linequest.mbt) and run inside the package; from another package, prefix the names with the alias under which you import linear-program."
+msgstr "このチュートリアルでは小さな線形計画問題を二つ解きます。一つは係数配列で、もう一つは行列で書きます。例は [`src/linequest.mbt`](../../../src/linequest.mbt) のテストから取ったもので、パッケージ内部で実行されます。別のパッケージから使う場合は、linear-program をインポートしたときの別名を名前の前に付けてください。"
+
+#: manual/tutorial/core.md:5
+msgid "Defining a program from arrays"
+msgstr "配列による問題の定義"
+
+#: manual/tutorial/core.md:7
+msgid "A program is defined in five steps:"
+msgstr "問題は次の五つのステップで定義します。"
+
+#: manual/tutorial/core.md:9
+msgid "define the variables;"
+msgstr "変数を定義する。"
+
+#: manual/tutorial/core.md:10
+msgid "define the objective function;"
+msgstr "目的関数を定義する。"
+
+#: manual/tutorial/core.md:11
+msgid "define the equality constraints;"
+msgstr "等式制約を定義する。"
+
+#: manual/tutorial/core.md:12
+msgid "define the inequality constraints;"
+msgstr "不等式制約を定義する。"
+
+#: manual/tutorial/core.md:13
+msgid "combine them into a linear program."
+msgstr "それらを組み合わせて線形計画問題にする。"
+
+#: manual/tutorial/core.md:30
+msgid "Each equality row is `(coefficients, b)` and each inequality row is `(coefficients, relation, b)` with `\">=\"` or `\"<=\"` as the relation."
+msgstr "等式の各行は `(coefficients, b)`、不等式の各行は `(coefficients, relation, b)` で、関係には `\">=\"` または `\"<=\"` を使います。"
+
+#: manual/tutorial/core.md:32
+msgid "Solving a maximisation problem"
+msgstr "最大化問題を解く"
+
+#: manual/tutorial/core.md:34
+msgid "Maximise $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$ and $x_1 + 3x_2 \\le 10$:"
+msgstr "$2x_1 + x_2 \\le 12$ および $x_1 + 3x_2 \\le 10$ のもとで $3x_1 + 4x_2$ を最大化します。"
+
+#: manual/tutorial/core.md:51
+msgid "`to_standard` adds the slack variables `y1` and `y2`, so the solution has four entries: $x_1 = 5.2$, $x_2 = 1.6$ and both slacks zero. The standard form minimises $-3x_1 - 4x_2$, so the maximum of the original objective is the negated value, $22$."
+msgstr "`to_standard` がスラック変数 `y1` と `y2` を加えるので、解は四つの要素 $x_1 = 5.2$、$x_2 = 1.6$、そして零の二つのスラックからなります。標準形は $-3x_1 - 4x_2$ を最小化するので、元の目的関数の最大値は返された値の符号を反転した $22$ です。"
+
+#: manual/tutorial/core.md:53
+msgid "Defining a program as a matrix"
+msgstr "行列による問題の定義"
+
+#: manual/tutorial/core.md:55
+msgid "When every constraint is an equality, the whole program fits in one matrix. Row 0 holds the objective coefficients and every other row holds the coefficients and the right-hand side of one constraint. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
+msgstr "すべての制約が等式であれば、問題全体を一つの行列に収められます。第 0 行は目的関数の係数を、それ以外の各行は一つの制約の係数と右辺を保持します。次の問題は $x_1 + 2x_2 + 3x_3 = 10$ および $2x_1 + x_2 + x_3 = 8$ のもとで $-x_1 - 2x_2 - 3x_3$ を最小化します。"
+
+#: manual/tutorial/core.md:74
+msgid "The result is the pair of the variable values and the optimal value: $x = (2, 4, 0)$ with minimum $-10$, up to rounding."
+msgstr "結果は変数の値と最適値の組で、丸め誤差を除けば $x = (2, 4, 0)$、最小値は $-10$ です。"
+
+#: manual/tutorial/core.md:76
+msgid "Next steps"
+msgstr "次のステップ"
+
+#: manual/tutorial/core.md:78
+msgid "The [API reference](../api/core.md) lists every function used here and the lower-level steps `Lp::phase_1`, `Lp::phase_2` and `Lp::simplex_iteration`. The [design notes](../design/core.md) explain the standard form and the two phases."
+msgstr "[API リファレンス](../api/core.md)には、ここで使ったすべての関数と、より低レベルなステップ `Lp::phase_1`、`Lp::phase_2`、`Lp::simplex_iteration` が載っています。[設計ノート](../design/core.md)では標準形と二つの段階を説明しています。"
+
+#~ msgid "Table of Contents"
+#~ msgstr "目次"
+
+#, fuzzy
+#~ msgid "[Code Style](#1-code-style)"
+#~ msgstr "[コードスタイル](#1-コードスタイル)"
+
+#, fuzzy
+#~ msgid "[Naming Conventions](#2-naming-conventions) 2.1 [Variable Naming](#21-variable-naming) 2.2 [Function Naming](#22-function-naming) 2.3 [Struct and Trait Naming](#23-struct-and-trait-naming) 2.4 [Constant Naming](#24-constant-naming) 2.5 [Result Err Construction and Err Code](#25-result-err-construction-and-err-code)"
+#~ msgstr "[名前の命名規則](#2-名前の命名規則) 2.1 [変数の命名](#21-変数の命名) 2.2 [関数の命名](#22-関数の命名) 2.3 [ストラクトとトレイトの命名](#23-ストラクトとトレイトの命名) 2.4 [定数の命名](#24-定数の命名) 2.5 [結果エラーのエラーコードの設計](#25-結果エラーのエラーコードの設計)"
+
+#, fuzzy
+#~ msgid "[Comments](#3-comments)"
+#~ msgstr "[コメント](#3-コメント)"
+
+#, fuzzy
+#~ msgid "[File Standards](#4-file-standards) 4.1 [Folder Naming](#41-folder-naming) 4.2 [File Organization](#42-file-organization)"
+#~ msgstr "[ファイルの規格](#4-ファイルの規格) 4.1[フォルダ名の命名](#41-フォルダ名の命名) 4.2[ファイルの構成](#42-ファイルの構成)"
+
+#, fuzzy
+#~ msgid "[Commit Guidelines](#5-commit-guidelines) 5.1 [Commit Messages](#51-commit-messages) 5.2 [Commit Frequency](#52-commit-frequency)"
+#~ msgstr "[コミット規則](#5-コミット規則) 5.1[コミットメッセージ](#51-コミットメッセージ) 5.2[コミットの頻度](#52-コミットの頻度)"
+
+#, fuzzy
+#~ msgid "[Code Review](#6-code-review)"
+#~ msgstr "[コードレビュー](#6-コードレビュー)"
+
+#~ msgid "For differentiation-related functionality: `diff`"
+#~ msgstr "微分関連の機能：`diff`"
+
+#~ msgid "For derivative-related functionality: `deriv`"
+#~ msgstr "導関数関連の機能：`deriv`"
+
+#~ msgid "`gauss_kronrod.mbt`: Implements Gaussian quadrature with Kronrod extension."
+#~ msgstr "`gauss_kronrod.mbt`: ガウス求積法（クロンスロッド拡張）を実装。"
+
+#~ msgid "`adaptive_quadrature_gk.mbt`: Implements adaptive quadrature using Gaussian quadrature with Kronrod extension."
+#~ msgstr "`adaptive_quadrature_gk.mbt`: ガウス求積法（クロンスロッド拡張）を用いた適応型求積法を実装。"
+
+#~ msgid "core is part of Luna-Flow/linear-program. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+#~ msgstr "core は Luna-Flow/linear-program の一部です。このページでは、現在のブランチで実装されている公開型、コンストラクタ、関数、trait、および可観測セマンティクスを記述します。"
+
+#~ msgid "Scope"
+#~ msgstr "範囲"
+
+#~ msgid "Source boundary: `src`"
+#~ msgstr "ソース境界: `src`"
+
+#~ msgid "Audience: package users, integrators, and maintainers who need the exported contract"
+#~ msgstr "想定読者: 公開契約に依存する利用者、統合担当者、保守者"
+
+#~ msgid "Status: active"
+#~ msgstr "状態: active"
+
+#~ msgid "Public Contract"
+#~ msgstr "公開契約"
+
+#~ msgid "Describe only exported behavior that exists today."
+#~ msgstr "今日存在する公開挙動だけを記述する。"
+
+#~ msgid "Call out backend or subtype differences when they are observable."
+#~ msgstr "バックエンドや実行経路に可観測差異がある場合は明記する。"
+
+#~ msgid "Keep naming, argument ordering, and error semantics aligned with sibling modules when possible."
+#~ msgstr "可能な限り、兄弟モジュールと命名・引数順・エラー意味論をそろえる。"
+
+#~ msgid "Documentation Standard"
+#~ msgstr "ドキュメント標準"
+
+#~ msgid "This repository's documentation must describe the real implementation on the current branch for Luna-Flow/linear-program. It should stay aligned with the exported surface, repository layout, and release narrative."
+#~ msgstr "Luna-Flow/linear-program のドキュメントは、現在のブランチに存在する実装だけを記述し、公開面・リポジトリ構成・リリース叙述と常に整合していなければなりません。"
+
+#~ msgid "Provide `README.md`, `doc_standard.md`, and structured module or subsystem documents for every supported locale."
+#~ msgstr "各対応言語で `README.md`、`doc_standard.md`、モジュールまたはサブシステム文書をそろえる。"
+
+#~ msgid "Document only APIs, workflows, and design decisions that exist in the current branch."
+#~ msgstr "現在のブランチに存在しない API や運用手順は書かない。"
+
+#~ msgid "Keep the directory layout aligned with real package or subsystem boundaries."
+#~ msgstr "ディレクトリ構成は実際のパッケージ境界またはサブシステム境界に合わせる。"
+
+#~ msgid "Each module or subsystem directory must contain `api.md`, `tutorial.md`, and `design.md`."
+#~ msgstr "各モジュールまたはサブシステム配下に `api.md`、`tutorial.md`、`design.md` を置く。"
+
+#~ msgid "Use cross-links between related mutable/immutable, runtime/frontend, or spec/implementation areas when semantics differ."
+#~ msgstr "可観測な差異がある場合は、関連ページを相互参照しつつ明示する。"
+
+#~ msgid "Responsibilities"
+#~ msgstr "責務"
+
+#~ msgid "Keep the code and docs aligned around `src`."
+#~ msgstr "`src` を軸にコードと文書の整合を保つ。"
+
+#~ msgid "Preserve the real execution model instead of smoothing over important internal differences."
+#~ msgstr "重要な内部差異を隠さず、実際の実行モデルをそのまま説明する。"
+
+#~ msgid "Note extension points, invariants, and limitations that maintainers must keep stable."
+#~ msgstr "保守者が維持すべき拡張点、不変条件、制約を書く。"
+
+#~ msgid "Maintenance Notes"
+#~ msgstr "保守メモ"
+
+#~ msgid "Update this page whenever the module boundary, core algorithm, or observable semantics change."
+#~ msgstr "モジュール境界、主要アルゴリズム、可観測意味論が変わったら更新する。"
+
+#~ msgid "If the module is intentionally incomplete, say so here instead of documenting speculative APIs."
+#~ msgstr "未完成なモジュールなら、その事実を明記し、未来の API を捏造しない。"
+
+#~ msgid "Contents"
+#~ msgstr "目次"
+
+#, fuzzy
+#~ msgid "[Introduction](#introduction)"
+#~ msgstr "[紹介](#紹介)"
+
+#, fuzzy
+#~ msgid "[Feature List](#feature-list)"
+#~ msgstr "[機能一覧](#機能一覧)"
+
+#, fuzzy
+#~ msgid "[How to Contribute](#how-to-contribute)"
+#~ msgstr "[貢献方法](#貢献方法)"
+
+#, fuzzy
+#~ msgid "This is a linear algebra library written in [**MoonBit**](https://www.moonbitlang.cn/), designed to fill the gap in the MoonBit ecosystem for scientific computing."
+#~ msgstr "これは[**MoonBit**](https://www.moonbitlang.com/)で開発された線形代数ライブラリであり、MoonBitエコシステムにおける科学計算のギャップを埋めることを目的としています。"
+
+#~ msgid "The project will offer high-performance implementations of foundational linear algebra methods, based on one-dimensional arrays, supporting both numerical and symbolic computation."
+#~ msgstr "一次元配列を基盤とした基礎的な線形代数手法の高性能な実装を提供し、数値計算とシンボリック計算の両方をサポートします。"
+
+#~ msgid "**_Starting from the first official release, both English and Chinese documentation will be fully maintained. Japanese documentation may be added in future updates._**"
+#~ msgstr "**_最初の正式リリース以降、英語および中国語のドキュメントは引き続き完全に維持され、今後の更新で日本語ドキュメントが追加される可能性もあります。_**"
+
+#~ msgid "Feature List"
+#~ msgstr "機能一覧"
+
+#, fuzzy
+#~ msgid "**[Latest]** 25.01.29: Mutable Matrix implementation"
+#~ msgstr "**[最新]** 25.01.31: 非適応積分の実装（Gauss 求積法および Kronrod 拡張を使用）"
+
+#, fuzzy
+#~ msgid "**25.01.29**: Mutable Vector implementation"
+#~ msgstr "**25.01.13**: 適応積分の実装（Gauss 求積法および Kronrod 拡張を使用）"
+
+#~ msgid "Use this page as the starting point for practical workflows around this module. core in Luna-Flow/linear-program."
+#~ msgstr "このページは、このモジュールの実用的な利用フローを説明する出発点です。 Luna-Flow/linear-program の core を対象にします。"
+
+#~ msgid "Suggested Flow"
+#~ msgstr "推奨フロー"
+
+#~ msgid "Read the repository README and the core API reference."
+#~ msgstr "まずリポジトリ README と core の API 文書を読む。"
+
+#~ msgid "Start from the constructors or entry points under `src`."
+#~ msgstr "`src` にあるコンストラクタまたは入口から始める。"
+
+#~ msgid "Validate behavior with the existing tests or examples before depending on edge-case semantics."
+#~ msgstr "境界挙動へ依存する前に、既存のテストや例で意味論を確認する。"
+
+#~ msgid "Practical Guidance"
+#~ msgstr "実践ガイド"
+
+#~ msgid "Prefer the documented entry points over internal helpers."
+#~ msgstr "内部ヘルパーではなく、文書化された入口を優先する。"
+
+#~ msgid "Record runtime, numeric, or proof-state assumptions explicitly in downstream code."
+#~ msgstr "ランタイム・数値・証明状態の前提を下流コードに明示する。"

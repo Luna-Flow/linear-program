@@ -1,0 +1,906 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Luna-Flow documentation\n"
+"Report-Msgid-Bugs-To: https://github.com/Luna-Flow\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: conf.json:summary
+msgid "A MoonBit library for defining linear programs and solving them with the two-phase simplex method."
+msgstr "一个用于定义线性规划并以两阶段单纯形法求解的 MoonBit 库。"
+
+#: manual/api/core.md:1
+msgid "core API"
+msgstr "core API"
+
+#: manual/api/core.md:3
+msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/linear-program.mbti`](../../../src/linear-program.mbti). The coefficient type `V` is generic; the solver needs the traits listed in each signature, and `Double` satisfies all of them."
+msgstr "`src` 下的包构成了 linear-program 的全部公开接口，其接口文件为 [`src/linear-program.mbti`](../../../src/linear-program.mbti)。系数类型 `V` 是泛型的；求解器需要各签名中列出的 trait，`Double` 满足所有这些 trait。"
+
+#: manual/api/core.md:5
+msgid "Matrices in this package are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://luna-flow.github.io/en/linear-algebra/). Row 0 of a program matrix holds the objective coefficients, the other rows hold one equality constraint each, and the last column holds the right-hand sides."
+msgstr "本包中的矩阵是 [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) 中 `mutable` 包的 `@mutable.Matrix[V]`。规划矩阵的第 0 行存放目标函数系数，其余每行存放一个等式约束，最后一列存放右端项。"
+
+#: manual/api/core.md:7
+msgid "Variables"
+msgstr "变量"
+
+#: manual/api/core.md:11
+msgid "`Variable` is a named decision variable with a lower and an upper bound."
+msgstr "`Variable` 是带有下界和上界的具名决策变量。"
+
+#: manual/api/core.md:23
+msgid "`Variable::new(name, low, up)` creates a variable. Two variables are equal when their names are equal, and they are ordered by name. `Show` prints the name; `show_all` prints the name with its bounds, for example `x1 : [0, 100]`. `One::one()` is the unnamed variable that `Poly::from_var_array` uses for a constant term."
+msgstr "`Variable::new(name, low, up)` 创建一个变量。两个变量的名称相同即视为相等，并按名称排序。`Show` 输出名称；`show_all` 输出名称及其上下界，例如 `x1 : [0, 100]`。`One::one()` 是一个无名变量，`Poly::from_var_array` 用它表示常数项。"
+
+#: manual/api/core.md:25
+msgid "The bounds are stored and printed, but the solver does not read them: every variable is treated as non-negative. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
+msgstr "上下界会被保存并输出，但求解器并不读取它们：所有变量都按非负处理。`Lp::to_standard` 会把它添加的变量命名为 `y1`、`y2`、……，因此请勿将这些名称用于自己的变量。"
+
+#: manual/api/core.md:27
+msgid "Linear expressions"
+msgstr "线性表达式"
+
+#: manual/api/core.md:31
+msgid "`Poly[V]` is a linear expression: a map from variables to non-zero coefficients, kept in the order of the variable names."
+msgstr "`Poly[V]` 是线性表达式：从变量到非零系数的映射，按变量名称排序保存。"
+
+#: manual/api/core.md:46
+#: manual/api/core.md:77
+#: manual/api/core.md:107
+#: manual/api/core.md:139
+msgid "Function"
+msgstr "函数"
+
+#: manual/api/core.md:46
+#: manual/api/core.md:77
+#: manual/api/core.md:107
+#: manual/api/core.md:139
+msgid "Meaning"
+msgstr "含义"
+
+#: manual/api/core.md:48
+msgid "The empty expression."
+msgstr "空表达式。"
+
+#: manual/api/core.md:49
+msgid "Pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient beyond the last variable becomes the constant term."
+msgstr "将 `coeffs[i]` 与 `vars[i]` 配对并跳过零系数。超出最后一个变量的系数成为常数项。"
+
+#: manual/api/core.md:50
+msgid "Adds `coeff` to the coefficient of `var` and removes the term when the sum is zero."
+msgstr "将 `coeff` 加到 `var` 的系数上，和为零时删除该项。"
+
+#: manual/api/core.md:51
+msgid "A copy that does not share storage with the original."
+msgstr "与原对象不共享存储的副本。"
+
+#: manual/api/core.md:52
+msgid "The stored coefficients in the order of the variable names."
+msgstr "按变量名称顺序排列的已存储系数。"
+
+#: manual/api/core.md:53
+msgid "One coefficient per entry of `vars`, with zero for a variable that does not occur."
+msgstr "`vars` 中每一项对应一个系数，未出现的变量记为零。"
+
+#: manual/api/core.md:55
+msgid "`Show` prints an expression such as `3.5x1 + 1.5x2 + -2x3`, and `-poly` negates every coefficient."
+msgstr "`Show` 输出形如 `3.5x1 + 1.5x2 + -2x3` 的表达式，`-poly` 对每个系数取负。"
+
+#: manual/api/core.md:57
+msgid "Objective functions"
+msgstr "目标函数"
+
+#: manual/api/core.md:61
+msgid "`Obj_func[V]` is an objective: a linear expression with the sense minimise or maximise."
+msgstr "`Obj_func[V]` 是目标函数：带有最小化或最大化方向的线性表达式。"
+
+#: manual/api/core.md:75
+msgid "`Obj_func::new(sense)` creates an objective with an empty expression. The sense is `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"` or `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"` or `\"Maximize\"` for maximisation; any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` also sets the expression from coefficients, like `Poly::from_var_array`."
+msgstr "`Obj_func::new(sense)` 创建一个表达式为空的目标函数。最小化的方向写作 `\"min\"`、`\"Min\"`、`\"MIN\"`、`\"minimize\"` 或 `\"Minimize\"`，最大化写作 `\"max\"`、`\"Max\"`、`\"MAX\"`、`\"maximize\"` 或 `\"Maximize\"`；其他字符串会导致中止。`Obj_func::from_array(sense, coeffs, vars)` 还会像 `Poly::from_var_array` 一样由系数设置表达式。"
+
+#: manual/api/core.md:79
+msgid "A new objective with the same sense and the expression `poly`."
+msgstr "方向相同、表达式为 `poly` 的新目标函数。"
+
+#: manual/api/core.md:80
+msgid "Adds a term to the expression in place."
+msgstr "原地向表达式添加一项。"
+
+#: manual/api/core.md:81
+msgid "`true` for a maximisation objective."
+msgstr "最大化目标时为 `true`。"
+
+#: manual/api/core.md:82
+msgid "The equivalent minimisation objective; a maximisation objective is negated."
+msgstr "等价的最小化目标函数；最大化目标会被取负。"
+
+#: manual/api/core.md:83
+msgid "The coefficients of `to_array`, padded with zeros to length `n + 1`, the width of a tableau row."
+msgstr "`to_array` 的系数，用零补齐到长度 `n + 1`，即单纯形表一行的宽度。"
+
+#: manual/api/core.md:85
+msgid "`Show` prints the sense and the expression, for example `max  3.5x1 + 1.5x2 + -2x3`."
+msgstr "`Show` 输出方向与表达式，例如 `max  3.5x1 + 1.5x2 + -2x3`。"
+
+#: manual/api/core.md:87
+msgid "Constraints"
+msgstr "约束"
+
+#: manual/api/core.md:91
+msgid "`Constraint[V]` is the constraint set of a program: equalities `poly = b` and inequalities `poly <= b` or `poly >= b`."
+msgstr "`Constraint[V]` 是线性规划的约束集合：等式 `poly = b` 以及不等式 `poly <= b` 或 `poly >= b`。"
+
+#: manual/api/core.md:105
+msgid "`Constraint::from_array(eq_array~, ineq_array~, vars)` builds the set from rows of coefficients. An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is `\">=\"` or `\"<=\"`. Any other relation aborts."
+msgstr "`Constraint::from_array(eq_array~, ineq_array~, vars)` 由系数行构造约束集合。等式行为 `(coeffs, b)`；不等式行为 `(coeffs, relation, b)`，其中 `relation` 为 `\">=\"` 或 `\"<=\"`。其他关系符会导致中止。"
+
+#: manual/api/core.md:109
+msgid "The empty set."
+msgstr "空集合。"
+
+#: manual/api/core.md:110
+msgid "Appends `poly = b`."
+msgstr "追加 `poly = b`。"
+
+#: manual/api/core.md:111
+msgid "Appends `poly relation b`; `relation` should be `\">=\"` or `\"<=\"`."
+msgstr "追加 `poly relation b`；`relation` 应为 `\">=\"` 或 `\"<=\"`。"
+
+#: manual/api/core.md:112
+msgid "Replaces the equality at the 1-based position `i`; aborts when `i` is out of range."
+msgstr "替换从 1 开始计数的第 `i` 个等式；`i` 越界时中止。"
+
+#: manual/api/core.md:113
+msgid "Replaces the inequality at the 1-based position `i`; aborts when `i` is out of range."
+msgstr "替换从 1 开始计数的第 `i` 个不等式；`i` 越界时中止。"
+
+#: manual/api/core.md:114
+msgid "One row `[coefficients..., b]` per equality, with columns in the order of `vars`. Inequalities are left out, so call it on a program in standard form."
+msgstr "每个等式对应一行 `[coefficients..., b]`，列按 `vars` 的顺序排列。不等式不会包含在内，因此应对标准形的线性规划调用它。"
+
+#: manual/api/core.md:116
+msgid "`Show` prints the set after `s.t.`, one constraint per line."
+msgstr "`Show` 在 `s.t.` 之后输出约束集合，每行一个约束。"
+
+#: manual/api/core.md:118
+msgid "Programs"
+msgstr "线性规划"
+
+#: manual/api/core.md:122
+msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the matrix built from them."
+msgstr "`Lp[V]` 是一个线性规划：包括变量、目标函数、约束以及由它们构造的矩阵。"
+
+#: manual/api/core.md:137
+msgid "Every function returns a new program and leaves its argument unchanged."
+msgstr "每个函数都返回一个新的线性规划，不修改其参数。"
+
+#: manual/api/core.md:141
+msgid "A program with objective `obj`, variables `vars` and no constraints."
+msgstr "目标函数为 `obj`、变量为 `vars` 且没有约束的线性规划。"
+
+#: manual/api/core.md:142
+msgid "The program with its constraints replaced, as in `Constraint::from_array`."
+msgstr "约束被替换后的线性规划，替换方式同 `Constraint::from_array`。"
+
+#: manual/api/core.md:143
+msgid "The program with new objective coefficients and the same sense."
+msgstr "目标函数系数更新而方向不变的线性规划。"
+
+#: manual/api/core.md:144
+msgid "A program from a matrix: row 0 without its last entry gives the objective, every other row `[a..., b]` gives the equality `a · x = b`."
+msgstr "由矩阵构造的线性规划：去掉最后一项的第 0 行给出目标函数，其余每行 `[a..., b]` 给出等式 `a · x = b`。"
+
+#: manual/api/core.md:145
+msgid "The equivalent program in standard form: a minimisation objective, equality constraints only, and non-negative right-hand sides. Each inequality receives a slack or surplus variable `y1`, `y2`, ... appended to the variables."
+msgstr "等价的标准形线性规划：最小化目标、仅含等式约束、右端项非负。每个不等式会得到一个松弛或剩余变量 `y1`、`y2`、……，并追加到变量列表末尾。"
+
+#: manual/api/core.md:146
+msgid "The constraint coefficients $A$ of the program matrix."
+msgstr "规划矩阵中的约束系数 $A$。"
+
+#: manual/api/core.md:147
+msgid "Row 0 of the program matrix without its last entry."
+msgstr "规划矩阵去掉最后一项的第 0 行。"
+
+#: manual/api/core.md:148
+msgid "The right-hand sides $b$ of the program matrix."
+msgstr "规划矩阵的右端项 $b$。"
+
+#: manual/api/core.md:150
+msgid "The program matrix is built from the objective and the equality constraints, so the three accessors describe a program with inequalities only after `to_standard`. `Show` prints the objective, the constraints and every variable with its bounds."
+msgstr "规划矩阵由目标函数和等式约束构造，因此对于含不等式的线性规划，这三个访问函数只有在 `to_standard` 之后才能完整描述它。`Show` 输出目标函数、约束以及每个变量及其上下界。"
+
+#: manual/api/core.md:152
+msgid "Solving"
+msgstr "求解"
+
+#: manual/api/core.md:156
+msgid "`two_stage` solves a program in standard form with the two-phase simplex method."
+msgstr "`two_stage` 以两阶段单纯形法求解标准形线性规划。"
+
+#: manual/api/core.md:162
+msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, and the optimal value of the standard form, which is always a minimisation. For a program that maximises, the maximum is the negation of the returned value."
+msgstr "请对 `to_standard` 的结果调用它。它返回标准形中所有变量（包括添加的 `y` 变量）的取值，以及标准形的最优值，而标准形总是最小化问题。对于最大化问题，最大值等于返回值取负。"
+
+#: manual/api/core.md:164
+msgid "The solver aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints a message if it has not converged."
+msgstr "当线性规划不可行（第一阶段结束时人工目标非零）或无界时，求解器会中止。每次单纯形运行最多迭代 1000 次，若仍未收敛则输出一条提示信息。"
+
+#: manual/api/core.md:168
+msgid "`pivot` performs one Gauss–Jordan pivot of a tableau in place."
+msgstr "`pivot` 原地对单纯形表执行一次 Gauss–Jordan 主元变换。"
+
+#: manual/api/core.md:174
+msgid "`Lp::pivot(matrix, row, col)` divides row `row` by the pivot element and eliminates column `col` from every other row. It aborts when the position lies outside the matrix or the pivot element is zero."
+msgstr "`Lp::pivot(matrix, row, col)` 将第 `row` 行除以主元，并从其他各行中消去第 `col` 列。位置超出矩阵范围或主元为零时中止。"
+
+#: manual/api/core.md:178
+msgid "`simplex_iteration` runs the simplex method on a tableau in place."
+msgstr "`simplex_iteration` 原地在单纯形表上运行单纯形法。"
+
+#: manual/api/core.md:184
+msgid "Row 0 of the tableau is the objective row and the last column holds the right-hand sides. Each iteration enters the column with the most negative objective coefficient and leaves the row chosen by the minimum ratio test. The run stops when no objective coefficient is negative or after `max_iterations` iterations (1000 by default), and aborts when the program is unbounded. With `debug=true` it prints every pivot and the tableau after it."
+msgstr "单纯形表的第 0 行是目标行，最后一列存放右端项。每次迭代选择目标系数最小（最负）的列入基，并按最小比值检验选出离基行。当目标系数均非负或迭代达到 `max_iterations` 次（默认 1000）时停止；线性规划无界时中止。设置 `debug=true` 时，会输出每次主元变换及变换后的单纯形表。"
+
+#: manual/api/core.md:186
+msgid "`Lp::phase_1` and `Lp::phase_2`"
+msgstr "`Lp::phase_1` 与 `Lp::phase_2`"
+
+#: manual/api/core.md:188
+msgid "`phase_1` and `phase_2` are the two halves of `two_stage`."
+msgstr "`phase_1` 与 `phase_2` 是 `two_stage` 的两个阶段。"
+
+#: manual/api/core.md:195
+msgid "`Lp::phase_1(tableau, artificial_index)` takes a tableau extended with artificial variables, where `artificial_index[i]` is the column of the artificial variable of constraint `i`. It eliminates the artificial columns from the objective row, runs `simplex_iteration` and returns the tableau."
+msgstr "`Lp::phase_1(tableau, artificial_index)` 接收一个加入了人工变量的单纯形表，其中 `artificial_index[i]` 是约束 `i` 的人工变量所在列。它从目标行中消去人工变量列，运行 `simplex_iteration`，并返回单纯形表。"
+
+#: manual/api/core.md:197
+msgid "`Lp::phase_2(vars, objective, tableau)` drops the artificial columns of the phase 1 tableau, restores the original `objective`, runs `simplex_iteration` again and returns the basic solution with the value in the objective row. It aborts when phase 1 did not reach zero, because the program then has no feasible solution."
+msgstr "`Lp::phase_2(vars, objective, tableau)` 去掉第一阶段单纯形表中的人工变量列，恢复原目标 `objective`，再次运行 `simplex_iteration`，并返回基本解以及目标行中的值。若第一阶段未达到零，则说明线性规划没有可行解，此时中止。"
+
+#: manual/api/core.md:199
+msgid "Numeric tolerance"
+msgstr "数值容差"
+
+#: manual/api/core.md:203
+msgid "`ApproximatelyZero` decides whether a value is zero for the purposes of the solver."
+msgstr "`ApproximatelyZero` 判定一个值在求解器看来是否为零。"
+
+#: manual/api/core.md:214
+msgid "An `Int` is zero only when it equals `0`; a `Double` is zero when its absolute value is below $10^{-15}$. `double_equal_to_zero(x)` calls `is_zero_eps(x)`."
+msgstr "`Int` 仅在等于 `0` 时为零；`Double` 在绝对值小于 $10^{-15}$ 时为零。`double_equal_to_zero(x)` 调用 `is_zero_eps(x)`。"
+
+#: manual/contributing.md:1
+msgid "Contribution guidelines"
+msgstr "贡献规范"
+
+#: manual/contributing.md:3
+msgid "To contributors"
+msgstr "致贡献者"
+
+#: manual/contributing.md:5
+msgid "We warmly welcome developers familiar with linear programming and optimization libraries to join the project, contribute code, and share their valuable experiences. At the same time, we encourage beginners to learn linear programming methods by participating in development and improving documentation. In this project, we hope that both experienced developers and beginners can find contribution goals that interest them by reviewing the project's documentation, tables, and code examples."
+msgstr "我们热烈欢迎熟悉线性规划与优化库的开发者加入本项目，贡献代码并分享宝贵经验。同时，我们也鼓励初学者通过参与开发和完善文档来学习线性规划方法。我们希望，无论是经验丰富的开发者还是初学者，都能通过阅读项目的文档、表格和代码示例，找到自己感兴趣的贡献目标。"
+
+#: manual/contributing.md:7
+msgid "We sincerely thank all the developers who have contributed to this project. Whether through submitting code, improving documentation, or providing valuable feedback, every effort you make helps to make this project better. Your enthusiasm and wisdom in the development process continually drive the project forward, and bring more opportunities for collaboration within the community. We appreciate your support and dedication, and we look forward to achieving more together, driving this project toward an even brighter future!"
+msgstr "我们衷心感谢所有为本项目做出贡献的开发者。无论是提交代码、完善文档，还是提供宝贵的反馈，你的每一份努力都让这个项目变得更好。你们在开发过程中的热情与智慧不断推动项目前进，也为社区带来了更多合作的机会。感谢你们的支持与付出，期待与大家携手取得更多成果，让这个项目迎来更加光明的未来！"
+
+#: manual/contributing.md:9
+msgid "1. Code style"
+msgstr "1. 代码风格"
+
+#: manual/contributing.md:11
+msgid "The project follows the formatting style enforced by the MoonBit Toolchain. Format your code automatically using the following command:"
+msgstr "统一采用 MoonBit Toolchain 的格式化风格，通过运行以下命令来自动格式化代码。"
+
+#: manual/contributing.md:17
+msgid "Ensure that you run `moon fmt` before committing your code to maintain consistency."
+msgstr "请确保在提交代码之前，使用 `moon fmt` 格式化代码，以保持一致的代码风格。"
+
+#: manual/contributing.md:19
+msgid "Alternatively, you can use the `ready_to_pr.sh` script to automatically format the code, run checks, generate test coverage files, and create `.mbti` files."
+msgstr "或者，可以使用 `ready_to_pr.sh` 脚本来自动格式化代码、运行检查、生成测试覆盖率文件和 `.mbti` 文件。"
+
+#: manual/contributing.md:21
+msgid "2. Naming conventions"
+msgstr "2. 命名约定"
+
+#: manual/contributing.md:23
+msgid "2.1 Variable naming"
+msgstr "2.1 变量命名"
+
+#: manual/contributing.md:25
+msgid "Use **lowercase letters with underscores** as separators (e.g., `my_var`)."
+msgstr "采用 **小写字母和下划线** 分隔（例如：`my_var`）。"
+
+#: manual/contributing.md:26
+msgid "Variable names should be descriptive and clearly indicate their purpose."
+msgstr "变量名应具有描述性，能够准确反映其用途。"
+
+#: manual/contributing.md:28
+msgid "2.2 Function naming"
+msgstr "2.2 函数命名"
+
+#: manual/contributing.md:30
+msgid "Use **lowercase letters with underscores** as separators (e.g., `calc_total_price()`)."
+msgstr "使用 **小写字母和下划线** 分隔（例如：`calc_total_price()`）。"
+
+#: manual/contributing.md:31
+msgid "Function names should be concise and descriptive, clearly expressing their functionality."
+msgstr "函数名应简洁且具有描述性，能够清晰表达函数的功能。"
+
+#: manual/contributing.md:33
+msgid "2.3 Struct and trait naming"
+msgstr "2.3 Struct 和 Trait 命名"
+
+#: manual/contributing.md:35
+msgid "Use **PascalCase** (e.g., `MyStruct`, `MyTrait`)."
+msgstr "使用 **首字母大写的驼峰式命名**（例如：`MyStruct`、`MyTrait`）。"
+
+#: manual/contributing.md:36
+msgid "Names should intuitively reflect the function or role of the struct or trait, avoiding overly abstract or non-descriptive names."
+msgstr "命名应直观地反映该结构体或特征的功能或角色，避免使用过于抽象或不具描述性的名称。"
+
+#: manual/contributing.md:38
+msgid "2.4 Constant naming"
+msgstr "2.4 常量命名"
+
+#: manual/contributing.md:40
+msgid "**Note:** In the MoonBit context, \"variables\" are typically referred to as \"bindings\" and are immutable by default unless marked with `mut`. Thus, there is no strict distinction between constant and variable naming."
+msgstr "**注意：** 由于在 MoonBit 的语境下，“变量”通常称为“binding”，且默认是不可变的，只有添加 `mut` 关键字才能使其可变。因此，常量和“变量”之间没有严格的命名差异，保持一致性。"
+
+#: manual/contributing.md:41
+msgid "Use **lowercase letters with underscores** as separators (e.g., `machine_dbl_epsilon`)."
+msgstr "常量名采用 **全小写字母和下划线** 分隔（例如：`machine_dbl_epsilon`）。"
+
+#: manual/contributing.md:42
+msgid "Prefix constants with a descriptive category where applicable (e.g., `machine_dbl_epsilon`, where `machine` indicates a machine-related constant)."
+msgstr "常量名通常以第一个单词作为前缀，表示常量的用途或分类。例如，`machine_dbl_epsilon` 中的 `machine` 表示与机器相关的常量。"
+
+#: manual/contributing.md:43
+msgid "Constant names should be concise and descriptive to facilitate understanding."
+msgstr "常量名应简洁且具有描述性，便于其他开发者理解。"
+
+#: manual/contributing.md:45
+msgid "2.5 Result Err construction and Err code"
+msgstr "2.5 Result 的 Err 构造内容和 Err Code"
+
+#: manual/contributing.md:47
+msgid "Use **uppercase letters with underscores** as separators (e.g., `E_MAX_ITER`)."
+msgstr "采用 **全大写字母和下划线** 分隔（例如：`E_MAX_ITER`）。"
+
+#: manual/contributing.md:48
+msgid "Err codes should be prefixed with `E` to indicate an error-related construct."
+msgstr "构造内容通常以字符`E`作为前缀，表示其用于 Err 构造或者错误代码。"
+
+#: manual/contributing.md:49
+msgid "Err codes should be concise and descriptive for easy comprehension."
+msgstr "构造内容应简洁且具有描述性，便于其他开发者理解。"
+
+#: manual/contributing.md:51
+msgid "3. Comments"
+msgstr "3. 注释"
+
+#: manual/contributing.md:53
+msgid "**Conciseness**: Comments should be clear and to the point, avoiding unnecessary verbosity."
+msgstr "**简洁性**：注释应简洁明了，只包含必要的信息，避免冗长和不相关的内容。"
+
+#: manual/contributing.md:54
+msgid "**Consistency**: Use uniform terminology and style across the codebase."
+msgstr "**一致性**：使用一致的术语和风格，避免在不同地方使用不同的方式描述相同的概念。"
+
+#: manual/contributing.md:55
+msgid "**Clarity**: Ensure comments are easy to understand, avoiding complex jargon or ambiguous wording."
+msgstr "**清晰性**：确保注释易于理解，避免复杂的术语或模糊的表述。应使任何阅读代码的人能够快速理解注释的意图。"
+
+#: manual/contributing.md:56
+msgid "**Accuracy**: Comments must accurately reflect the functionality and purpose of the code."
+msgstr "**准确性**：注释必须准确反映代码的功能和目的，避免与代码行为不符的描述。"
+
+#: manual/contributing.md:57
+msgid "**Up-to-date**: Comments should be updated alongside code changes to maintain relevance."
+msgstr "**更新性**：随着代码的变更，注释也应随时更新，确保注释与代码同步。"
+
+#: manual/contributing.md:59
+msgid "Developers are encouraged to use MoonBit LSP’s AI-generated code comments to improve efficiency, but AI-generated comments should be reviewed to ensure correctness."
+msgstr "我们鼓励开发者采用 MoonBit LSP 提供的 AI 代码注释生成来提升注释的编写效率，但需要开发者对 AI 生成的内容进行审核，以确保其对方法、结构体和特征的解释是正确无误的。"
+
+#: manual/contributing.md:61
+msgid "4. File standards"
+msgstr "4. 文件规范"
+
+#: manual/contributing.md:63
+msgid "4.1 Folder naming"
+msgstr "4.1 文件夹命名"
+
+#: manual/contributing.md:65
+msgid "Use **lowercase letters** for folder names."
+msgstr "对于大的功能模块，请使用小写字母命名的文件夹（包）。"
+
+#: manual/contributing.md:66
+msgid "Folder names should be concise, descriptive, and separated using underscores (`_`). Avoid numbers and special characters."
+msgstr "文件夹名称应简洁、具有描述性，并使用下划线（`_`）分隔单词。请避免使用数字和特殊字符。"
+
+#: manual/contributing.md:68
+msgid "4.2 File organization"
+msgstr "4.2 文件划分"
+
+#: manual/contributing.md:70
+msgid "Files should be organized based on functionality, with each file focusing on a specific feature. Use **lowercase letters with underscores** for file names."
+msgstr "文件应该按功能划分，每个文件专注于特定的功能。文件名使用**小写字母和下划线**。"
+
+#: manual/contributing.md:71
+msgid "File names should be descriptive and clearly indicate the core functionality they implement."
+msgstr "文件名应具备描述性，清楚反映该文件所实现的核心功能。"
+
+#: manual/contributing.md:73
+#: manual/contributing.md:89
+msgid "Examples:"
+msgstr "例如："
+
+#: manual/contributing.md:75
+msgid "`constraint.mbt`: Implements the constraints of a linear program."
+msgstr "`constraint.mbt`：实现线性规划的约束。"
+
+#: manual/contributing.md:76
+msgid "`objfunc.mbt`: Implements objective functions."
+msgstr "`objfunc.mbt`：实现目标函数。"
+
+#: manual/contributing.md:78
+msgid "**Note:** Avoid overly generic or vague file names such as `utils.mbt`. Instead, ensure file names correspond to their function or module."
+msgstr "**注意**：在文件命名中（除了在@internal 中不可避免的情况），请避免使用过于通用或模糊的名称，如 `utils.mbt`，请尽量使文件名与其功能或模块相关联。"
+
+#: manual/contributing.md:80
+msgid "5. Commit guidelines"
+msgstr "5. 提交规范"
+
+#: manual/contributing.md:82
+msgid "5.1 Commit messages"
+msgstr "5.1 提交信息"
+
+#: manual/contributing.md:84
+msgid "Use the `ready_to_pr.sh` script before committing to format code, run checks, generate test coverage files, and create `.mbti` files."
+msgstr "在提交前请使用 `ready_to_pr.sh` 脚本来自动格式化代码、运行检查、生成测试覆盖率文件和 `.mbti` 文件。"
+
+#: manual/contributing.md:85
+msgid "Each commit should have a clear description of the changes made."
+msgstr "每个提交应具有清晰的描述，说明此次提交所做的变更。"
+
+#: manual/contributing.md:86
+msgid "Commit messages should be in **English**, concise, and precise."
+msgstr "提交信息应使用**英文**，并遵循**简短、精炼**的原则。"
+
+#: manual/contributing.md:87
+msgid "Use prefixes such as `fix:`, `feat:`, `refactor:`, and `doc:` to indicate the type of change."
+msgstr "使用 `fix:`，`feat:`，`refactor:` 和 `doc:` 等前缀来区分提交的类型"
+
+#: manual/contributing.md:98
+msgid "5.2 Commit frequency"
+msgstr "5.2 提交频率"
+
+#: manual/contributing.md:100
+msgid "Keep commits small and focused on a single feature or fix."
+msgstr "尽量保持每次提交都很小且聚焦于一个功能或修复。"
+
+#: manual/contributing.md:101
+msgid "Avoid large, monolithic commits that include multiple unrelated changes."
+msgstr "不要一次性提交大规模的更改。"
+
+#: manual/contributing.md:103
+msgid "6. Code review"
+msgstr "6. 代码审查"
+
+#: manual/contributing.md:105
+msgid "If you are not a maintainer or collaborator, contact them before modifying dependencies or version numbers in `moon.mod.json`."
+msgstr "非项目维护者和合作者在修改`moon.mod.json`内的依赖和版本号前，请先联系维护者或者合作者。"
+
+#: manual/contributing.md:106
+msgid "All code submissions must undergo **code review**."
+msgstr "所有的代码提交都必须经过**代码审查**。"
+
+#: manual/contributing.md:107
+msgid "Code reviews should focus on code quality, style, performance, and security."
+msgstr "在审查过程中，关注代码质量、风格、性能和安全性。"
+
+#: manual/contributing.md:108
+msgid "Reviewers should provide constructive feedback to improve the code."
+msgstr "审查者应提供建设性的反馈，帮助改进代码。"
+
+#: manual/design/core.md:1
+msgid "core design"
+msgstr "core 设计"
+
+#: manual/design/core.md:3
+msgid "linear-program keeps variables, linear expressions, objectives, constraints and the solver in one package at `src`. This page explains how a program is represented and how it is solved."
+msgstr "linear-program 将变量、线性表达式、目标函数、约束和求解器放在 `src` 下的同一个包中。本页说明线性规划如何表示以及如何求解。"
+
+#: manual/design/core.md:5
+msgid "Representation"
+msgstr "表示"
+
+#: manual/design/core.md:7
+msgid "A program is described twice. The symbolic description is an objective (`Obj_func`) and a constraint set (`Constraint`), both built from linear expressions (`Poly`) over named variables. The numeric description is the program matrix: row 0 holds the objective coefficients, every other row holds one equality constraint, and the last column holds the right-hand sides."
+msgstr "一个线性规划有两种描述。符号描述由目标函数（`Obj_func`）和约束集合（`Constraint`）组成，二者都由具名变量上的线性表达式（`Poly`）构成。数值描述是规划矩阵：第 0 行存放目标函数系数，其余每行存放一个等式约束，最后一列存放右端项。"
+
+#: manual/design/core.md:9
+msgid "Every function that builds an `Lp` rebuilds the matrix from the symbolic description, and `Lp::from_matrix` goes the other way. A program can therefore be written either way and printed in readable form with `Show`."
+msgstr "每个构造 `Lp` 的函数都会根据符号描述重建矩阵，而 `Lp::from_matrix` 则反向进行。因此，线性规划可以用任一种方式书写，并能通过 `Show` 以可读形式输出。"
+
+#: manual/design/core.md:11
+msgid "A linear expression is a sorted map from variables to coefficients. Variables are identified and ordered by name alone, and zero coefficients are never stored, so adding a term that cancels an existing one removes it."
+msgstr "线性表达式是从变量到系数的有序映射。变量仅凭名称识别和排序，零系数从不保存，因此添加一个与已有项相消的项会将其删除。"
+
+#: manual/design/core.md:13
+msgid "Standard form"
+msgstr "标准形"
+
+#: manual/design/core.md:15
+msgid "The solver works on the standard form"
+msgstr "求解器作用于标准形"
+
+#: manual/design/core.md:21
+msgid "`Lp::to_standard` produces it: a maximisation objective is negated, a constraint with a negative right-hand side is multiplied by $-1$, and every inequality receives its own slack or surplus variable, named `y1`, `y2`, ... in order. Variable bounds are kept for display, but the standard form assumes $x \\ge 0$ for every variable."
+msgstr "`Lp::to_standard` 负责生成标准形：最大化目标取负，右端项为负的约束乘以 $-1$，每个不等式各自获得一个松弛或剩余变量，依次命名为 `y1`、`y2`、……。变量的上下界仅用于显示，标准形对每个变量都假定 $x \\ge 0$。"
+
+#: manual/design/core.md:23
+msgid "Two-phase simplex"
+msgstr "两阶段单纯形法"
+
+#: manual/design/core.md:25
+msgid "`Lp::two_stage` solves the standard form in two phases on a dense tableau."
+msgstr "`Lp::two_stage` 在稠密单纯形表上分两个阶段求解标准形。"
+
+#: manual/design/core.md:27
+msgid "Phase 1 adds an artificial variable to every row that has no unit column yet and minimises the sum of the artificial variables (`Lp::phase_1`). A non-zero optimum means that the program is infeasible."
+msgstr "第一阶段为每个尚无单位列的行添加一个人工变量，并最小化人工变量之和（`Lp::phase_1`）。最优值非零意味着线性规划不可行。"
+
+#: manual/design/core.md:28
+msgid "Phase 2 drops the artificial columns, restores the original objective, eliminates the basic columns from the objective row and runs the simplex method again (`Lp::phase_2`)."
+msgstr "第二阶段去掉人工变量列，恢复原目标函数，从目标行中消去基变量列，并再次运行单纯形法（`Lp::phase_2`）。"
+
+#: manual/design/core.md:30
+msgid "Both phases use `Lp::simplex_iteration`: Dantzig's rule picks the column with the most negative objective coefficient, the minimum ratio test picks the row, and `Lp::pivot` performs a Gauss–Jordan step. The steps are public so that a tableau can be examined or driven by hand."
+msgstr "两个阶段都使用 `Lp::simplex_iteration`：Dantzig 规则选取目标系数最负的列，最小比值检验选取行，`Lp::pivot` 执行一步 Gauss–Jordan 消元。这些步骤都是公开的，便于检查单纯形表或手动推进求解。"
+
+#: manual/design/core.md:32
+msgid "Floating-point tableaux rarely produce exact zeros, so phase 2 compares values with `ApproximatelyZero`, which treats a `Double` below $10^{-15}$ in absolute value as zero."
+msgstr "浮点单纯形表很少产生精确的零，因此第二阶段使用 `ApproximatelyZero` 比较数值，它把绝对值小于 $10^{-15}$ 的 `Double` 视为零。"
+
+#: manual/design/core.md:34
+msgid "Boundaries"
+msgstr "边界"
+
+#: manual/design/core.md:36
+msgid "Errors are not values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program."
+msgstr "错误不以值的形式返回。不可行或无界的线性规划、零主元以及非法参数都会使程序中止。"
+
+#: manual/design/core.md:37
+msgid "Variable bounds other than $x \\ge 0$ are not enforced."
+msgstr "除 $x \\ge 0$ 以外的变量界不会被强制执行。"
+
+#: manual/design/core.md:38
+msgid "There is no anti-cycling rule beyond the iteration limit of 1000 per simplex run."
+msgstr "除了每次单纯形运行 1000 次的迭代上限外，没有防止循环的规则。"
+
+#: manual/design/core.md:39
+msgid "The tableau is dense; the package does not exploit sparsity."
+msgstr "单纯形表是稠密的；本包不利用稀疏性。"
+
+#: manual/design/core.md:40
+msgid "Integer and mixed-integer programming are out of scope."
+msgstr "整数规划与混合整数规划不在本包范围内。"
+
+#: manual/index.md:1
+msgid "linear-program"
+msgstr "linear-program"
+
+#: manual/index.md:3
+msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
+msgstr "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
+
+#: manual/index.md:5
+msgid "Introduction"
+msgstr "简介"
+
+#: manual/index.md:7
+msgid "linear-program is a [**MoonBit**](https://www.moonbitlang.cn/) library for defining linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://luna-flow.github.io/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://luna-flow.github.io/en/linear-algebra/)."
+msgstr "linear-program 是一个使用 [**MoonBit**](https://www.moonbitlang.cn/) 编写的库，用于定义线性规划并以两阶段单纯形法求解。系数类型基于 [luna-generic](https://luna-flow.github.io/en/luna-generic/) 的代数 trait 泛型化，单纯形表则是 [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) 中的可变矩阵。"
+
+#: manual/index.md:9
+msgid "Features"
+msgstr "功能"
+
+#: manual/index.md:11
+msgid "Decision variables, linear expressions, objective functions and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`)."
+msgstr "决策变量、线性表达式、目标函数与约束（`Variable`、`Poly`、`Obj_func`、`Constraint`）。"
+
+#: manual/index.md:12
+msgid "Programs built from coefficient arrays (`Lp::new`, `Lp::cons_from_Array`) or from a coefficient matrix (`Lp::from_matrix`)."
+msgstr "由系数数组（`Lp::new`、`Lp::cons_from_Array`）或系数矩阵（`Lp::from_matrix`）构造线性规划。"
+
+#: manual/index.md:13
+msgid "Conversion to standard form with slack and surplus variables (`Lp::to_standard`)."
+msgstr "借助松弛变量与剩余变量转换为标准形（`Lp::to_standard`）。"
+
+#: manual/index.md:14
+msgid "A two-phase simplex solver (`Lp::two_stage`) whose steps are also public: `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1` and `Lp::phase_2`."
+msgstr "两阶段单纯形求解器（`Lp::two_stage`），其各个步骤同样公开：`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1` 与 `Lp::phase_2`。"
+
+#: manual/index.md:16
+msgid "All public names live in the single package at `src`. The [API reference](api/core.md) lists them, the [design notes](design/core.md) explain the model and the solver, and the [tutorial](tutorial/core.md) solves two small programs from start to finish."
+msgstr "所有公开名称都位于 `src` 下的唯一包中。[API 参考](api/core.md)列出了它们，[设计说明](design/core.md)解释了模型与求解器，[教程](tutorial/core.md)则从头到尾求解了两个小规模的线性规划。"
+
+#: manual/index.md:18
+msgid "How to contribute"
+msgstr "如何参与贡献"
+
+#: manual/index.md:20
+msgid "We welcome contributions from the community, external developers, and individual enthusiasts! Whether you want to fix a bug, add a new feature, or improve the documentation, your participation is highly encouraged. To help you contribute smoothly, here are some simple steps:"
+msgstr "我们非常欢迎社区、外部开发者以及个人爱好者的贡献！无论你是想解决某个 bug、增加新功能，还是改进文档，都非常欢迎你的参与。为了帮助你顺利贡献，以下是一些简单的步骤："
+
+#: manual/index.md:22
+msgid "Please choose a task from the current `issue` list that interests you. We recommend selecting something you are interested in or familiar with, as it will make it easier to get started and enjoy the process."
+msgstr "请从当前的`issue`列表中挑选一个你感兴趣的任务。我们建议选择自己有兴趣或熟悉的内容，这样你会更容易上手，也能享受其中的过程。"
+
+#: manual/index.md:23
+msgid "Fork our project and create a new branch in your personal repository. This way, you can start working on your changes without affecting the main project."
+msgstr "Fork 我们的项目，并在你的个人仓库中创建一个新的分支。这样，你就可以在自己的分支上开始进行开发工作，而不会影响到主项目的进展。"
+
+#: manual/index.md:24
+msgid "During development, please adhere to the coding style and guidelines in the [contribution guidelines](contributing.md). If your changes involve new features or bug fixes, please make sure to perform thorough testing to ensure everything works as expected."
+msgstr "在编写代码过程中，请尽量遵循[贡献指南](contributing.md)中的代码风格和规范。如果你的修改涉及到新功能或修复 bug，请确保进行充分的测试，确保一切正常运行。"
+
+#: manual/index.md:25
+msgid "Once you're done, submit your PR and provide a clear description of your changes to help us understand the modifications you've made. This will help us review and merge your code more quickly."
+msgstr "完成后，请提交你的 PR，并在提交时提供一个清晰的描述，帮助我们了解你所做的更改。这样有助于更快地进行代码审查和合并。"
+
+#: manual/index.md:26
+msgid "We will review your PR and may suggest improvements to ensure code quality. After approval, your contributions will be merged into the main branch."
+msgstr "我们会对你的 PR 进行审查，并可能会提出一些改进意见，这只是为了确保代码质量。待审查通过后，我们会将你的贡献合并到主分支中。"
+
+#: manual/index.md:28
+msgid "Thank you again for your participation and contributions! Every effort helps make this project better. We look forward to seeing your great code!"
+msgstr "再次感谢你的参与和贡献！每一份努力都能让这个项目变得更好。我们期待看到你的精彩代码！"
+
+#: manual/tutorial/core.md:1
+msgid "core tutorial"
+msgstr "core 教程"
+
+#: manual/tutorial/core.md:3
+msgid "This tutorial solves two small linear programs: one written with coefficient arrays and one written as a matrix. The examples are taken from the tests in [`src/linequest.mbt`](../../../src/linequest.mbt) and run inside the package; from another package, prefix the names with the alias under which you import linear-program."
+msgstr "本教程求解两个小规模线性规划：一个用系数数组书写，另一个写成矩阵。示例取自 [`src/linequest.mbt`](../../../src/linequest.mbt) 中的测试，在包内部运行；若在其他包中使用，请在名称前加上导入 linear-program 时所用的别名。"
+
+#: manual/tutorial/core.md:5
+msgid "Defining a program from arrays"
+msgstr "用数组定义线性规划"
+
+#: manual/tutorial/core.md:7
+msgid "A program is defined in five steps:"
+msgstr "定义一个线性规划分为五步："
+
+#: manual/tutorial/core.md:9
+msgid "define the variables;"
+msgstr "定义变量；"
+
+#: manual/tutorial/core.md:10
+msgid "define the objective function;"
+msgstr "定义目标函数；"
+
+#: manual/tutorial/core.md:11
+msgid "define the equality constraints;"
+msgstr "定义等式约束；"
+
+#: manual/tutorial/core.md:12
+msgid "define the inequality constraints;"
+msgstr "定义不等式约束；"
+
+#: manual/tutorial/core.md:13
+msgid "combine them into a linear program."
+msgstr "将它们组合成一个线性规划。"
+
+#: manual/tutorial/core.md:30
+msgid "Each equality row is `(coefficients, b)` and each inequality row is `(coefficients, relation, b)` with `\">=\"` or `\"<=\"` as the relation."
+msgstr "每个等式行为 `(coefficients, b)`，每个不等式行为 `(coefficients, relation, b)`，关系符为 `\">=\"` 或 `\"<=\"`。"
+
+#: manual/tutorial/core.md:32
+msgid "Solving a maximisation problem"
+msgstr "求解最大化问题"
+
+#: manual/tutorial/core.md:34
+msgid "Maximise $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$ and $x_1 + 3x_2 \\le 10$:"
+msgstr "在 $2x_1 + x_2 \\le 12$ 与 $x_1 + 3x_2 \\le 10$ 的约束下最大化 $3x_1 + 4x_2$："
+
+#: manual/tutorial/core.md:51
+msgid "`to_standard` adds the slack variables `y1` and `y2`, so the solution has four entries: $x_1 = 5.2$, $x_2 = 1.6$ and both slacks zero. The standard form minimises $-3x_1 - 4x_2$, so the maximum of the original objective is the negated value, $22$."
+msgstr "`to_standard` 添加了松弛变量 `y1` 与 `y2`，因此解有四个分量：$x_1 = 5.2$、$x_2 = 1.6$，两个松弛变量均为零。标准形最小化的是 $-3x_1 - 4x_2$，所以原目标的最大值是返回值取负，即 $22$。"
+
+#: manual/tutorial/core.md:53
+msgid "Defining a program as a matrix"
+msgstr "用矩阵定义线性规划"
+
+#: manual/tutorial/core.md:55
+msgid "When every constraint is an equality, the whole program fits in one matrix. Row 0 holds the objective coefficients and every other row holds the coefficients and the right-hand side of one constraint. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
+msgstr "当所有约束都是等式时，整个线性规划可以写进一个矩阵。第 0 行存放目标函数系数，其余每行存放一个约束的系数与右端项。下面的线性规划在 $x_1 + 2x_2 + 3x_3 = 10$ 与 $2x_1 + x_2 + x_3 = 8$ 的约束下最小化 $-x_1 - 2x_2 - 3x_3$："
+
+#: manual/tutorial/core.md:74
+msgid "The result is the pair of the variable values and the optimal value: $x = (2, 4, 0)$ with minimum $-10$, up to rounding."
+msgstr "结果是变量取值与最优值组成的二元组：在舍入误差范围内，$x = (2, 4, 0)$，最小值为 $-10$。"
+
+#: manual/tutorial/core.md:76
+msgid "Next steps"
+msgstr "下一步"
+
+#: manual/tutorial/core.md:78
+msgid "The [API reference](../api/core.md) lists every function used here and the lower-level steps `Lp::phase_1`, `Lp::phase_2` and `Lp::simplex_iteration`. The [design notes](../design/core.md) explain the standard form and the two phases."
+msgstr "[API 参考](../api/core.md)列出了这里用到的所有函数，以及较底层的步骤 `Lp::phase_1`、`Lp::phase_2` 和 `Lp::simplex_iteration`。[设计说明](../design/core.md)解释了标准形与两个阶段。"
+
+#~ msgid "Table of Contents"
+#~ msgstr "目录"
+
+#, fuzzy
+#~ msgid "[Code Style](#1-code-style)"
+#~ msgstr "[代码风格](#1-代码风格)"
+
+#, fuzzy
+#~ msgid "[Naming Conventions](#2-naming-conventions) 2.1 [Variable Naming](#21-variable-naming) 2.2 [Function Naming](#22-function-naming) 2.3 [Struct and Trait Naming](#23-struct-and-trait-naming) 2.4 [Constant Naming](#24-constant-naming) 2.5 [Result Err Construction and Err Code](#25-result-err-construction-and-err-code)"
+#~ msgstr "[命名约定](#2-命名约定) 2.1 [变量命名](#21-变量命名) 2.2 [函数命名](#22-函数命名) 2.3 [Struct 和 Trait 命名](#23-struct-和-trait-命名) 2.4 [常量命名](#24-常量命名) 2.5 [Result 的 Err 构造内容和 Err Code](#25-result-的-err-构造内容和-err-code)"
+
+#, fuzzy
+#~ msgid "[Comments](#3-comments)"
+#~ msgstr "[注释](#3-注释)"
+
+#, fuzzy
+#~ msgid "[File Standards](#4-file-standards) 4.1 [Folder Naming](#41-folder-naming) 4.2 [File Organization](#42-file-organization)"
+#~ msgstr "[文件规范](#4-文件规范) 4.1 [文件夹命名](#41-文件夹命名) 4.2 [文件划分](#42-文件划分)"
+
+#, fuzzy
+#~ msgid "[Commit Guidelines](#5-commit-guidelines) 5.1 [Commit Messages](#51-commit-messages) 5.2 [Commit Frequency](#52-commit-frequency)"
+#~ msgstr "[提交规范](#5-提交规范) 5.1 [提交信息](#51-提交信息) 5.2 [提交频率](#52-提交频率)"
+
+#, fuzzy
+#~ msgid "[Code Review](#6-code-review)"
+#~ msgstr "[代码审查](#6-代码审查)"
+
+#~ msgid "For differentiation-related functionality: `diff`"
+#~ msgstr "​ 微分相关功能：`diff`"
+
+#~ msgid "For derivative-related functionality: `deriv`"
+#~ msgstr "​ 导数相关功能：`deriv`"
+
+#~ msgid "`gauss_kronrod.mbt`: Implements Gaussian quadrature with Kronrod extension."
+#~ msgstr "​ `gauss_kronrod.mbt`：实现带克龙罗德扩展的高斯求积。"
+
+#~ msgid "`adaptive_quadrature_gk.mbt`: Implements adaptive quadrature using Gaussian quadrature with Kronrod extension."
+#~ msgstr "​ `adaptive_quadrature_gk.mbt`：使用带克龙罗德扩展的高斯求积实现的自适应积分。"
+
+#~ msgid "core is part of Luna-Flow/linear-program. This page should describe the public types, constructors, functions, traits, and observable semantics that are implemented in the current branch."
+#~ msgstr "core 属于 Luna-Flow/linear-program。本页描述当前分支已经实现的公开类型、构造器、函数、trait 以及可观察语义。"
+
+#~ msgid "Scope"
+#~ msgstr "范围"
+
+#~ msgid "Source boundary: `src`"
+#~ msgstr "源码边界：`src`"
+
+#~ msgid "Audience: package users, integrators, and maintainers who need the exported contract"
+#~ msgstr "读者：需要依赖公开契约的使用者、集成方和维护者"
+
+#~ msgid "Status: active"
+#~ msgstr "状态：active"
+
+#~ msgid "Public Contract"
+#~ msgstr "公开契约"
+
+#~ msgid "Describe only exported behavior that exists today."
+#~ msgstr "只描述今天已经存在的导出行为。"
+
+#~ msgid "Call out backend or subtype differences when they are observable."
+#~ msgstr "如果后端、子类型或执行路径存在可观察差异，要明确写出。"
+
+#~ msgid "Keep naming, argument ordering, and error semantics aligned with sibling modules when possible."
+#~ msgstr "在可能的情况下，与同类模块保持命名、参数顺序和错误语义一致。"
+
+#~ msgid "Documentation Standard"
+#~ msgstr "文档标准"
+
+#~ msgid "This repository's documentation must describe the real implementation on the current branch for Luna-Flow/linear-program. It should stay aligned with the exported surface, repository layout, and release narrative."
+#~ msgstr "Luna-Flow/linear-program 的文档必须描述当前分支里的真实实现，并且持续与导出接口、仓库结构和版本叙事保持一致。"
+
+#~ msgid "Provide `README.md`, `doc_standard.md`, and structured module or subsystem documents for every supported locale."
+#~ msgstr "每个支持语言都提供 `README.md`、`doc_standard.md` 和按模块或子系统组织的文档。"
+
+#~ msgid "Document only APIs, workflows, and design decisions that exist in the current branch."
+#~ msgstr "只记录当前分支已经存在的 API、工作流和设计约束，不写计划中接口。"
+
+#~ msgid "Keep the directory layout aligned with real package or subsystem boundaries."
+#~ msgstr "目录结构必须与真实包边界或子系统边界对齐。"
+
+#~ msgid "Each module or subsystem directory must contain `api.md`, `tutorial.md`, and `design.md`."
+#~ msgstr "每个模块或子系统目录都包含 `api.md`、`tutorial.md`、`design.md`。"
+
+#~ msgid "Use cross-links between related mutable/immutable, runtime/frontend, or spec/implementation areas when semantics differ."
+#~ msgstr "当可观察语义存在差异时，要在相关文档之间建立交叉引用并明确说明。"
+
+#~ msgid "Responsibilities"
+#~ msgstr "职责"
+
+#~ msgid "Keep the code and docs aligned around `src`."
+#~ msgstr "让代码和文档围绕 `src` 保持一致。"
+
+#~ msgid "Preserve the real execution model instead of smoothing over important internal differences."
+#~ msgstr "如实保留执行模型，不掩盖重要的内部差异。"
+
+#~ msgid "Note extension points, invariants, and limitations that maintainers must keep stable."
+#~ msgstr "记录维护者必须稳定保留的扩展点、不变量和限制。"
+
+#~ msgid "Maintenance Notes"
+#~ msgstr "维护说明"
+
+#~ msgid "Update this page whenever the module boundary, core algorithm, or observable semantics change."
+#~ msgstr "只要模块边界、核心算法或可观察语义变化，就更新本页。"
+
+#~ msgid "If the module is intentionally incomplete, say so here instead of documenting speculative APIs."
+#~ msgstr "如果模块仍然不完整，也要明确写出，不要伪造未来 API。"
+
+#~ msgid "Contents"
+#~ msgstr "目录"
+
+#, fuzzy
+#~ msgid "[Introduction](#introduction)"
+#~ msgstr "[简介](#简介)"
+
+#, fuzzy
+#~ msgid "[Feature List](#feature-list)"
+#~ msgstr "[功能列表](#功能列表)"
+
+#, fuzzy
+#~ msgid "[How to Contribute](#how-to-contribute)"
+#~ msgstr "[如何参与贡献](#如何参与贡献)"
+
+#~ msgid "This is a linear algebra library written in [**MoonBit**](https://www.moonbitlang.cn/), designed to fill the gap in the MoonBit ecosystem for scientific computing."
+#~ msgstr "这是一个基于[**MoonBit**](https://www.moonbitlang.cn/)编写的线性代数库，旨在填补MoonBit生态系统中科学计算领域的空白。"
+
+#~ msgid "The project will offer high-performance implementations of foundational linear algebra methods, based on one-dimensional arrays, supporting both numerical and symbolic computation."
+#~ msgstr "该项目将通过一维数组实现高性能的基础线性代数方法，并支持数值计算与符号计算。"
+
+#~ msgid "**_Starting from the first official release, both English and Chinese documentation will be fully maintained. Japanese documentation may be added in future updates._**"
+#~ msgstr "**_从第一个正式版本发布开始，会保证英文和中文文档的完整性。在后续的版本更新中可能会加入日语文档。_**"
+
+#~ msgid "Feature List"
+#~ msgstr "功能列表"
+
+#, fuzzy
+#~ msgid "**[Latest]** 25.01.29: Mutable Matrix implementation"
+#~ msgstr "**[最新]** 25.01.31: 非自适应积分实现（使用高斯求积法及 Kronrod 扩展）"
+
+#, fuzzy
+#~ msgid "**25.01.29**: Mutable Vector implementation"
+#~ msgstr "**25.01.13**: 自适应积分实现（使用高斯求积法及 Kronrod 扩展）"
+
+#~ msgid "Use this page as the starting point for practical workflows around this module. core in Luna-Flow/linear-program."
+#~ msgstr "本页用于说明这个模块的实际使用路径。 这里聚焦 Luna-Flow/linear-program 中的 core。"
+
+#~ msgid "Suggested Flow"
+#~ msgstr "建议阅读顺序"
+
+#~ msgid "Read the repository README and the core API reference."
+#~ msgstr "先看仓库 README 和 core 的 API 文档。"
+
+#~ msgid "Start from the constructors or entry points under `src`."
+#~ msgstr "从 `src` 中的构造入口或主入口开始。"
+
+#~ msgid "Validate behavior with the existing tests or examples before depending on edge-case semantics."
+#~ msgstr "在依赖边界行为之前，先结合已有测试或示例验证语义。"
+
+#~ msgid "Practical Guidance"
+#~ msgstr "实践建议"
+
+#~ msgid "Prefer the documented entry points over internal helpers."
+#~ msgstr "优先使用已文档化的入口，而不是内部辅助函数。"
+
+#~ msgid "Record runtime, numeric, or proof-state assumptions explicitly in downstream code."
+#~ msgstr "下游代码里显式记录运行时、数值或证明状态前提。"

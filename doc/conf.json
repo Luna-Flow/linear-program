@@ -1,0 +1,8 @@
+{
+  "title": "linear-program",
+  "summary": "A MoonBit library for defining linear programs and solving them with the two-phase simplex method.",
+  "locales": [
+    "zh_CN",
+    "ja_JP"
+  ]
+}
