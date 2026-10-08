@@ -16,351 +16,393 @@ msgid "core API"
 msgstr ""
 
 #: manual/api/core.md:3
-msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `\"linear-program\"`."
+msgid "Purpose"
 msgstr ""
 
 #: manual/api/core.md:5
-msgid "The coefficient type `V` is generic. Each function states the traits it needs; `Double` satisfies all of them, and it is the only type the solver is tested with. Matrices are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://lunaflow.cn/en/linear-algebra/). A *program matrix* or *tableau* stores the objective in row 0 and one equality constraint in each further row; its last column holds the right-hand sides."
+msgid "The package at `src` is the whole public surface of linear-program: variables, linear expressions, objectives and constraints, programs and their standard form, and the two-phase simplex solver with each of its steps. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The mathematics is derived in the [design notes](../design/core.md), and the [tutorial](../tutorial/core.md) works through typical programs."
 msgstr ""
 
 #: manual/api/core.md:7
-msgid "The examples on this page are tests in a package with this `moon.pkg`:"
+msgid "The coefficient type `V` is generic. Each function states the traits it needs; `Double` satisfies all of them, and it is the only type the solver is tested with. Matrices are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://lunaflow.cn/en/linear-algebra/). A *program matrix* or *tableau* stores the objective in row 0 and one equality constraint in each further row; its last column holds the right-hand sides."
 msgstr ""
 
-#: manual/api/core.md:17
+#: manual/api/core.md:9
+msgid "[!WARNING] The solver has known defects that return a wrong optimum, return a point that violates a constraint, or abort with `Problem is unbounded` on a bounded program. They are listed under [`Lp::two_stage`](#lptwo_stage). Check every solution against the constraints before you use it."
+msgstr ""
+
+#: manual/api/core.md:12
+msgid "Importing"
+msgstr ""
+
+#: manual/api/core.md:14
+msgid "The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `\"linear-program\"`. The examples on this page are tests in a package with this `moon.pkg`:"
+msgstr ""
+
+#: manual/api/core.md:24
 msgid "and they share these declarations:"
 msgstr ""
 
-#: manual/api/core.md:27
+#: manual/api/core.md:34
 msgid "Variables"
 msgstr ""
 
-#: manual/api/core.md:31
+#: manual/api/core.md:38
 msgid "`Variable` is a named decision variable with a lower and an upper bound."
 msgstr ""
 
-#: manual/api/core.md:41
+#: manual/api/core.md:48
 msgid "`Variable` is an abstract type: you create values with `Variable::new` and cannot read the fields directly. Two variables are equal when their names are equal, whatever their bounds, and they are ordered by name. The bounds are stored and printed, but the solver does not read them: every variable of a program is treated as non-negative."
 msgstr ""
 
-#: manual/api/core.md:45
+#: manual/api/core.md:52
 msgid "`Variable::new` creates a variable from its name, lower bound and upper bound."
 msgstr ""
 
-#: manual/api/core.md:51
+#: manual/api/core.md:58
 msgid "Use `@double.max_value` for an upper bound that is not meant to restrict anything. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
 msgstr ""
 
-#: manual/api/core.md:55
+#: manual/api/core.md:62
 msgid "`show_all` prints the name of a variable together with its bounds."
 msgstr ""
 
-#: manual/api/core.md:73
+#: manual/api/core.md:80
 msgid "These are the `Show`, `Eq` and `Compare` methods, promoted to methods of `Variable`."
 msgstr ""
 
-#: manual/api/core.md:81
+#: manual/api/core.md:88
 msgid "`to_string` returns the name. `equal` and `compare` look at the name only; `compare` is the lexicographic order of the names, so `\"x10\"` comes before `\"x2\"`. Prefer `\"\\{x}\"`, `==` and `<` in new code."
 msgstr ""
 
-#: manual/api/core.md:85
+#: manual/api/core.md:92
 msgid "`Variable::one` is the unnamed variable that stands for the constant term of a linear expression."
 msgstr ""
 
-#: manual/api/core.md:91
+#: manual/api/core.md:98
 msgid "It is the `One` method of luna-generic promoted to a method. Its name is empty and its bounds are `@double.min_value` and `@double.max_value`. `Poly::from_var_array` attaches a coefficient that has no matching variable to it."
 msgstr ""
 
-#: manual/api/core.md:93
+#: manual/api/core.md:100
 msgid "Linear expressions"
 msgstr ""
 
-#: manual/api/core.md:97
+#: manual/api/core.md:104
 msgid "`Poly[V]` is a linear expression: a map from variables to non-zero coefficients, kept in the order of the variable names."
 msgstr ""
 
-#: manual/api/core.md:105
+#: manual/api/core.md:112
 msgid "A `Poly` is mutable: `add_term_inplace` changes it, and every value that shares it sees the change. Use `copy` when you need an independent expression. Two expressions are equal when they have the same variables with equal coefficients."
 msgstr ""
 
-#: manual/api/core.md:109
+#: manual/api/core.md:116
 msgid "`Poly::new` creates the empty expression; `Poly::from_var_array` creates one from coefficients."
 msgstr ""
 
-#: manual/api/core.md:116
+#: manual/api/core.md:123
 msgid "`Poly::from_var_array(coeffs, vars)` pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient at a position beyond the last variable is attached to `Variable::one()`, the constant term; when there are several such coefficients, the last one wins."
 msgstr ""
 
-#: manual/api/core.md:120
+#: manual/api/core.md:127
 msgid "`add_term_inplace` adds a multiple of a variable to an expression in place."
 msgstr ""
 
-#: manual/api/core.md:126
+#: manual/api/core.md:133
 msgid "`p.add_term_inplace(x, c)` adds `c` to the coefficient of `x`. Adding zero does nothing, and a term whose coefficient becomes zero is removed, so no zero coefficient is ever stored."
 msgstr ""
 
-#: manual/api/core.md:130
+#: manual/api/core.md:137
 msgid "`copy` returns an expression with the same terms that does not share storage with the original."
 msgstr ""
 
-#: manual/api/core.md:138
+#: manual/api/core.md:145
 msgid "`to_array` lists the stored coefficients; `to_vector` lists one coefficient per given variable."
 msgstr ""
 
-#: manual/api/core.md:145
+#: manual/api/core.md:152
 msgid "`to_array` returns the non-zero coefficients in the order of the variable names, without the variables. `to_vector(vars)` returns `vars.length()` coefficients in the order of `vars`, with zero for a variable that does not occur; this is the dense row used in a program matrix."
 msgstr ""
 
-#: manual/api/core.md:149
+#: manual/api/core.md:156
 msgid "These are the `Neg`, `Eq` and `Show` methods, promoted to methods of `Poly`."
 msgstr ""
 
-#: manual/api/core.md:157
+#: manual/api/core.md:164
 msgid "`-p` negates every coefficient and returns a new expression. `Show` prints the terms in name order, joined by `\" + \"`, and leaves out a coefficient equal to one, for example `3.5x1 + x2 + -2x3`."
 msgstr ""
 
-#: manual/api/core.md:174
+#: manual/api/core.md:181
 msgid "Objective functions"
 msgstr ""
 
-#: manual/api/core.md:178
+#: manual/api/core.md:185
 msgid "`Obj_func[V]` is an objective: a linear expression together with the sense, minimise or maximise."
 msgstr ""
 
-#: manual/api/core.md:185
+#: manual/api/core.md:192
 msgid "`Show` prints the sense and the expression, for example `max  3x1 + 4x2`. `Obj_func::to_string` is the promoted `Show` method."
 msgstr ""
 
-#: manual/api/core.md:193
+#: manual/api/core.md:200
 msgid "`Obj_func::new` creates an objective with an empty expression; `Obj_func::from_array` also sets the expression."
 msgstr ""
 
-#: manual/api/core.md:200
+#: manual/api/core.md:207
 msgid "The sense is one of `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"`, `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"`, `\"Maximize\"` for maximisation. Any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` builds the expression with `Poly::from_var_array`."
 msgstr ""
 
-#: manual/api/core.md:204
+#: manual/api/core.md:211
 msgid "`set_poly` replaces the expression; `add_term_inplace` adds a term to it in place."
 msgstr ""
 
-#: manual/api/core.md:211
+#: manual/api/core.md:218
 msgid "`set_poly(p)` returns a new objective with the same sense and the expression `p`; it does not copy `p`."
 msgstr ""
 
-#: manual/api/core.md:215
+#: manual/api/core.md:222
 msgid "`judge_max` tells whether an objective maximises; `to_min` returns the equivalent minimisation objective."
 msgstr ""
 
-#: manual/api/core.md:222
+#: manual/api/core.md:229
 msgid "`to_min` returns a minimisation objective unchanged and negates the expression of a maximisation objective, because $\\max c^\\top x = -\\min\\,(-c)^\\top x$."
 msgstr ""
 
-#: manual/api/core.md:226
+#: manual/api/core.md:233
 msgid "`to_vector` returns the objective row of a program matrix."
 msgstr ""
 
-#: manual/api/core.md:232
+#: manual/api/core.md:239
 msgid "`to_vector(n)` takes the coefficients of `to_array` and pads them with zeros to length `n + 1`, the width of a tableau row. Because `to_array` lists only non-zero coefficients in name order, the result lines up with the variables only when every variable has a non-zero coefficient and the variables are declared in name order. See the warning under `Lp::two_stage` below."
 msgstr ""
 
-#: manual/api/core.md:245
+#: manual/api/core.md:252
+#: manual/design/core.md:11
 msgid "Constraints"
 msgstr ""
 
-#: manual/api/core.md:249
+#: manual/api/core.md:256
 msgid "`Constraint[V]` is the constraint set of a program: equalities `poly = b` and inequalities `poly <= b` or `poly >= b`."
 msgstr ""
 
-#: manual/api/core.md:257
+#: manual/api/core.md:264
 msgid "`Show` prints the set after `s.t.`, one constraint per line, equalities first. A program receives its constraints through `Lp::cons_from_Array`; a `Constraint` value on its own is useful for building and printing constraint sets."
 msgstr ""
 
-#: manual/api/core.md:261
+#: manual/api/core.md:268
 msgid "`Constraint::new` creates the empty set; `Constraint::from_array` builds one from coefficient rows."
 msgstr ""
 
-#: manual/api/core.md:268
+#: manual/api/core.md:275
 msgid "An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is exactly `\">=\"` or `\"<=\"`. Any other relation aborts. Both arrays default to empty."
 msgstr ""
 
-#: manual/api/core.md:272
+#: manual/api/core.md:279
 msgid "`add_eqpoly` appends an equality and `add_ineqpoly` appends an inequality."
 msgstr ""
 
-#: manual/api/core.md:279
+#: manual/api/core.md:286
 msgid "`add_ineqpoly` does not check the relation string; pass `\">=\"` or `\"<=\"`."
 msgstr ""
 
-#: manual/api/core.md:283
+#: manual/api/core.md:290
 msgid "These replace the constraint at a 1-based position."
 msgstr ""
 
-#: manual/api/core.md:290
+#: manual/api/core.md:297
 msgid "`change_eqpoly(i, poly, b)` replaces equality number `i`, counting from 1. Both functions abort when `i` is not positive or not below the *capacity* of the equality array, which is an implementation detail of the array."
 msgstr ""
 
-#: manual/api/core.md:292
+#: manual/api/core.md:299
 msgid "[!WARNING] The range check is unreliable. Both functions compare `i` with the capacity of the array, not its length, and `change_ineqpoly` checks the *equality* array instead of the inequality array. An index that the check lets through can still abort on the array access, and a valid inequality index can be rejected when there are fewer equalities. Only pass indices of constraints that exist."
 msgstr ""
 
-#: manual/api/core.md:297
+#: manual/api/core.md:304
 msgid "`to_matrix` returns one dense row `[coefficients..., b]` per equality."
 msgstr ""
 
-#: manual/api/core.md:303
+#: manual/api/core.md:310
 msgid "Columns follow the order of the given variables. Inequalities are left out, so call it on the constraints of a program in standard form."
 msgstr ""
 
-#: manual/api/core.md:325
+#: manual/api/core.md:332
 msgid "Programs"
 msgstr ""
 
-#: manual/api/core.md:329
+#: manual/api/core.md:336
 msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the program matrix built from them."
 msgstr ""
 
-#: manual/api/core.md:337
+#: manual/api/core.md:344
 msgid "The functions that build a program return a new `Lp` and leave their argument unchanged. `Show` prints the objective, the constraints and every variable with its bounds."
 msgstr ""
 
-#: manual/api/core.md:341
+#: manual/api/core.md:348
 msgid "`Lp::new` creates a program without constraints; the other two replace its constraints or its objective coefficients."
 msgstr ""
 
-#: manual/api/core.md:349
+#: manual/api/core.md:356
 msgid "`cons_from_Array` replaces all constraints, as `Constraint::from_array` with the program's variables. `reset_obj_byarray(coeffs)` keeps the sense and sets new objective coefficients."
 msgstr ""
 
-#: manual/api/core.md:353
+#: manual/api/core.md:360
 msgid "`Lp::from_matrix` creates a program with equality constraints from a program matrix."
 msgstr ""
 
-#: manual/api/core.md:359
+#: manual/api/core.md:366
 msgid "`Lp::from_matrix(m, vars, sense)` reads the objective from row 0 without its last entry, and the equality $a_i \\cdot x = b_i$ from every further row $[a_i \\mid b_i]$. The program keeps `m` itself as its matrix, without copying it."
 msgstr ""
 
-#: manual/api/core.md:363
+#: manual/api/core.md:370
 msgid "`to_standard` returns the equivalent program in standard form."
 msgstr ""
 
-#: manual/api/core.md:369
+#: manual/api/core.md:376
 msgid "The result minimises, has only equality constraints, and has non-negative right-hand sides:"
 msgstr ""
 
-#: manual/api/core.md:371
+#: manual/api/core.md:378
 msgid "a maximisation objective is negated (`Obj_func::to_min`);"
 msgstr ""
 
-#: manual/api/core.md:372
+#: manual/api/core.md:379
 msgid "an equality with $b < 0$ is multiplied by $-1$;"
 msgstr ""
 
-#: manual/api/core.md:373
+#: manual/api/core.md:380
 msgid "every inequality receives a new variable `y1`, `y2`, ... (counting the inequalities in order), added with coefficient $+1$ to a `<=` row and $-1$ to a `>=` row, after multiplying the row by $-1$ when needed so that $b \\ge 0$."
 msgstr ""
 
-#: manual/api/core.md:375
+#: manual/api/core.md:382
 msgid "The new variables are appended to the variables of the program. The [design notes](../design/core.md) derive each case."
 msgstr ""
 
-#: manual/api/core.md:379
+#: manual/api/core.md:386
 msgid "These read $A$, $c$ and $b$ from the program matrix."
 msgstr ""
 
-#: manual/api/core.md:387
+#: manual/api/core.md:394
 msgid "The program matrix contains the objective and the equality constraints only, so these accessors describe a program with inequalities only after `to_standard`."
 msgstr ""
 
-#: manual/api/core.md:417
+#: manual/api/core.md:424
 msgid "Solving"
 msgstr ""
 
-#: manual/api/core.md:421
+#: manual/api/core.md:428
 msgid "`two_stage` solves a program in standard form with the two-phase simplex method."
 msgstr ""
 
-#: manual/api/core.md:427
+#: manual/api/core.md:434
 msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, in the order of the program's variables, and the optimal value of the standard form. The standard form always minimises, so for a program that maximises, the maximum is the *negation* of the returned value."
 msgstr ""
 
-#: manual/api/core.md:429
-msgid "`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error."
+#: manual/api/core.md:436
+msgid "`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error. `two_stage` also contains a branch that would return the maximum directly for a maximising objective, but `to_standard` has already turned the objective into a minimisation, so that branch never runs."
 msgstr ""
 
-#: manual/api/core.md:431
-msgid "[!WARNING] The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver therefore optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Until this is fixed, give every variable a non-zero objective coefficient and declare variables in name order."
+#: manual/api/core.md:438
+msgid "[!WARNING] Known defects of the solver, each confirmed by running it (the [design notes](../design/core.md#known-defects) explain the causes):"
 msgstr ""
 
-#: manual/api/core.md:447
+#: manual/api/core.md:441
+msgid "**Objective alignment.** The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns the value $1$."
+msgstr ""
+
+#: manual/api/core.md:442
+msgid "**Artificial variables left in the basis.** When phase 1 ends with an artificial variable basic at value zero, phase 2 drops its column and loses that constraint. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$ and $x_1 \\le 2$ returns $x = (2, 0)$, which violates $-x_1 = 0$, and minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts with `Problem is unbounded`. Both programs have the optimum $0$ at $x = 0$."
+msgstr ""
+
+#: manual/api/core.md:443
+msgid "**Starting basis with costs.** When a column of one of your own variables is already a unit column, it starts in the basis without an artificial variable, but the objective row is not made canonical before phase 1 runs on it. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts with `Problem is unbounded` instead of returning the optimum $2$ at $x = (0, 1)$."
+msgstr ""
+
+#: manual/api/core.md:444
+msgid "**Cycling.** Degenerate programs can cycle until the iteration limit; see `Lp::simplex_iteration`."
+msgstr ""
+
+#: manual/api/core.md:446
+msgid "On random programs with one to three variables, small integer coefficients and non-zero objective coefficients, an exact-arithmetic replica of the solver gets about 5% of the bounded feasible programs wrong, all through the second and third defects."
+msgstr ""
+
+#: manual/api/core.md:461
 msgid "`pivot` performs one Gauss–Jordan pivot of a tableau in place."
 msgstr ""
 
-#: manual/api/core.md:453
+#: manual/api/core.md:467
 msgid "`Lp::pivot(t, r, s)` divides row `r` by the pivot $t_{rs}$ and subtracts $t_{is}$ times the new row `r` from every other row `i`, including row 0, so that column `s` becomes the unit vector $e_r$. It aborts when the position lies outside the matrix or the pivot is exactly zero."
 msgstr ""
 
-#: manual/api/core.md:457
+#: manual/api/core.md:471
 msgid "`simplex_iteration` runs the simplex method on a tableau in place."
 msgstr ""
 
-#: manual/api/core.md:463
+#: manual/api/core.md:477
 msgid "The tableau must be in canonical form: row 0 holds the reduced costs and $-z$ in its last column, every basic column is a unit vector, and the right-hand sides are non-negative. Each iteration enters the column with the most negative entry of row 0 (the leftmost one on ties), and leaves the row with the smallest ratio $\\bar b_i / \\bar a_{is}$ over the rows with $\\bar a_{is} > 0$ (the topmost one on ties). The run stops when row 0 has no negative entry, aborts with `Problem is unbounded` when the entering column has no positive entry, and stops after `max_iterations` iterations (1000 by default) with a message. With `debug=true` it prints every pivot and the tableau after it."
 msgstr ""
 
-#: manual/api/core.md:482
+#: manual/api/core.md:479
+msgid "Dantzig's rule can cycle. On Beale's example the run returns to its starting basis every six degenerate pivots, so it stops at the iteration limit with the objective value $0$ ($-z$ in the last entry of row 0), while the optimum is $-5/4$:"
+msgstr ""
+
+#: manual/api/core.md:511
 msgid "`phase_1` and `phase_2` are the two halves of `two_stage`."
 msgstr ""
 
-#: manual/api/core.md:489
-msgid "`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts each constraint row with an artificial variable from row 0, which puts the tableau in canonical form, runs `simplex_iteration` and returns the same matrix."
+#: manual/api/core.md:518
+msgid "`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts row `i + 1` from row 0 whenever row 0 holds exactly $1$ in column `artificial_index[i]`, which for the artificial rows puts the tableau in canonical form, then runs `simplex_iteration` and returns the same matrix. Because `0` also names column 0, a row without an artificial variable is subtracted as well whenever row 0 holds $1$ in column 0 at that moment. When no row needs an artificial variable, the private builder puts the program's own objective into row 0 instead, so phase 1 already optimises it, without making it canonical first."
 msgstr ""
 
-#: manual/api/core.md:491
-msgid "`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective."
+#: manual/api/core.md:520
+msgid "`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective. A row whose basic variable after phase 1 is still an artificial one has no basic column in the new tableau; this is the cause of the second defect listed under `Lp::two_stage`."
 msgstr ""
 
-#: manual/api/core.md:493
+#: manual/api/core.md:522
 msgid "The helper that builds the phase 1 tableau and `artificial_index` from a program is private; use `two_stage` unless you build tableaux yourself."
 msgstr ""
 
-#: manual/api/core.md:495
-#: manual/design/core.md:177
+#: manual/api/core.md:524
+#: manual/design/core.md:186
 msgid "Numeric tolerance"
 msgstr ""
 
-#: manual/api/core.md:499
+#: manual/api/core.md:528
 msgid "`ApproximatelyZero` decides whether a value counts as zero in phase 2."
 msgstr ""
 
-#: manual/api/core.md:509
-msgid "An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold. Implement the trait for your own coefficient type to use it with `two_stage`."
+#: manual/api/core.md:538
+msgid "An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold."
 msgstr ""
 
-#: manual/api/core.md:513
+#: manual/api/core.md:540
+msgid "The trait is declared `pub`, not `pub(open)`, so it is read-only outside this package: other packages cannot implement it for their own types. `Lp::two_stage` and `Lp::phase_2` therefore accept only `Int` and `Double` coefficients, and `Int` gives wrong results because its division truncates."
+msgstr ""
+
+#: manual/api/core.md:544
 msgid "`double_equal_to_zero` calls `is_zero_eps`."
 msgstr ""
 
-#: manual/api/core.md:527
+#: manual/api/core.md:558
 msgid "Deprecated"
 msgstr ""
 
-#: manual/api/core.md:529
+#: manual/api/core.md:560
 msgid "The promoted methods below are kept for source compatibility. They are hidden from the interface file and warn when called from another package."
 msgstr ""
 
-#: manual/api/core.md:531
+#: manual/api/core.md:562
 msgid "Method"
 msgstr ""
 
-#: manual/api/core.md:531
+#: manual/api/core.md:562
 msgid "Replacement"
 msgstr ""
 
-#: manual/api/core.md:535
+#: manual/api/core.md:566
 msgid "`to_string()` or `\"\\{x}\"`"
 msgstr ""
 
 #: manual/contributing.md:1
+#: manual/index.md:33
 msgid "Contribution guidelines"
 msgstr ""
 
@@ -621,311 +663,345 @@ msgstr ""
 msgid "Stay generic in the coefficient type through the traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and store tableaux as matrices of [linear-algebra](https://lunaflow.cn/en/linear-algebra/)."
 msgstr ""
 
-#: manual/design/core.md:11
-msgid "Mathematical background"
+#: manual/design/core.md:13
+msgid "luna-generic provides algebraic traits (`Zero`, `One`, `Semiring`, ...) but no order-aware or approximate equality, so the zero test of phase 2 needs a trait of its own, `ApproximatelyZero`. It is declared `pub`, which makes it read-only outside the package."
 msgstr ""
 
-#: manual/design/core.md:13
-msgid "Linear programs and standard form"
+#: manual/design/core.md:14
+msgid "linear-algebra's `@mutable.Matrix` is a dense row-major matrix with in-place updates, which fits a tableau that is pivoted in place."
 msgstr ""
 
 #: manual/design/core.md:15
+msgid "The package predates the Luna-Flow convention of returning `Result`, and its public API (`abort` on infeasible and unbounded programs) is kept as it is."
+msgstr ""
+
+#: manual/design/core.md:16
+msgid "Variables are identified by name, and `Poly` keeps its terms in a `SortedMap` ordered by name."
+msgstr ""
+
+#: manual/design/core.md:18
+msgid "Mathematical background"
+msgstr ""
+
+#: manual/design/core.md:20
+msgid "Linear programs and standard form"
+msgstr ""
+
+#: manual/design/core.md:22
 msgid "A linear program over variables $x \\in \\mathbb{R}^n$ optimises a linear objective subject to linear equalities and inequalities. The solver works on the *standard form*"
 msgstr ""
 
-#: manual/design/core.md:21
+#: manual/design/core.md:28
 msgid "Every program written with this package can be brought into this form without changing its optimal solutions. `Lp::to_standard` applies these rewritings:"
 msgstr ""
 
-#: manual/design/core.md:34
+#: manual/design/core.md:41
 msgid "Each equivalence holds because $y$ measures the slack of the inequality: for $a^\\top x \\le \\beta$, set $y = \\beta - a^\\top x$, which is non-negative exactly when the inequality holds. Multiplying an equation by $-1$ changes nothing, and multiplying an inequality by $-1$ reverses it, which is why the sign of the slack variable flips in the cases with $\\beta < 0$ and $\\beta \\le 0$. In every case the new right-hand side is non-negative, which phase 1 needs."
 msgstr ""
 
-#: manual/design/core.md:36
+#: manual/design/core.md:43
 msgid "The standard form assumes $x \\ge 0$ for *every* variable, including the variables of the original program. The bounds stored in `Variable` are not used."
 msgstr ""
 
-#: manual/design/core.md:38
+#: manual/design/core.md:45
 msgid "Bases and basic solutions"
 msgstr ""
 
-#: manual/design/core.md:40
+#: manual/design/core.md:47
 msgid "Assume $A$ has rank $m$. A *basis* is a set $B$ of $m$ column indices such that the submatrix $A_B$ is invertible; the remaining indices form $N$. Setting the non-basic variables to zero determines the *basic solution*"
 msgstr ""
 
-#: manual/design/core.md:46
+#: manual/design/core.md:53
 msgid "which is *feasible* when $x_B \\ge 0$. The fundamental theorem of linear programming states that if the program has an optimal solution, it has an optimal basic feasible solution, so the simplex method only visits bases.[^fundamental]"
 msgstr ""
 
-#: manual/design/core.md:48
+#: manual/design/core.md:55
 msgid "See for example Chvátal, *Linear Programming* (1983), chapter 3, or Bertsimas and Tsitsiklis, *Introduction to Linear Optimization* (1997), theorem 2.7."
 msgstr ""
 
-#: manual/design/core.md:50
+#: manual/design/core.md:57
 msgid "The tableau and reduced costs"
 msgstr ""
 
-#: manual/design/core.md:52
+#: manual/design/core.md:59
 msgid "The solver stores the program as an $(m + 1) \\times (n + 1)$ tableau:"
 msgstr ""
 
-#: manual/design/core.md:58
+#: manual/design/core.md:65
 msgid ""
 "Row 0 is the objective row, rows $1, \\dots, m$ are the constraints, and the last column holds right-hand sides. A *pivot* on position $(r, s)$ with $T_{rs} \\n"
 "e 0$ is a Gauss–Jordan step: divide row $r$ by $T_{rs}$, then subtract $T_{is}$ times the new row $r$ from every other row $i$, including row 0. Afterwards column $s$ is the unit vector $e_r$. This is exactly `Lp::pivot`."
 msgstr ""
 
-#: manual/design/core.md:60
+#: manual/design/core.md:67
 msgid "Suppose a sequence of pivots has made the columns of a basis $B$ into unit vectors. Every pivot is a left multiplication by an invertible matrix, and row 0 has only received multiples of constraint rows, so the tableau has the form"
 msgstr ""
 
-#: manual/design/core.md:66
+#: manual/design/core.md:73
 msgid "for some vector $y \\in \\mathbb{R}^m$. The basic columns of row 0 are zero, so $c_B^\\top - y^\\top A_B = 0$, that is"
 msgstr ""
 
-#: manual/design/core.md:72
+#: manual/design/core.md:79
 msgid "Substituting $y$ gives the canonical tableau"
 msgstr ""
 
-#: manual/design/core.md:83
+#: manual/design/core.md:90
 msgid "The entries $\\bar c_j$ are the *reduced costs*, $\\bar b = x_B$ is the basic solution, and the last entry of row 0 is the *negated* objective value $-z_B = -c^\\top x$. This is why `Lp::phase_2` returns $-z$ and why `Lp::two_stage` negates it again for a minimisation objective."
 msgstr ""
 
-#: manual/design/core.md:85
+#: manual/design/core.md:92
 msgid "The reduced costs describe how the objective changes along the constraints. For any $x$ with $Ax = b$, solve for the basic variables: $x_B = \\bar b - A_B^{-1} A_N x_N$. Then"
 msgstr ""
 
-#: manual/design/core.md:95
+#: manual/design/core.md:102
 msgid "Optimality"
 msgstr ""
 
-#: manual/design/core.md:97
+#: manual/design/core.md:104
 msgid "**If $\\bar c \\ge 0$, the basic feasible solution is optimal.** Every feasible $x$ satisfies $x_N \\ge 0$, so by the identity above $c^\\top x = z_B + \\bar c_N^\\top x_N \\ge z_B$, and the basic solution attains $z_B$. `Lp::simplex_iteration` stops when no entry of row 0 is negative, which is this test ($\\bar c_B = 0$ holds by construction)."
 msgstr ""
 
-#: manual/design/core.md:99
+#: manual/design/core.md:106
 msgid "Choosing the entering column"
 msgstr ""
 
-#: manual/design/core.md:101
+#: manual/design/core.md:108
 msgid "If some $\\bar c_s < 0$, increasing $x_s$ from $0$ decreases the objective at rate $|\\bar c_s|$. The solver chooses the most negative reduced cost,"
 msgstr ""
 
-#: manual/design/core.md:107
+#: manual/design/core.md:114
 msgid "Dantzig's rule, and takes the leftmost column on ties."
 msgstr ""
 
-#: manual/design/core.md:109
+#: manual/design/core.md:116
 msgid "The ratio test and unboundedness"
 msgstr ""
 
-#: manual/design/core.md:111
+#: manual/design/core.md:118
 msgid "Increase $x_s$ to $t \\ge 0$ and keep the other non-basic variables at zero. The constraints force $x_B(t) = \\bar b - t\\, \\bar a_s$, where $\\bar a_s$ is column $s$ of $\\bar A$, and the objective becomes $z_B + t\\, \\bar c_s$."
 msgstr ""
 
-#: manual/design/core.md:113
+#: manual/design/core.md:120
 msgid "**If $\\bar a_s \\le 0$, the program is unbounded.** Every component of $x_B(t)$ is non-decreasing in $t$, so $x(t)$ is feasible for all $t \\ge 0$ while $z_B + t\\,\\bar c_s \\to -\\infty$. `Lp::simplex_iteration` aborts with `Problem is unbounded` in this case."
 msgstr ""
 
-#: manual/design/core.md:115
+#: manual/design/core.md:122
 msgid "Otherwise feasibility requires $\\bar b_i - t\\, \\bar a_{is} \\ge 0$ for every row with $\\bar a_{is} > 0$, so the largest step is"
 msgstr ""
 
-#: manual/design/core.md:121
+#: manual/design/core.md:128
 msgid "the *minimum ratio test*. A row $r$ attaining the minimum leaves the basis: its basic variable reaches zero at $t^\\ast$. Pivoting on $(r, s)$ moves to the new basis $B' = B \\setminus \\{B_r\\} \\cup \\{s\\}$, whose basic solution is $x(t^\\ast) \\ge 0$, so feasibility is preserved, and whose objective value is"
 msgstr ""
 
-#: manual/design/core.md:127
+#: manual/design/core.md:134
 msgid "The solver takes the topmost row on ties."
 msgstr ""
 
-#: manual/design/core.md:129
+#: manual/design/core.md:136
 msgid "Termination and degeneracy"
 msgstr ""
 
-#: manual/design/core.md:131
-msgid "If every pivot has $t^\\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\\binom{n}{m}$ pivots. When $\\bar b_r = 0$ for the leaving row, $t^\\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal."
+#: manual/design/core.md:138
+msgid "If every pivot has $t^\\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\\binom{n}{m}$ pivots. When $\\bar b_r = 0$ for the leaving row, $t^\\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal. Beale's example, with three constraints, seven variables and the basis of the first three, shows it: `Lp::simplex_iteration` visits six bases with the objective value $0$ and returns to the first, while the optimum is $-5/4$ at $x = (3/4, 0, 0, 1, 0, 1, 0)$. The [API page](../api/core.md#lpsimplex_iteration) runs it."
 msgstr ""
 
-#: manual/design/core.md:133
+#: manual/design/core.md:140
 msgid "E. M. L. Beale, \"Cycling in the dual simplex algorithm\", *Naval Research Logistics Quarterly* 2 (1955), gives a cycling example with three constraints. R. G. Bland, \"New finite pivoting rules for the simplex method\", *Mathematics of Operations Research* 2 (1977), proves that choosing, among the candidates, the entering and the leaving variable with the smallest index prevents cycling."
 msgstr ""
 
-#: manual/design/core.md:135
+#: manual/design/core.md:142
 msgid "Design decisions"
 msgstr ""
 
-#: manual/design/core.md:137
+#: manual/design/core.md:144
 msgid "Two phases with artificial variables"
 msgstr ""
 
-#: manual/design/core.md:139
+#: manual/design/core.md:146
 msgid "**Problem.** The simplex method starts from a basic feasible solution, and a program in standard form does not come with one."
 msgstr ""
 
-#: manual/design/core.md:141
+#: manual/design/core.md:148
 msgid "**Options.** (a) The big-M method: add artificial variables with a large cost $M$ to the original objective. (b) The two-phase method: first find a feasible basis with an auxiliary objective, then optimise. (c) Require the user to supply a feasible basis."
 msgstr ""
 
-#: manual/design/core.md:143
+#: manual/design/core.md:150
 msgid "**Choice.** (b). Big-M needs a numeric value of $M$ that is large enough for the program but small enough not to swamp the other coefficients in floating point; the two-phase method needs no such constant, and its first phase also decides feasibility."
 msgstr ""
 
-#: manual/design/core.md:145
+#: manual/design/core.md:152
 msgid "**Phase 1.** For every constraint row $i$ that has no usable unit column, add an artificial variable $a_i \\ge 0$ with coefficient $1$ in row $i$. Let $R$ be the set of these rows. Phase 1 solves"
 msgstr ""
 
-#: manual/design/core.md:151
+#: manual/design/core.md:158
 msgid "Its initial basis consists of the artificial columns and the existing unit columns, with the basic solution $x_B = b \\ge 0$, which is feasible because `to_standard` made $b$ non-negative."
 msgstr ""
 
-#: manual/design/core.md:153
+#: manual/design/core.md:160
 msgid "*The original program is feasible exactly when the optimum of phase 1 is $w^\\ast = 0$.* If $x$ is feasible for $Ax = b$, then $(x, a = 0)$ is feasible for phase 1 with $w = 0$, and $w \\ge 0$ always, so $w^\\ast = 0$. Conversely, $w^\\ast = 0$ with $a \\ge 0$ forces $a = 0$, so the optimal $x$ satisfies $Ax = b$."
 msgstr ""
 
-#: manual/design/core.md:155
+#: manual/design/core.md:162
 msgid "**Canonical form of the phase 1 tableau.** Row 0 of the phase 1 objective starts as $[\\,0 \\mid \\mathbf 1^\\top \\mid 0\\,]$, which is not canonical because the basic artificial columns have cost $1$. Applying the formula $y^\\top = c_B^\\top A_B^{-1}$ with $A_B = I$ gives $y = \\mathbf 1_R$, so the canonical row 0 is"
 msgstr ""
 
-#: manual/design/core.md:161
+#: manual/design/core.md:168
 msgid "obtained by subtracting each artificial row from row 0. `Lp::phase_1` performs exactly these subtractions before calling `simplex_iteration`."
 msgstr ""
 
-#: manual/design/core.md:163
+#: manual/design/core.md:170
 msgid ""
 "**Phase 2.** If $w^\\ast \\n"
 "e 0$ (beyond the tolerance below), `Lp::phase_2` aborts: the program is infeasible. Otherwise it drops the artificial columns, writes the original costs $c$ into row 0, and makes row 0 canonical again by subtracting $c_j$ times the row of each basic column $j$, which is the same elimination as above. Then it runs `simplex_iteration` from the feasible basis found by phase 1."
 msgstr ""
 
-#: manual/design/core.md:165
+#: manual/design/core.md:172
 msgid "Reusing unit columns as the initial basis"
 msgstr ""
 
-#: manual/design/core.md:167
+#: manual/design/core.md:174
 msgid "A slack variable of a `<=` row with $b \\ge 0$ has a column equal to a unit vector, so it can start in the basis without an artificial variable. The private helper that builds the phase 1 tableau recognises a column as a unit column when one entry equals $1$ and all other entries in the constraint rows are $0$, and adds artificial variables only for the remaining rows. A program whose constraints are all `<=` with non-negative right-hand sides therefore needs no artificial variables at all, and phase 1 is skipped in effect: its tableau keeps the original objective, so phase 1 already optimises it."
 msgstr ""
 
-#: manual/design/core.md:169
+#: manual/design/core.md:176
+msgid "That shortcut is only sound when every starting basic column has cost $0$, as slack columns do. Row 0 then equals $c^\\top$ and is already canonical ($c_B = 0$ gives $\\bar c = c$). A unit column can also belong to one of the program's own variables, for example $x_2$ in $-x_1 + x_2 = 1$. If its cost $c_j$ is not zero, row 0 still holds $c$ instead of $\\bar c = c - c_B^\\top A_B^{-1} A$, and the stopping tests read the wrong numbers: in the example, minimising $-x_1 + 2x_2$, row 0 holds $-1$ for $x_1$, whose column $(-1)$ has no positive entry, so the run aborts as unbounded, although $\\bar c_1 = -1 - 2 \\cdot (-1) = 1 \\ge 0$ and the optimum is $2$ at $x = (0, 1)$. The builder does not make row 0 canonical in this case; see [known defects](#known-defects)."
+msgstr ""
+
+#: manual/design/core.md:178
 msgid "Dense tableau"
 msgstr ""
 
-#: manual/design/core.md:171
+#: manual/design/core.md:180
 msgid "The tableau is a dense `@mutable.Matrix`. Each pivot costs $(m + 1)(n + 1)$ multiply–subtract operations, $O(mn)$. A revised simplex method with a factorised basis would cost less per iteration on sparse programs, but the dense tableau shows every quantity of the derivation above as an entry of one matrix, which serves the teaching goal of the package and keeps the code short."
 msgstr ""
 
-#: manual/design/core.md:173
+#: manual/design/core.md:182
 msgid "Aborting instead of returning errors"
 msgstr ""
 
-#: manual/design/core.md:175
+#: manual/design/core.md:184
 msgid "Infeasible and unbounded programs, a zero pivot, an unknown objective sense and an unknown relation string end the program with `abort`. The package predates the Luna-Flow convention of returning `Result` with a structured error. Callers cannot recover from these outcomes; see the boundaries below."
 msgstr ""
 
-#: manual/design/core.md:179
+#: manual/design/core.md:188
 msgid "The simplex iterations compare entries with zero exactly: a reduced cost of $-10^{-17}$ produced by rounding counts as negative and triggers another pivot. Phase 2 uses the trait `ApproximatelyZero` in two places: to decide whether $w^\\ast$ is zero, and to recognise unit columns. For `Double` the threshold is $|x| < 10^{-15}$, an absolute bound."
 msgstr ""
 
-#: manual/design/core.md:181
+#: manual/design/core.md:190
 msgid "Rounding errors in a pivot are relative to the size of the entries involved. One update $t_{ij} - t_{is}\\, t_{rj}$ in floating point satisfies"
 msgstr ""
 
-#: manual/design/core.md:187
+#: manual/design/core.md:196
 msgid "so its absolute error is bounded by about $u\\,(|t_{ij}| + 2|t_{is}\\, t_{rj}|)$. After $k$ pivots on entries of magnitude around $M$, the error in $w^\\ast$ is of order $k\\,u\\,M$. The threshold $10^{-15} \\approx 9u$ is therefore appropriate for well-scaled programs with entries near $1$ and few pivots. The tests show residuals such as $w^\\ast = -4.44 \\times 10^{-16} = -4u$. For coefficients in the thousands, the residual can exceed the threshold and a feasible program is reported as infeasible. A relative tolerance scaled by the size of $b$ would avoid this, but it is not implemented."
 msgstr ""
 
-#: manual/design/core.md:189
+#: manual/design/core.md:198
 msgid "Correctness and invariants"
 msgstr ""
 
-#: manual/design/core.md:191
+#: manual/design/core.md:200
 msgid "The solver maintains these invariants between pivots:"
 msgstr ""
 
-#: manual/design/core.md:193
-msgid "**Canonical form.** Every basic column of the constraint rows is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0."
-msgstr ""
-
-#: manual/design/core.md:194
-msgid "**Primal feasibility.** The right-hand sides $\\bar b$ are non-negative. `to_standard` makes $b \\ge 0$, and the ratio test keeps it, as derived above."
-msgstr ""
-
-#: manual/design/core.md:195
-msgid "**Objective in row 0.** The last entry of row 0 is $-z_B$."
-msgstr ""
-
-#: manual/design/core.md:197
-msgid "Under these invariants, the stopping tests are correct as derived above: no negative reduced cost means optimal, and a negative reduced cost with a non-positive column means unbounded."
-msgstr ""
-
-#: manual/design/core.md:199
-msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged."
-msgstr ""
-
-#: manual/design/core.md:201
-msgid "**Objective row alignment.** `Lp` builds row 0 with `Obj_func::to_vector`, which takes the stored coefficients in the order of the variable names and skips zero coefficients. Row 0 then disagrees with the column order whenever an objective coefficient is zero or the variables are not declared in name order, and the solver optimises a permuted objective. For example, minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns $1$ instead of $2$."
-msgstr ""
-
 #: manual/design/core.md:202
-msgid "**Basis recognition.** Phase 2 recognises basic variables as unit columns and takes the first such column in each row. When two columns are equal unit vectors, the reported solution can name the wrong variable even though the objective value is right."
+msgid "**Canonical form.** Every constraint row has a basic column, every basic column is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0, except in the defective cases below."
 msgstr ""
 
 #: manual/design/core.md:203
-msgid "**Degenerate artificial variables.** If an artificial variable remains basic at value zero after phase 1, phase 2 drops its column without pivoting it out, and that row has no basic column during phase 2."
+msgid "**Primal feasibility.** The right-hand sides $\\bar b$ are non-negative. `to_standard` makes $b \\ge 0$, and the ratio test keeps it, as derived above."
 msgstr ""
 
 #: manual/design/core.md:204
-msgid "**Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If the phase 1 objective coefficient of column 0 happens to be $1$ at that moment, a row is subtracted from row 0 that should not be."
+msgid "**Objective in row 0.** The last entry of row 0 is $-z_B$."
 msgstr ""
 
 #: manual/design/core.md:206
-msgid "Alternatives rejected"
+msgid "Under these invariants, the stopping tests are correct as derived above: no negative reduced cost means optimal, and a negative reduced cost with a non-positive column means unbounded."
 msgstr ""
 
 #: manual/design/core.md:208
-msgid "**Big-M method.** Rejected for the numeric reasons given under \"Two phases with artificial variables\"."
-msgstr ""
-
-#: manual/design/core.md:209
-msgid "**Bland's rule.** It guarantees termination, but it often needs many more pivots than Dantzig's rule on non-degenerate programs. The package keeps Dantzig's rule and bounds the number of iterations instead."
+msgid "Known defects"
 msgstr ""
 
 #: manual/design/core.md:210
-msgid "**Revised simplex and interior-point methods.** They scale better to large sparse programs, but they hide the tableau, which the package exposes on purpose."
+msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged. An exact-arithmetic replica of the solver, run on random programs with one to three variables, small integer coefficients and non-zero objective coefficients, fails on about 5% of the bounded feasible ones, all through the second and third defects below."
 msgstr ""
 
-#: manual/design/core.md:211
-msgid "**Enforcing variable bounds by substitution.** Bounds $l \\le x \\le u$ can be reduced to the standard form by $x = l + x'$ and an extra constraint $x' \\le u - l$. The package stores bounds for display only and leaves such constraints to the user."
+#: manual/design/core.md:212
+msgid "**Objective row alignment.** `Lp` builds row 0 with `Obj_func::to_vector`, which takes the stored coefficients in the order of the variable names and skips zero coefficients. Row 0 then disagrees with the column order whenever an objective coefficient is zero or the variables are not declared in name order, and the solver optimises a permuted objective. For example, minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns $1$ instead of $2$."
 msgstr ""
 
 #: manual/design/core.md:213
-msgid "Boundaries"
+msgid ""
+"**Artificial variables left in the basis.** Phase 1 can end with $w^\\ast = 0$ while an artificial variable $a_k$ is still basic, at value $\\bar b_k = 0$ (a degenerate basis). `Lp::phase_2` drops the artificial columns without pivoting $a_k$ out, so row $k$ has no basic column and invariant 1 fails. Dropping the columns is harmless for the equations themselves: the remaining system is $Ax = b$ after row operations, and row $k$ still states $\\sum_j \\bar a_{kj} x_j = \\bar b_k$. The harm is in the step. Entering $x_s$ with step $t$ changes the right-hand side of row $k$ to $\\bar b_k - t\\,\\bar a_{ks}$, and since row $k$ has no basic variable to absorb the change, the point read from the tableau satisfies row $k$ only while that stays $0$. The step must therefore be $t = 0$ whenever $\\bar a_{ks} \\n"
+"e 0$, but the ratio test only looks at rows with $\\bar a_{ks} > 0$. With $\\bar a_{ks} < 0$, either another row limits the step to $t^\\ast > 0$ and the returned point violates row $k$, or no row does and the run aborts as unbounded. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$, $x_1 \\le 2$ returns $x = (2, 0)$; minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts. The standard repair pivots every remaining artificial variable out on a non-zero entry $\\bar a_{kj}$ of a real column (a degenerate pivot, so feasibility is kept) and deletes row $k$ when no such entry exists, because the row is then redundant."
+msgstr ""
+
+#: manual/design/core.md:214
+msgid "**Non-canonical start without artificial variables.** As derived under [reusing unit columns](#reusing-unit-columns-as-the-initial-basis), row 0 is not made canonical when the starting basis contains a unit column with a non-zero cost. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts as unbounded."
 msgstr ""
 
 #: manual/design/core.md:215
-msgid "The package deliberately does not:"
+msgid "**Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If row 0 holds exactly $1$ in column 0 at that moment, a row is subtracted from row 0 that should not be. Without any artificial variable, row 0 holds the program's own costs, so this happens whenever the first entry of the objective row is $1$; it changes which pivots phase 1 takes and can add to the non-canonical start above."
+msgstr ""
+
+#: manual/design/core.md:216
+msgid "**Basis recognition.** Phase 2 recognises basic variables as unit columns and takes the first such column in each row. When two columns are equal unit vectors, the reported solution can name the wrong variable even though the objective value is right."
 msgstr ""
 
 #: manual/design/core.md:217
-msgid "return errors as values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program;"
-msgstr ""
-
-#: manual/design/core.md:218
-msgid "enforce variable bounds other than $x \\ge 0$;"
+msgid "**Absolute tolerance.** As shown under [numeric tolerance](#numeric-tolerance), the threshold $10^{-15}$ can report a feasible program with large coefficients as infeasible, and can miss a basic column whose pivot entry is not within $10^{-15}$ of $1$, which then gets the value $0$ in the reported solution."
 msgstr ""
 
 #: manual/design/core.md:219
-msgid "prevent cycling beyond the iteration limit of 1000 per simplex run;"
-msgstr ""
-
-#: manual/design/core.md:220
-msgid "exploit sparsity, warm starts or a factorised basis;"
+msgid "Alternatives rejected"
 msgstr ""
 
 #: manual/design/core.md:221
-msgid "compute dual values or sensitivity ranges, although the vector $y = (A_B^{-1})^\\top c_B$ of the final basis is implicit in the tableau;"
+msgid "**Big-M method.** Rejected for the numeric reasons given under \"Two phases with artificial variables\"."
 msgstr ""
 
 #: manual/design/core.md:222
+msgid "**Bland's rule.** It guarantees termination, but it often needs many more pivots than Dantzig's rule on non-degenerate programs. The package keeps Dantzig's rule and bounds the number of iterations instead."
+msgstr ""
+
+#: manual/design/core.md:223
+msgid "**Revised simplex and interior-point methods.** They scale better to large sparse programs, but they hide the tableau, which the package exposes on purpose."
+msgstr ""
+
+#: manual/design/core.md:224
+msgid "**Enforcing variable bounds by substitution.** Bounds $l \\le x \\le u$ can be reduced to the standard form by $x = l + x'$ and an extra constraint $x' \\le u - l$. The package stores bounds for display only and leaves such constraints to the user."
+msgstr ""
+
+#: manual/design/core.md:226
+msgid "Boundaries"
+msgstr ""
+
+#: manual/design/core.md:228
+msgid "The package deliberately does not:"
+msgstr ""
+
+#: manual/design/core.md:230
+msgid "return errors as values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program;"
+msgstr ""
+
+#: manual/design/core.md:231
+msgid "enforce variable bounds other than $x \\ge 0$;"
+msgstr ""
+
+#: manual/design/core.md:232
+msgid "prevent cycling beyond the iteration limit of 1000 per simplex run;"
+msgstr ""
+
+#: manual/design/core.md:233
+msgid "exploit sparsity, warm starts or a factorised basis;"
+msgstr ""
+
+#: manual/design/core.md:234
+msgid "compute dual values or sensitivity ranges, although the vector $y = (A_B^{-1})^\\top c_B$ of the final basis is implicit in the tableau;"
+msgstr ""
+
+#: manual/design/core.md:235
 msgid "solve integer, mixed-integer or nonlinear programs."
 msgstr ""
 
@@ -934,95 +1010,163 @@ msgid "linear-program"
 msgstr ""
 
 #: manual/index.md:3
-msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
+msgid "This manual documents the `v0.1.0` release of `linear-program`, as migrated to MoonBit 0.10 on `main`."
 msgstr ""
 
 #: manual/index.md:5
-msgid "linear-program is a [MoonBit](https://www.moonbitlang.com/) library for writing linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://lunaflow.cn/en/linear-algebra/). Every step of the solver is public, so the library also serves to follow the simplex method by hand."
+msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
 msgstr ""
 
 #: manual/index.md:7
-msgid "Packages"
+msgid "Overview"
 msgstr ""
 
 #: manual/index.md:9
-msgid "All public names live in the single package at `src`, documented as `core`."
+msgid "linear-program is a [MoonBit](https://www.moonbitlang.com/) library for writing linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://lunaflow.cn/en/linear-algebra/). Every step of the solver is public, so the library also serves to follow the simplex method by hand."
 msgstr ""
 
 #: manual/index.md:11
-msgid "Package"
-msgstr ""
-
-#: manual/index.md:11
-msgid "Contents"
-msgstr ""
-
-#: manual/index.md:11
-msgid "API"
-msgstr ""
-
-#: manual/index.md:11
-msgid "Tutorial"
-msgstr ""
-
-#: manual/index.md:11
-msgid "Design"
+msgid "The solver is a teaching implementation. It handles small, well-scaled programs with `Double` coefficients, but it has known defects that can make it report a wrong optimum, a point that violates a constraint, or a false \"unbounded\"; the [API](api/core.md) marks each with a warning and the [design notes](design/core.md#known-defects) explain them."
 msgstr ""
 
 #: manual/index.md:13
-msgid "`core` (`src`, import path `linear-program`)"
-msgstr ""
-
-#: manual/index.md:13
-msgid "Variables, linear expressions, objectives and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`); programs and standard form (`Lp`, `Lp::to_standard`); the two-phase simplex solver (`Lp::two_stage`, `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`); the tolerance trait `ApproximatelyZero`."
-msgstr ""
-
-#: manual/index.md:13
-msgid "[API](api/core.md)"
-msgstr ""
-
-#: manual/index.md:13
-msgid "[Tutorial](tutorial/core.md)"
-msgstr ""
-
-#: manual/index.md:13
-msgid "[Design](design/core.md)"
+msgid "Install"
 msgstr ""
 
 #: manual/index.md:15
-msgid "Reading paths"
+msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, so it is not published as `Luna-Flow/linear-program` on mooncakes yet and `moon add` cannot fetch it. Use a local checkout instead: add it, together with checkouts of `luna-generic` and `linear-algebra`, to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
 msgstr ""
 
-#: manual/index.md:17
-msgid "**New to linear programming.** Work through the [tutorial](tutorial/core.md): it solves a production problem, then a minimisation with `>=` constraints, then pivots a tableau by hand. Keep the [design notes](design/core.md) open for the meaning of standard form, reduced costs and the two phases."
+#: manual/index.md:24
+msgid "Then import `\"linear-program\"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
 msgstr ""
 
-#: manual/index.md:18
-msgid "**Using the solver.** The [tutorial](tutorial/core.md) quick start and its list of common pitfalls are enough to solve small programs. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts."
-msgstr ""
-
-#: manual/index.md:19
-msgid "**Contributing.** Read the [design notes](design/core.md), especially the invariants and the known defects, then the [contribution guidelines](contributing.md)."
-msgstr ""
-
-#: manual/index.md:21
-msgid "Toolchain and installation"
-msgstr ""
-
-#: manual/index.md:23
-msgid "The library requires MoonBit with `moonc` 0.10 or newer and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
-msgstr ""
-
-#: manual/index.md:25
-msgid "[!NOTE] The module is named `linear-program`, without the `Luna-Flow/` namespace, so it cannot be added from mooncakes under the Luna-Flow organisation. Add a checkout of the repository to the `members` of your `moon.work` and list `\"linear-program@0.1.0\"` in the `import` block of your `moon.mod`. The [tutorial](tutorial/core.md) shows the complete setup."
+#: manual/index.md:26
+msgid "Pages"
 msgstr ""
 
 #: manual/index.md:28
-msgid "Import the package in your `moon.pkg`:"
+msgid "All public names live in the single package at `src`, documented as `core`."
+msgstr ""
+
+#: manual/index.md:30
+msgid "Part"
+msgstr ""
+
+#: manual/index.md:30
+msgid "Tutorial"
+msgstr ""
+
+#: manual/index.md:30
+msgid "API"
+msgstr ""
+
+#: manual/index.md:30
+msgid "Design"
+msgstr ""
+
+#: manual/index.md:32
+msgid "`core`: programs, standard form, the two-phase simplex solver"
+msgstr ""
+
+#: manual/index.md:32
+msgid "[tutorial](tutorial/core.md)"
+msgstr ""
+
+#: manual/index.md:32
+msgid "[API](api/core.md)"
+msgstr ""
+
+#: manual/index.md:32
+msgid "[design](design/core.md)"
+msgstr ""
+
+#: manual/index.md:33
+msgid "[contributing](contributing.md)"
+msgstr ""
+
+#: manual/index.md:35
+msgid "Modelling"
 msgstr ""
 
 #: manual/index.md:37
-msgid "Before opening a pull request, run `moon fmt`, `moon check --target all`, `moon info` and `moon test`, or the `ready_to_pr.sh` script."
+msgid "`Variable`: a named decision variable; its bounds are stored but not enforced"
+msgstr ""
+
+#: manual/index.md:38
+msgid "`Poly`: a linear expression, a map from variables to non-zero coefficients"
+msgstr ""
+
+#: manual/index.md:39
+msgid "`Obj_func`: an objective, a `Poly` with the sense `min` or `max`"
+msgstr ""
+
+#: manual/index.md:40
+msgid "`Constraint`: equalities and `<=` / `>=` inequalities"
+msgstr ""
+
+#: manual/index.md:42
+msgid "Programs and standard form"
+msgstr ""
+
+#: manual/index.md:44
+msgid "`Lp`: a program with its variables, objective, constraints and program matrix"
+msgstr ""
+
+#: manual/index.md:45
+msgid "`Lp::new`, `Lp::cons_from_Array`, `Lp::reset_obj_byarray`, `Lp::from_matrix`: build a program"
+msgstr ""
+
+#: manual/index.md:46
+msgid "`Lp::to_standard`: rewrite it as $\\min c^\\top x$, $Ax = b$, $b \\ge 0$, $x \\ge 0$"
+msgstr ""
+
+#: manual/index.md:47
+msgid "`Lp::get_coeff_matrix`, `Lp::get_objfunc_vector`, `Lp::get_b_vector`: read $A$, $c$, $b$"
+msgstr ""
+
+#: manual/index.md:49
+msgid "Solver"
+msgstr ""
+
+#: manual/index.md:51
+msgid "`Lp::two_stage`: the two-phase simplex method on a program in standard form"
+msgstr ""
+
+#: manual/index.md:52
+msgid "`Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`: its steps, public for teaching"
+msgstr ""
+
+#: manual/index.md:53
+msgid "`ApproximatelyZero`, `double_equal_to_zero`: the zero test of phase 2, implemented for `Int` and `Double`"
+msgstr ""
+
+#: manual/index.md:55
+msgid "Where to read next"
+msgstr ""
+
+#: manual/index.md:57
+msgid "The [tutorial](tutorial/core.md) solves a production problem, a minimisation with `>=` constraints and a program given as a matrix, then pivots a tableau by hand. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts, and the [design notes](design/core.md) derive standard form, reduced costs, the stopping tests and the two phases."
+msgstr ""
+
+#: manual/index.md:59
+msgid "New to linear programming: work through the [tutorial](tutorial/core.md), and keep the [design notes](design/core.md) open for the meaning of standard form, reduced costs and the two phases."
+msgstr ""
+
+#: manual/index.md:60
+msgid "Using the solver in a library: read the warnings in the [API reference](api/core.md) and the [common pitfalls](tutorial/core.md#common-pitfalls), and check every result against the constraints, as the tutorial shows."
+msgstr ""
+
+#: manual/index.md:61
+msgid "Contributing: read the [design notes](design/core.md), especially the invariants and the known defects, then the [contribution guidelines](contributing.md)."
+msgstr ""
+
+#: manual/index.md:63
+msgid "Validation"
+msgstr ""
+
+#: manual/index.md:65
+msgid "Recommended release checks, from the repository root (or run `ready_to_pr.sh`):"
 msgstr ""
 
 #: manual/tutorial/core.md:1
@@ -1034,173 +1178,233 @@ msgid "This tutorial shows you how to write a linear program, bring it into stan
 msgstr ""
 
 #: manual/tutorial/core.md:5
-msgid "Quick start"
+msgid "I want to"
+msgstr ""
+
+#: manual/tutorial/core.md:5
+msgid "Use"
 msgstr ""
 
 #: manual/tutorial/core.md:7
-msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, and is not published on mooncakes under the Luna-Flow organisation yet. Use it from a local checkout: add the checkout, together with checkouts of its dependencies [luna-generic](https://lunaflow.cn/en/luna-generic/) and [linear-algebra](https://lunaflow.cn/en/linear-algebra/), to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
+msgid "declare decision variables"
+msgstr ""
+
+#: manual/tutorial/core.md:7
+msgid "`Variable::new(name, lower, upper)`; only $x \\ge 0$ is enforced"
+msgstr ""
+
+#: manual/tutorial/core.md:8
+msgid "state the objective"
+msgstr ""
+
+#: manual/tutorial/core.md:9
+msgid "state the constraints"
+msgstr ""
+
+#: manual/tutorial/core.md:10
+msgid "give an equality-only program as one matrix"
+msgstr ""
+
+#: manual/tutorial/core.md:11
+msgid "solve it"
+msgstr ""
+
+#: manual/tutorial/core.md:11
+msgid "`lp.to_standard().two_stage()`, negating the value for `max`"
+msgstr ""
+
+#: manual/tutorial/core.md:12
+msgid "see $A$, $b$ and $c$ of the standard form"
+msgstr ""
+
+#: manual/tutorial/core.md:13
+msgid "follow the simplex method step by step"
+msgstr ""
+
+#: manual/tutorial/core.md:13
+msgid "`Lp::pivot` and `Lp::simplex_iteration` on a tableau"
+msgstr ""
+
+#: manual/tutorial/core.md:14
+msgid "trust a result"
+msgstr ""
+
+#: manual/tutorial/core.md:14
+msgid "substitute it into the constraints, as in [check the result yourself](#check-the-result-yourself)"
 msgstr ""
 
 #: manual/tutorial/core.md:16
+msgid "Quick start"
+msgstr ""
+
+#: manual/tutorial/core.md:18
+msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, and is not published on mooncakes under the Luna-Flow organisation yet. Use it from a local checkout: add the checkout, together with checkouts of its dependencies [luna-generic](https://lunaflow.cn/en/luna-generic/) and [linear-algebra](https://lunaflow.cn/en/linear-algebra/), to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
+msgstr ""
+
+#: manual/tutorial/core.md:27
 msgid "Then import the package in your `moon.pkg`:"
 msgstr ""
 
-#: manual/tutorial/core.md:26
+#: manual/tutorial/core.md:37
 msgid "The smallest useful program maximises $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$, $x_1 + 3x_2 \\le 10$ and $x_1, x_2 \\ge 0$:"
 msgstr ""
 
-#: manual/tutorial/core.md:41
+#: manual/tutorial/core.md:52
 msgid "The optimum is $x_1 = 5.2$, $x_2 = 1.6$ with value $22$, up to rounding. The solution has four entries because `to_standard` adds one slack variable per inequality, and the value is negated because the standard form minimises $-3x_1 - 4x_2$."
 msgstr ""
 
-#: manual/tutorial/core.md:43
+#: manual/tutorial/core.md:54
 msgid "Everyday tasks"
 msgstr ""
 
-#: manual/tutorial/core.md:45
+#: manual/tutorial/core.md:56
 msgid "Write a program and read it back"
 msgstr ""
 
-#: manual/tutorial/core.md:47
+#: manual/tutorial/core.md:58
 msgid "Variables carry a name and bounds; the objective carries a sense and coefficients; constraints are rows of coefficients. `Show` prints the program in the usual notation:"
 msgstr ""
 
-#: manual/tutorial/core.md:75
+#: manual/tutorial/core.md:86
 msgid "An equality row is `(coefficients, b)`; an inequality row is `(coefficients, relation, b)` with the relation written exactly as `\">=\"` or `\"<=\"`. The `nonneg` helper is used by the remaining examples."
 msgstr ""
 
-#: manual/tutorial/core.md:77
+#: manual/tutorial/core.md:88
 msgid "Bring a program into standard form"
 msgstr ""
 
-#: manual/tutorial/core.md:79
+#: manual/tutorial/core.md:90
 msgid "The solver works on $\\min c^\\top x$ subject to $Ax = b$, $b \\ge 0$, $x \\ge 0$. `to_standard` produces it, and the accessors return $c$, $A$ and $b$:"
 msgstr ""
 
-#: manual/tutorial/core.md:102
+#: manual/tutorial/core.md:113
 msgid "Each `>=` row received a surplus variable with coefficient $-1$, so $2x_1 + x_2 \\ge 12$ became $2x_1 + x_2 - y_1 = 12$ with $y_1 \\ge 0$."
 msgstr ""
 
-#: manual/tutorial/core.md:104
+#: manual/tutorial/core.md:115
 msgid "Solve a minimisation problem"
 msgstr ""
 
-#: manual/tutorial/core.md:106
+#: manual/tutorial/core.md:117
 msgid "A minimisation problem needs no sign change: the returned value is the minimum."
 msgstr ""
 
-#: manual/tutorial/core.md:119
+#: manual/tutorial/core.md:130
 msgid "No slack column is a unit column here, so phase 1 adds two artificial variables, drives them to zero, and phase 2 then minimises the real objective from the feasible point phase 1 found."
 msgstr ""
 
-#: manual/tutorial/core.md:121
+#: manual/tutorial/core.md:132
 msgid "Write a program with equality constraints as a matrix"
 msgstr ""
 
-#: manual/tutorial/core.md:123
+#: manual/tutorial/core.md:134
 msgid "When every constraint is an equality, the whole program fits in one matrix: row 0 holds the objective coefficients and every further row holds one constraint $[a_i \\mid b_i]$. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
 msgstr ""
 
-#: manual/tutorial/core.md:150
+#: manual/tutorial/core.md:161
 msgid "The optimum is $x = (2, 4, 0)$ with value $-10$. The last entry of row 0 is ignored by `from_matrix`."
 msgstr ""
 
-#: manual/tutorial/core.md:152
+#: manual/tutorial/core.md:163
 msgid "Build expressions term by term"
 msgstr ""
 
-#: manual/tutorial/core.md:154
+#: manual/tutorial/core.md:165
 msgid "`Poly` and `Obj_func` can also be built one term at a time, which is convenient when coefficients come from data:"
 msgstr ""
 
-#: manual/tutorial/core.md:171
+#: manual/tutorial/core.md:182
 msgid "`add_term_inplace` adds to an existing coefficient, so `x1` ends with $3 + 1 = 4$."
 msgstr ""
 
-#: manual/tutorial/core.md:173
+#: manual/tutorial/core.md:184
 msgid "Going further"
 msgstr ""
 
-#: manual/tutorial/core.md:175
+#: manual/tutorial/core.md:186
 msgid "Drive the simplex method by hand"
 msgstr ""
 
-#: manual/tutorial/core.md:177
+#: manual/tutorial/core.md:188
 msgid "The steps of `two_stage` are public. When a program is already in canonical form, for example because every constraint is `<=` with $b \\ge 0$ and the slack columns form an identity, you can write the tableau yourself and pivot on it. Row 0 holds the reduced costs and $-z$:"
 msgstr ""
 
-#: manual/tutorial/core.md:203
+#: manual/tutorial/core.md:214
 msgid "After the first pivot the objective has improved from $0$ to $40/3$; the remaining negative reduced cost of $x_1$ says that one more pivot improves it further, to $22$. Pass `debug=true` to `simplex_iteration` to print every pivot."
 msgstr ""
 
-#: manual/tutorial/core.md:205
-msgid "Use another coefficient type"
+#: manual/tutorial/core.md:216
+msgid "Coefficient types"
 msgstr ""
 
-#: manual/tutorial/core.md:207
-msgid "Every function is generic in the coefficient type `V`. The solver needs `Zero`, `One`, `Compare`, the arithmetic operators, `Show` and `ApproximatelyZero`. To use your own exact number type, implement those traits for it, including the tolerance trait, which for an exact type is plain equality with zero:"
+#: manual/tutorial/core.md:218
+msgid "Every function is generic in the coefficient type `V`, and the modelling functions (`Variable`, `Poly`, `Obj_func`, `Constraint`, `Lp::to_standard`) work with any type that has the luna-generic traits they ask for. The solver also needs `ApproximatelyZero`, which is read-only outside the package: only `Int` and `Double` implement it, and you cannot add your own exact number type. Since integer division truncates, use `Double` for `two_stage`."
 msgstr ""
 
-#: manual/tutorial/core.md:215
-msgid "With exact arithmetic the solver returns exact results and the tolerance never matters."
-msgstr ""
-
-#: manual/tutorial/core.md:217
+#: manual/tutorial/core.md:220
 msgid "Check the result yourself"
 msgstr ""
 
-#: manual/tutorial/core.md:219
+#: manual/tutorial/core.md:222
 msgid "`two_stage` aborts on infeasible and unbounded programs instead of returning an error, so validate the input before calling it when the program comes from user data. After solving, substitute the solution back into the constraints of the standard form to confirm feasibility:"
 msgstr ""
 
-#: manual/tutorial/core.md:240
+#: manual/tutorial/core.md:243
 msgid "Common pitfalls"
 msgstr ""
 
-#: manual/tutorial/core.md:242
+#: manual/tutorial/core.md:245
 msgid "**The returned value belongs to the standard form.** `to_standard` turns every program into a minimisation, so for a maximisation problem negate the value returned by `two_stage`."
 msgstr ""
 
-#: manual/tutorial/core.md:243
+#: manual/tutorial/core.md:246
 msgid "**The solution includes slack variables.** Its length is the number of variables of the standard form; your own variables come first, in declaration order."
 msgstr ""
 
-#: manual/tutorial/core.md:244
+#: manual/tutorial/core.md:247
 msgid "**Objective coefficients must line up.** Because of a known defect, the objective row is filled from the non-zero coefficients in the order of the variable names. Give every variable a non-zero objective coefficient and declare variables in name order (`x1`, `x2`, ..., not `x2` before `x10`), or the solver optimises a different objective."
 msgstr ""
 
-#: manual/tutorial/core.md:245
+#: manual/tutorial/core.md:248
 msgid "**Bounds are not enforced.** `Variable::new(\"x\", 0.0, 100.0)` stores the bound $100$, but the solver only assumes $x \\ge 0$. Add an explicit constraint `([1.0, ...], \"<=\", 100.0)` for an upper bound."
 msgstr ""
 
-#: manual/tutorial/core.md:246
+#: manual/tutorial/core.md:249
 msgid "**Infeasible and unbounded programs abort.** There is no `Result` to inspect."
 msgstr ""
 
-#: manual/tutorial/core.md:247
+#: manual/tutorial/core.md:250
 msgid "**Use `Double` coefficients.** `Int` satisfies the trait bounds, but integer division truncates, so pivoting on `Int` gives wrong results."
 msgstr ""
 
-#: manual/tutorial/core.md:248
+#: manual/tutorial/core.md:251
 msgid "**Tolerance is absolute.** Phase 2 treats $|x| < 10^{-15}$ as zero. For programs with large coefficients, rounding errors can exceed this threshold and an infeasibility can be reported for a feasible program; rescale the rows so that coefficients are of moderate size."
 msgstr ""
 
-#: manual/tutorial/core.md:249
+#: manual/tutorial/core.md:252
 msgid "**Do not name variables `y1`, `y2`, ...** `to_standard` uses these names for slack variables, and variables are identified by name."
 msgstr ""
 
-#: manual/tutorial/core.md:251
-msgid "Next steps"
-msgstr ""
-
 #: manual/tutorial/core.md:253
-msgid "The [API reference](../api/core.md) documents every type and function, including `Lp::phase_1` and `Lp::phase_2`."
+msgid "**Some feasible bounded programs fail.** When phase 1 leaves an artificial variable in the basis, or when one of your own variables already has a unit column, the solver can return a point that violates a constraint or abort with `Problem is unbounded`. The warning under [`Lp::two_stage`](../api/core.md#lptwo_stage) gives small examples; equality constraints with right-hand side $0$ are a typical trigger. Check every solution against the constraints."
 msgstr ""
 
 #: manual/tutorial/core.md:254
+msgid "**Degenerate programs can cycle.** A run that hits the iteration limit prints a message and returns a non-optimal result without an error."
+msgstr ""
+
+#: manual/tutorial/core.md:256
+msgid "Next steps"
+msgstr ""
+
+#: manual/tutorial/core.md:258
+msgid "The [API reference](../api/core.md) documents every type and function, including `Lp::phase_1` and `Lp::phase_2`."
+msgstr ""
+
+#: manual/tutorial/core.md:259
 msgid "The [design notes](../design/core.md) derive the standard form, the optimality and unboundedness tests and the two phases."
 msgstr ""
 
-#: manual/tutorial/core.md:255
+#: manual/tutorial/core.md:260
 msgid "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) provides the `Matrix` type used for tableaux, and [luna-generic](https://lunaflow.cn/en/luna-generic/) the traits that bound the coefficient type."
 msgstr ""

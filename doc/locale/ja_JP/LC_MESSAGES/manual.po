@@ -16,351 +16,393 @@ msgid "core API"
 msgstr "core API"
 
 #: manual/api/core.md:3
-msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `\"linear-program\"`."
-msgstr "`src` にあるパッケージが linear-program の公開インターフェースのすべてです。インターフェースファイルは [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti) です。パッケージパスは `linear-program` です。モジュール名にはまだ `Luna-Flow/` 名前空間が付いていないため、他のパッケージからは `\"linear-program\"` としてインポートします。"
+msgid "Purpose"
+msgstr "役割"
 
 #: manual/api/core.md:5
+msgid "The package at `src` is the whole public surface of linear-program: variables, linear expressions, objectives and constraints, programs and their standard form, and the two-phase simplex solver with each of its steps. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The mathematics is derived in the [design notes](../design/core.md), and the [tutorial](../tutorial/core.md) works through typical programs."
+msgstr "`src` にあるパッケージが linear-program の公開インターフェースのすべてです。変数、線形式、目的関数と制約、計画とその標準形、そして各ステップを含む二段階単体法ソルバーを提供します。インターフェースファイルは [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti) です。数学は[設計ノート](../design/core.md)で導出し、[チュートリアル](../tutorial/core.md)で典型的な計画を扱います。"
+
+#: manual/api/core.md:7
 msgid "The coefficient type `V` is generic. Each function states the traits it needs; `Double` satisfies all of them, and it is the only type the solver is tested with. Matrices are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://lunaflow.cn/en/linear-algebra/). A *program matrix* or *tableau* stores the objective in row 0 and one equality constraint in each further row; its last column holds the right-hand sides."
 msgstr "係数型 `V` はジェネリックです。各関数は必要な trait を明示しており、`Double` はそのすべてを満たします。ソルバーがテストされている型は `Double` だけです。行列は [linear-algebra](https://lunaflow.cn/en/linear-algebra/) の `mutable` パッケージの `@mutable.Matrix[V]` です。*計画行列*または*シンプレックス表*は、第 0 行に目的関数を、以降の各行に等式制約を 1 つずつ格納し、最終列に右辺を格納します。"
 
-#: manual/api/core.md:7
-msgid "The examples on this page are tests in a package with this `moon.pkg`:"
-msgstr "このページの例は、次の `moon.pkg` を持つパッケージ内のテストです。"
+#: manual/api/core.md:9
+msgid "[!WARNING] The solver has known defects that return a wrong optimum, return a point that violates a constraint, or abort with `Problem is unbounded` on a bounded program. They are listed under [`Lp::two_stage`](#lptwo_stage). Check every solution against the constraints before you use it."
+msgstr "[!WARNING] ソルバーには既知の欠陥があり、誤った最適値を返したり、制約に違反する点を返したり、有界な計画で `Problem is unbounded` により中断したりします。欠陥は [`Lp::two_stage`](#lptwo_stage) の下に列挙しています。解を使う前に、必ず制約に代入して確かめてください。"
 
-#: manual/api/core.md:17
+#: manual/api/core.md:12
+msgid "Importing"
+msgstr "インポート"
+
+#: manual/api/core.md:14
+msgid "The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `\"linear-program\"`. The examples on this page are tests in a package with this `moon.pkg`:"
+msgstr "パッケージのパスは `linear-program` です。モジュール名にまだ `Luna-Flow/` 名前空間がないため、他のパッケージは `\"linear-program\"` としてインポートします。このページの例は、次の `moon.pkg` を持つパッケージ内のテストです："
+
+#: manual/api/core.md:24
 msgid "and they share these declarations:"
 msgstr "また、次の宣言を共有します。"
 
-#: manual/api/core.md:27
+#: manual/api/core.md:34
 msgid "Variables"
 msgstr "変数"
 
-#: manual/api/core.md:31
+#: manual/api/core.md:38
 msgid "`Variable` is a named decision variable with a lower and an upper bound."
 msgstr "`Variable` は下限と上限を持つ名前付きの決定変数です。"
 
-#: manual/api/core.md:41
+#: manual/api/core.md:48
 msgid "`Variable` is an abstract type: you create values with `Variable::new` and cannot read the fields directly. Two variables are equal when their names are equal, whatever their bounds, and they are ordered by name. The bounds are stored and printed, but the solver does not read them: every variable of a program is treated as non-negative."
 msgstr "`Variable` は抽象型です。値は `Variable::new` で作成し、フィールドを直接読むことはできません。2 つの変数は境界に関係なく名前が等しければ等しく、名前順に並びます。境界は保存・表示されますが、ソルバーは読みません。計画のすべての変数は非負として扱われます。"
 
-#: manual/api/core.md:45
+#: manual/api/core.md:52
 msgid "`Variable::new` creates a variable from its name, lower bound and upper bound."
 msgstr "`Variable::new` は名前、下界、上界から変数を作成します。"
 
-#: manual/api/core.md:51
+#: manual/api/core.md:58
 msgid "Use `@double.max_value` for an upper bound that is not meant to restrict anything. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
 msgstr "何も制限しない上界には `@double.max_value` を使います。`Lp::to_standard` は追加する変数に `y1`、`y2`、… と名前を付けるため、自分の変数にはこれらの名前を使わないでください。"
 
-#: manual/api/core.md:55
+#: manual/api/core.md:62
 msgid "`show_all` prints the name of a variable together with its bounds."
 msgstr "`show_all` は変数名を境界とともに表示します。"
 
-#: manual/api/core.md:73
+#: manual/api/core.md:80
 msgid "These are the `Show`, `Eq` and `Compare` methods, promoted to methods of `Variable`."
 msgstr "これらは `Show`、`Eq`、`Compare` のメソッドで、`Variable` のメソッドとして昇格されたものです。"
 
-#: manual/api/core.md:81
+#: manual/api/core.md:88
 msgid "`to_string` returns the name. `equal` and `compare` look at the name only; `compare` is the lexicographic order of the names, so `\"x10\"` comes before `\"x2\"`. Prefer `\"\\{x}\"`, `==` and `<` in new code."
 msgstr "`to_string` は名前を返します。`equal` と `compare` は名前だけを見ます。`compare` は名前の辞書順なので、`\"x10\"` は `\"x2\"` より前に来ます。新しいコードでは `\"\\{x}\"`、`==`、`<` を使ってください。"
 
-#: manual/api/core.md:85
+#: manual/api/core.md:92
 msgid "`Variable::one` is the unnamed variable that stands for the constant term of a linear expression."
 msgstr "`Variable::one` は線形式の定数項を表す無名の変数です。"
 
-#: manual/api/core.md:91
+#: manual/api/core.md:98
 msgid "It is the `One` method of luna-generic promoted to a method. Its name is empty and its bounds are `@double.min_value` and `@double.max_value`. `Poly::from_var_array` attaches a coefficient that has no matching variable to it."
 msgstr "これは luna-generic の `One` メソッドをメソッドとして昇格したものです。名前は空で、境界は `@double.min_value` と `@double.max_value` です。`Poly::from_var_array` は対応する変数のない係数をこれに割り当てます。"
 
-#: manual/api/core.md:93
+#: manual/api/core.md:100
 msgid "Linear expressions"
 msgstr "線形式"
 
-#: manual/api/core.md:97
+#: manual/api/core.md:104
 msgid "`Poly[V]` is a linear expression: a map from variables to non-zero coefficients, kept in the order of the variable names."
 msgstr "`Poly[V]` は線形式です。変数から非零係数への写像で、変数名の順に保持されます。"
 
-#: manual/api/core.md:105
+#: manual/api/core.md:112
 msgid "A `Poly` is mutable: `add_term_inplace` changes it, and every value that shares it sees the change. Use `copy` when you need an independent expression. Two expressions are equal when they have the same variables with equal coefficients."
 msgstr "`Poly` は可変です。`add_term_inplace` はそれを変更し、共有しているすべての値に変更が見えます。独立した式が必要なときは `copy` を使います。2 つの式は、同じ変数を等しい係数で持つときに等しくなります。"
 
-#: manual/api/core.md:109
+#: manual/api/core.md:116
 msgid "`Poly::new` creates the empty expression; `Poly::from_var_array` creates one from coefficients."
 msgstr "`Poly::new` は空の式を作成し、`Poly::from_var_array` は係数から式を作成します。"
 
-#: manual/api/core.md:116
+#: manual/api/core.md:123
 msgid "`Poly::from_var_array(coeffs, vars)` pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient at a position beyond the last variable is attached to `Variable::one()`, the constant term; when there are several such coefficients, the last one wins."
 msgstr "`Poly::from_var_array(coeffs, vars)` は `coeffs[i]` と `vars[i]` を組にし、ゼロ係数を飛ばします。最後の変数より後ろの位置にある係数は定数項 `Variable::one()` に割り当てられ、そのような係数が複数あるときは最後のものが採用されます。"
 
-#: manual/api/core.md:120
+#: manual/api/core.md:127
 msgid "`add_term_inplace` adds a multiple of a variable to an expression in place."
 msgstr "`add_term_inplace` は式に変数の倍数をその場で加えます。"
 
-#: manual/api/core.md:126
+#: manual/api/core.md:133
 msgid "`p.add_term_inplace(x, c)` adds `c` to the coefficient of `x`. Adding zero does nothing, and a term whose coefficient becomes zero is removed, so no zero coefficient is ever stored."
 msgstr "`p.add_term_inplace(x, c)` は `x` の係数に `c` を加えます。ゼロを加えても何も起こらず、係数がゼロになった項は削除されるため、ゼロ係数が保存されることはありません。"
 
-#: manual/api/core.md:130
+#: manual/api/core.md:137
 msgid "`copy` returns an expression with the same terms that does not share storage with the original."
 msgstr "`copy` は、同じ項を持ち元の式と記憶領域を共有しない式を返します。"
 
-#: manual/api/core.md:138
+#: manual/api/core.md:145
 msgid "`to_array` lists the stored coefficients; `to_vector` lists one coefficient per given variable."
 msgstr "`to_array` は保存された係数を列挙し、`to_vector` は与えられた変数ごとに係数を 1 つ列挙します。"
 
-#: manual/api/core.md:145
+#: manual/api/core.md:152
 msgid "`to_array` returns the non-zero coefficients in the order of the variable names, without the variables. `to_vector(vars)` returns `vars.length()` coefficients in the order of `vars`, with zero for a variable that does not occur; this is the dense row used in a program matrix."
 msgstr "`to_array` は非ゼロ係数を変数名の順に、変数なしで返します。`to_vector(vars)` は `vars` の順に `vars.length()` 個の係数を返し、現れない変数にはゼロを入れます。これが計画行列で使われる密な行です。"
 
-#: manual/api/core.md:149
+#: manual/api/core.md:156
 msgid "These are the `Neg`, `Eq` and `Show` methods, promoted to methods of `Poly`."
 msgstr "これらは `Neg`、`Eq`、`Show` のメソッドで、`Poly` のメソッドとして昇格されたものです。"
 
-#: manual/api/core.md:157
+#: manual/api/core.md:164
 msgid "`-p` negates every coefficient and returns a new expression. `Show` prints the terms in name order, joined by `\" + \"`, and leaves out a coefficient equal to one, for example `3.5x1 + x2 + -2x3`."
 msgstr "`-p` はすべての係数の符号を反転して新しい式を返します。`Show` は項を名前順に `\" + \"` でつないで表示し、1 に等しい係数は省略します。例: `3.5x1 + x2 + -2x3`。"
 
-#: manual/api/core.md:174
+#: manual/api/core.md:181
 msgid "Objective functions"
 msgstr "目的関数"
 
-#: manual/api/core.md:178
+#: manual/api/core.md:185
 msgid "`Obj_func[V]` is an objective: a linear expression together with the sense, minimise or maximise."
 msgstr "`Obj_func[V]` は目的関数です。線形式と、最小化か最大化かの向きからなります。"
 
-#: manual/api/core.md:185
+#: manual/api/core.md:192
 msgid "`Show` prints the sense and the expression, for example `max  3x1 + 4x2`. `Obj_func::to_string` is the promoted `Show` method."
 msgstr "`Show` は向きと式を表示します。例: `max  3x1 + 4x2`。`Obj_func::to_string` は昇格された `Show` メソッドです。"
 
-#: manual/api/core.md:193
+#: manual/api/core.md:200
 msgid "`Obj_func::new` creates an objective with an empty expression; `Obj_func::from_array` also sets the expression."
 msgstr "`Obj_func::new` は空の式を持つ目的関数を作成し、`Obj_func::from_array` は式も設定します。"
 
-#: manual/api/core.md:200
+#: manual/api/core.md:207
 msgid "The sense is one of `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"`, `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"`, `\"Maximize\"` for maximisation. Any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` builds the expression with `Poly::from_var_array`."
 msgstr "向きは、最小化なら `\"min\"`、`\"Min\"`、`\"MIN\"`、`\"minimize\"`、`\"Minimize\"` のいずれか、最大化なら `\"max\"`、`\"Max\"`、`\"MAX\"`、`\"maximize\"`、`\"Maximize\"` のいずれかです。それ以外の文字列は abort します。`Obj_func::from_array(sense, coeffs, vars)` は `Poly::from_var_array` で式を作ります。"
 
-#: manual/api/core.md:204
+#: manual/api/core.md:211
 msgid "`set_poly` replaces the expression; `add_term_inplace` adds a term to it in place."
 msgstr "`set_poly` は式を置き換え、`add_term_inplace` はその場で項を追加します。"
 
-#: manual/api/core.md:211
+#: manual/api/core.md:218
 msgid "`set_poly(p)` returns a new objective with the same sense and the expression `p`; it does not copy `p`."
 msgstr "`set_poly(p)` は同じ向きで式が `p` の新しい目的関数を返します。`p` はコピーしません。"
 
-#: manual/api/core.md:215
+#: manual/api/core.md:222
 msgid "`judge_max` tells whether an objective maximises; `to_min` returns the equivalent minimisation objective."
 msgstr "`judge_max` は目的関数が最大化かどうかを判定し、`to_min` は等価な最小化の目的関数を返します。"
 
-#: manual/api/core.md:222
+#: manual/api/core.md:229
 msgid "`to_min` returns a minimisation objective unchanged and negates the expression of a maximisation objective, because $\\max c^\\top x = -\\min\\,(-c)^\\top x$."
 msgstr "`to_min` は最小化の目的関数をそのまま返し、最大化の目的関数では式の符号を反転します。$\\max c^\\top x = -\\min\\,(-c)^\\top x$ だからです。"
 
-#: manual/api/core.md:226
+#: manual/api/core.md:233
 msgid "`to_vector` returns the objective row of a program matrix."
 msgstr "`to_vector` は計画行列の目的関数行を返します。"
 
-#: manual/api/core.md:232
+#: manual/api/core.md:239
 msgid "`to_vector(n)` takes the coefficients of `to_array` and pads them with zeros to length `n + 1`, the width of a tableau row. Because `to_array` lists only non-zero coefficients in name order, the result lines up with the variables only when every variable has a non-zero coefficient and the variables are declared in name order. See the warning under `Lp::two_stage` below."
 msgstr "`to_vector(n)` は `to_array` の係数を取り、シンプレックス表の 1 行の幅である長さ `n + 1` までゼロで埋めます。`to_array` は非ゼロ係数だけを名前順に列挙するため、結果が変数と揃うのは、すべての変数の係数が非ゼロで、変数が名前順に宣言されている場合だけです。下の `Lp::two_stage` の警告を参照してください。"
 
-#: manual/api/core.md:245
+#: manual/api/core.md:252
+#: manual/design/core.md:11
 msgid "Constraints"
 msgstr "制約"
 
-#: manual/api/core.md:249
+#: manual/api/core.md:256
 msgid "`Constraint[V]` is the constraint set of a program: equalities `poly = b` and inequalities `poly <= b` or `poly >= b`."
 msgstr "`Constraint[V]` は問題の制約の集合です。等式 `poly = b` と不等式 `poly <= b` または `poly >= b` からなります。"
 
-#: manual/api/core.md:257
+#: manual/api/core.md:264
 msgid "`Show` prints the set after `s.t.`, one constraint per line, equalities first. A program receives its constraints through `Lp::cons_from_Array`; a `Constraint` value on its own is useful for building and printing constraint sets."
 msgstr "`Show` は `s.t.` の後に制約集合を 1 行に 1 つずつ、等式を先にして表示します。計画は `Lp::cons_from_Array` で制約を受け取ります。単独の `Constraint` 値は制約集合の構築と表示に便利です。"
 
-#: manual/api/core.md:261
+#: manual/api/core.md:268
 msgid "`Constraint::new` creates the empty set; `Constraint::from_array` builds one from coefficient rows."
 msgstr "`Constraint::new` は空の集合を作成し、`Constraint::from_array` は係数の行から集合を構築します。"
 
-#: manual/api/core.md:268
+#: manual/api/core.md:275
 msgid "An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is exactly `\">=\"` or `\"<=\"`. Any other relation aborts. Both arrays default to empty."
 msgstr "等式の行は `(coeffs, b)`、不等式の行は `(coeffs, relation, b)` で、`relation` は正確に `\">=\"` または `\"<=\"` です。それ以外の関係は abort します。どちらの配列も既定値は空です。"
 
-#: manual/api/core.md:272
+#: manual/api/core.md:279
 msgid "`add_eqpoly` appends an equality and `add_ineqpoly` appends an inequality."
 msgstr "`add_eqpoly` は等式を、`add_ineqpoly` は不等式を追加します。"
 
-#: manual/api/core.md:279
+#: manual/api/core.md:286
 msgid "`add_ineqpoly` does not check the relation string; pass `\">=\"` or `\"<=\"`."
 msgstr "`add_ineqpoly` は関係の文字列を検査しません。`\">=\"` か `\"<=\"` を渡してください。"
 
-#: manual/api/core.md:283
+#: manual/api/core.md:290
 msgid "These replace the constraint at a 1-based position."
 msgstr "これらは 1 から数えた位置にある制約を置き換えます。"
 
-#: manual/api/core.md:290
+#: manual/api/core.md:297
 msgid "`change_eqpoly(i, poly, b)` replaces equality number `i`, counting from 1. Both functions abort when `i` is not positive or not below the *capacity* of the equality array, which is an implementation detail of the array."
 msgstr "`change_eqpoly(i, poly, b)` は 1 から数えて `i` 番目の等式を置き換えます。`i` が正でないとき、または等式配列の*容量*（配列の実装上の詳細）未満でないとき、どちらの関数も abort します。"
 
-#: manual/api/core.md:292
+#: manual/api/core.md:299
 msgid "[!WARNING] The range check is unreliable. Both functions compare `i` with the capacity of the array, not its length, and `change_ineqpoly` checks the *equality* array instead of the inequality array. An index that the check lets through can still abort on the array access, and a valid inequality index can be rejected when there are fewer equalities. Only pass indices of constraints that exist."
 msgstr "[!WARNING] 範囲検査は信頼できません。どちらの関数も `i` を配列の長さではなく容量と比較し、さらに `change_ineqpoly` は不等式配列ではなく*等式*配列を検査します。検査を通過した添字でも配列アクセスで abort することがあり、等式が少ないときは正しい不等式の添字が拒否されることもあります。実在する制約の添字だけを渡してください。"
 
-#: manual/api/core.md:297
+#: manual/api/core.md:304
 msgid "`to_matrix` returns one dense row `[coefficients..., b]` per equality."
 msgstr "`to_matrix` は等式ごとに密な行 `[coefficients..., b]` を 1 つ返します。"
 
-#: manual/api/core.md:303
+#: manual/api/core.md:310
 msgid "Columns follow the order of the given variables. Inequalities are left out, so call it on the constraints of a program in standard form."
 msgstr "列は与えられた変数の順に並びます。不等式は除外されるため、標準形の計画の制約に対して呼び出してください。"
 
-#: manual/api/core.md:325
+#: manual/api/core.md:332
 msgid "Programs"
 msgstr "線形計画問題"
 
-#: manual/api/core.md:329
+#: manual/api/core.md:336
 msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the program matrix built from them."
 msgstr "`Lp[V]` は線形計画です。変数、目的関数、制約、およびそれらから作られた計画行列からなります。"
 
-#: manual/api/core.md:337
+#: manual/api/core.md:344
 msgid "The functions that build a program return a new `Lp` and leave their argument unchanged. `Show` prints the objective, the constraints and every variable with its bounds."
 msgstr "計画を作る関数は新しい `Lp` を返し、引数は変更しません。`Show` は目的関数、制約、および各変数とその境界を表示します。"
 
-#: manual/api/core.md:341
+#: manual/api/core.md:348
 msgid "`Lp::new` creates a program without constraints; the other two replace its constraints or its objective coefficients."
 msgstr "`Lp::new` は制約のない計画を作成します。残りの 2 つはその制約または目的関数の係数を置き換えます。"
 
-#: manual/api/core.md:349
+#: manual/api/core.md:356
 msgid "`cons_from_Array` replaces all constraints, as `Constraint::from_array` with the program's variables. `reset_obj_byarray(coeffs)` keeps the sense and sets new objective coefficients."
 msgstr "`cons_from_Array` は計画の変数を使って `Constraint::from_array` と同様にすべての制約を置き換えます。`reset_obj_byarray(coeffs)` は向きを保ったまま新しい目的関数の係数を設定します。"
 
-#: manual/api/core.md:353
+#: manual/api/core.md:360
 msgid "`Lp::from_matrix` creates a program with equality constraints from a program matrix."
 msgstr "`Lp::from_matrix` は計画行列から等式制約の計画を作成します。"
 
-#: manual/api/core.md:359
+#: manual/api/core.md:366
 msgid "`Lp::from_matrix(m, vars, sense)` reads the objective from row 0 without its last entry, and the equality $a_i \\cdot x = b_i$ from every further row $[a_i \\mid b_i]$. The program keeps `m` itself as its matrix, without copying it."
 msgstr "`Lp::from_matrix(m, vars, sense)` は第 0 行（最後の要素を除く）から目的関数を、以降の各行 $[a_i \\mid b_i]$ から等式 $a_i \\cdot x = b_i$ を読み取ります。計画は `m` 自体をコピーせずに自分の行列として保持します。"
 
-#: manual/api/core.md:363
+#: manual/api/core.md:370
 msgid "`to_standard` returns the equivalent program in standard form."
 msgstr "`to_standard` は標準形の等価な計画を返します。"
 
-#: manual/api/core.md:369
+#: manual/api/core.md:376
 msgid "The result minimises, has only equality constraints, and has non-negative right-hand sides:"
 msgstr "結果は最小化で、等式制約だけを持ち、右辺は非負です。"
 
-#: manual/api/core.md:371
+#: manual/api/core.md:378
 msgid "a maximisation objective is negated (`Obj_func::to_min`);"
 msgstr "最大化の目的関数は符号を反転します（`Obj_func::to_min`）。"
 
-#: manual/api/core.md:372
+#: manual/api/core.md:379
 msgid "an equality with $b < 0$ is multiplied by $-1$;"
 msgstr "$b < 0$ の等式には $-1$ を掛けます。"
 
-#: manual/api/core.md:373
+#: manual/api/core.md:380
 msgid "every inequality receives a new variable `y1`, `y2`, ... (counting the inequalities in order), added with coefficient $+1$ to a `<=` row and $-1$ to a `>=` row, after multiplying the row by $-1$ when needed so that $b \\ge 0$."
 msgstr "各不等式には新しい変数 `y1`、`y2`、…（不等式の順に数える）が与えられます。必要なら $b \\ge 0$ となるよう行に $-1$ を掛けたうえで、`<=` の行には係数 $+1$、`>=` の行には係数 $-1$ で加えます。"
 
-#: manual/api/core.md:375
+#: manual/api/core.md:382
 msgid "The new variables are appended to the variables of the program. The [design notes](../design/core.md) derive each case."
 msgstr "新しい変数は計画の変数の後ろに追加されます。各場合の導出は[設計ノート](../design/core.md)にあります。"
 
-#: manual/api/core.md:379
+#: manual/api/core.md:386
 msgid "These read $A$, $c$ and $b$ from the program matrix."
 msgstr "これらは計画行列から $A$、$c$、$b$ を読み取ります。"
 
-#: manual/api/core.md:387
+#: manual/api/core.md:394
 msgid "The program matrix contains the objective and the equality constraints only, so these accessors describe a program with inequalities only after `to_standard`."
 msgstr "計画行列には目的関数と等式制約しか含まれないため、不等式を持つ計画については `to_standard` の後でなければ、これらのアクセサは計画を表しません。"
 
-#: manual/api/core.md:417
+#: manual/api/core.md:424
 msgid "Solving"
 msgstr "求解"
 
-#: manual/api/core.md:421
+#: manual/api/core.md:428
 msgid "`two_stage` solves a program in standard form with the two-phase simplex method."
 msgstr "`two_stage` は標準形の問題を二段階単体法で解きます。"
 
-#: manual/api/core.md:427
+#: manual/api/core.md:434
 msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, in the order of the program's variables, and the optimal value of the standard form. The standard form always minimises, so for a program that maximises, the maximum is the *negation* of the returned value."
 msgstr "`to_standard` の結果に対して呼び出してください。標準形のすべての変数（追加された `y` 変数を含む）の値を計画の変数の順に返し、さらに標準形の最適値を返します。標準形は常に最小化なので、最大化の計画では最大値は返り値の*符号反転*です。"
 
-#: manual/api/core.md:429
-msgid "`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error."
-msgstr "計画が実行不可能（第 1 段階が非ゼロの人工目的で終わる）なとき、および非有界なとき、`two_stage` は abort します。各シンプレックスの実行は 1000 反復で停止し、終わっていなければ `Maximum iterations reached, may not have converged` を表示します。その場合も結果はエラーなしで返されます。"
+#: manual/api/core.md:436
+msgid "`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error. `two_stage` also contains a branch that would return the maximum directly for a maximising objective, but `to_standard` has already turned the objective into a minimisation, so that branch never runs."
+msgstr "`two_stage` は計画が実行不可能なとき（第 1 段階が非零の人工目的値で終わったとき）と非有界なときに中断します。各単体法の実行は 1000 回の反復で止まり、終わっていなければ `Maximum iterations reached, may not have converged` を出力し、結果はエラーなしで返されます。`two_stage` には最大化の目的に対して最大値を直接返す分岐もありますが、`to_standard` がすでに目的を最小化に変えているため、その分岐は実行されません。"
 
-#: manual/api/core.md:431
-msgid "[!WARNING] The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver therefore optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Until this is fixed, give every variable a non-zero objective coefficient and declare variables in name order."
-msgstr "[!WARNING] 目的関数行は `Obj_func::to_vector` で作られ、非ゼロの目的係数を変数名の順に並べます。そのため、目的係数にゼロがある場合や、変数が名前順に宣言されていない場合（例えば `b` が `a` より前、`x2` が `x10` より前）、ソルバーは誤った目的関数を最適化します。修正されるまでは、すべての変数に非ゼロの目的係数を与え、変数を名前順に宣言してください。"
+#: manual/api/core.md:438
+msgid "[!WARNING] Known defects of the solver, each confirmed by running it (the [design notes](../design/core.md#known-defects) explain the causes):"
+msgstr "[!WARNING] ソルバーの既知の欠陥です。いずれも実行して確認しました（原因は[設計ノート](../design/core.md#known-defects)で説明しています）："
 
-#: manual/api/core.md:447
+#: manual/api/core.md:441
+msgid "**Objective alignment.** The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns the value $1$."
+msgstr "**目的の位置合わせ。** 目的行は `Obj_func::to_vector` で作られ、これは非零の目的係数だけを変数名の順に並べます。そのため目的係数に零があるときや、変数が名前順に宣言されていないとき（たとえば `a` より前の `b`、`x10` より前の `x2`）、ソルバーは誤った目的を最適化します。$x_1 \\ge 1$、$x_2 \\ge 2$ のもとで $x_2$ を最小化すると値 $1$ を返します。"
+
+#: manual/api/core.md:442
+msgid "**Artificial variables left in the basis.** When phase 1 ends with an artificial variable basic at value zero, phase 2 drops its column and loses that constraint. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$ and $x_1 \\le 2$ returns $x = (2, 0)$, which violates $-x_1 = 0$, and minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts with `Problem is unbounded`. Both programs have the optimum $0$ at $x = 0$."
+msgstr "**基底に残った人工変数。** 第 1 段階が値 0 の人工変数を基底に残したまま終わると、第 2 段階はその列を捨て、その制約を失います。$-x_1 = 0$ と $x_1 \\le 2$ のもとで $x_1 - 2x_2$ を最大化すると $-x_1 = 0$ に違反する $x = (2, 0)$ を返し、$-x_2 = 0$ のもとで $x_1 - x_2$ を最小化すると `Problem is unbounded` で中断します。どちらの計画も最適値は $x = 0$ における $0$ です。"
+
+#: manual/api/core.md:443
+msgid "**Starting basis with costs.** When a column of one of your own variables is already a unit column, it starts in the basis without an artificial variable, but the objective row is not made canonical before phase 1 runs on it. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts with `Problem is unbounded` instead of returning the optimum $2$ at $x = (0, 1)$."
+msgstr "**コストを持つ初期基底。** 自分の変数の列がすでに単位列であると、人工変数なしで初期基底に入りますが、第 1 段階の前に目的行が正準形に直されません。$-x_1 + x_2 = 1$ のもとで $-x_1 + 2x_2$ を最小化すると、$x = (0, 1)$ における最適値 $2$ を返す代わりに `Problem is unbounded` で中断します。"
+
+#: manual/api/core.md:444
+msgid "**Cycling.** Degenerate programs can cycle until the iteration limit; see `Lp::simplex_iteration`."
+msgstr "**巡回。** 退化した計画は反復上限まで巡回することがあります。`Lp::simplex_iteration` を参照してください。"
+
+#: manual/api/core.md:446
+msgid "On random programs with one to three variables, small integer coefficients and non-zero objective coefficients, an exact-arithmetic replica of the solver gets about 5% of the bounded feasible programs wrong, all through the second and third defects."
+msgstr "変数 1〜3 個、小さな整数係数、非零の目的係数を持つランダムな計画で、ソルバーを厳密算術で再現したものは有界かつ実行可能な計画の約 5% で誤り、そのすべてが 2 番目と 3 番目の欠陥によるものでした。"
+
+#: manual/api/core.md:461
 msgid "`pivot` performs one Gauss–Jordan pivot of a tableau in place."
 msgstr "`pivot` は単体表に対して Gauss–Jordan のピボット操作をその場で一回行います。"
 
-#: manual/api/core.md:453
+#: manual/api/core.md:467
 msgid "`Lp::pivot(t, r, s)` divides row `r` by the pivot $t_{rs}$ and subtracts $t_{is}$ times the new row `r` from every other row `i`, including row 0, so that column `s` becomes the unit vector $e_r$. It aborts when the position lies outside the matrix or the pivot is exactly zero."
 msgstr "`Lp::pivot(t, r, s)` は第 `r` 行をピボット $t_{rs}$ で割り、第 0 行を含む他のすべての行 `i` から新しい第 `r` 行の $t_{is}$ 倍を引いて、第 `s` 列を単位ベクトル $e_r$ にします。位置が行列の外にあるとき、またはピボットがちょうどゼロのときは abort します。"
 
-#: manual/api/core.md:457
+#: manual/api/core.md:471
 msgid "`simplex_iteration` runs the simplex method on a tableau in place."
 msgstr "`simplex_iteration` は単体表に対してその場で単体法を実行します。"
 
-#: manual/api/core.md:463
+#: manual/api/core.md:477
 msgid "The tableau must be in canonical form: row 0 holds the reduced costs and $-z$ in its last column, every basic column is a unit vector, and the right-hand sides are non-negative. Each iteration enters the column with the most negative entry of row 0 (the leftmost one on ties), and leaves the row with the smallest ratio $\\bar b_i / \\bar a_{is}$ over the rows with $\\bar a_{is} > 0$ (the topmost one on ties). The run stops when row 0 has no negative entry, aborts with `Problem is unbounded` when the entering column has no positive entry, and stops after `max_iterations` iterations (1000 by default) with a message. With `debug=true` it prints every pivot and the tableau after it."
 msgstr "シンプレックス表は正準形でなければなりません。すなわち、第 0 行は被約費用を持ち最終列は $-z$、各基底列は単位ベクトルで、右辺は非負です。各反復では、第 0 行で最も負の要素を持つ列を基底に入れ（同値なら最も左）、$\\bar a_{is} > 0$ の行のうち比 $\\bar b_i / \\bar a_{is}$ が最小の行を基底から出します（同値なら最も上）。第 0 行に負の要素がなくなると停止し、入る列に正の要素がなければ `Problem is unbounded` で abort し、`max_iterations` 回（既定は 1000）でメッセージを表示して停止します。`debug=true` のときは各ピボットとその後の表を表示します。"
 
-#: manual/api/core.md:482
+#: manual/api/core.md:479
+msgid "Dantzig's rule can cycle. On Beale's example the run returns to its starting basis every six degenerate pivots, so it stops at the iteration limit with the objective value $0$ ($-z$ in the last entry of row 0), while the optimum is $-5/4$:"
+msgstr "Dantzig の規則は巡回することがあります。Beale の例では 6 回の退化ピボットごとに初期基底へ戻るため、実行は目的値 $0$（第 0 行の最後の成分の $-z$）のまま反復上限で止まります。最適値は $-5/4$ です："
+
+#: manual/api/core.md:511
 msgid "`phase_1` and `phase_2` are the two halves of `two_stage`."
 msgstr "`phase_1` と `phase_2` は `two_stage` の前半と後半です。"
 
-#: manual/api/core.md:489
-msgid "`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts each constraint row with an artificial variable from row 0, which puts the tableau in canonical form, runs `simplex_iteration` and returns the same matrix."
-msgstr "`Lp::phase_1(t, artificial_index)` は人工列を追加したシンプレックス表を受け取ります。その第 0 行は各人工列で $1$、それ以外で $0$ です。`artificial_index[i]` は制約 `i` の人工変数の列で、人工変数がなければ `0` です。人工変数を持つ各制約行を第 0 行から引いて表を正準形にし、`simplex_iteration` を実行して同じ行列を返します。"
+#: manual/api/core.md:518
+msgid "`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts row `i + 1` from row 0 whenever row 0 holds exactly $1$ in column `artificial_index[i]`, which for the artificial rows puts the tableau in canonical form, then runs `simplex_iteration` and returns the same matrix. Because `0` also names column 0, a row without an artificial variable is subtracted as well whenever row 0 holds $1$ in column 0 at that moment. When no row needs an artificial variable, the private builder puts the program's own objective into row 0 instead, so phase 1 already optimises it, without making it canonical first."
+msgstr "`Lp::phase_1(t, artificial_index)` は人工列で拡張されたタブローを受け取ります。その第 0 行は各人工列で $1$、それ以外で $0$ です。`artificial_index[i]` は制約 `i` の人工変数の列で、人工変数がなければ `0` です。第 0 行の列 `artificial_index[i]` がちょうど $1$ のとき第 0 行から行 `i + 1` を引き、人工行についてはこれでタブローが正準形になります。その後 `simplex_iteration` を実行し、同じ行列を返します。`0` は列 0 も指すため、その時点で第 0 行の列 0 が $1$ なら、人工変数のない行も引かれてしまいます。どの行も人工変数を必要としないとき、非公開の構築関数は計画自身の目的を第 0 行に入れるので、第 1 段階がそれを直接最適化しますが、事前に正準形には直しません。"
 
-#: manual/api/core.md:491
-msgid "`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective."
-msgstr "`Lp::phase_2(vars, c, t)` は第 1 段階がゼロに達したことを確認し、先頭 `vars.length()` 個の変数の列と右辺を新しい表にコピーし、目的関数 `c` を第 0 行に書き込み、基底列（`ApproximatelyZero` の範囲で単位ベクトルに等しい列）を第 0 行から消去し、`simplex_iteration` を実行して、基底解と第 0 行の最後の要素（$-z$）を返します。第 1 段階が非ゼロの目的で終わった場合は `W* from Phase1 isn't zero, Lp doesn't have solution` で abort します。"
+#: manual/api/core.md:520
+msgid "`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective. A row whose basic variable after phase 1 is still an artificial one has no basic column in the new tableau; this is the cause of the second defect listed under `Lp::two_stage`."
+msgstr "`Lp::phase_2(vars, c, t)` は第 1 段階が零に達したことを確認し、最初の `vars.length()` 個の変数の列と右辺を新しいタブローにコピーし、目的 `c` を第 0 行に書き、基底列（`ApproximatelyZero` の許容範囲で単位ベクトルに等しい列として認識）を第 0 行から消去し、`simplex_iteration` を実行して、基底解と第 0 行の最後の成分 $-z$ を返します。第 1 段階が非零の目的値で終わったときは `W* from Phase1 isn't zero, Lp doesn't have solution` で中断します。第 1 段階の後も基底変数が人工変数のままの行は、新しいタブローで基底列を持ちません。これが `Lp::two_stage` の下に挙げた 2 番目の欠陥の原因です。"
 
-#: manual/api/core.md:493
+#: manual/api/core.md:522
 msgid "The helper that builds the phase 1 tableau and `artificial_index` from a program is private; use `two_stage` unless you build tableaux yourself."
 msgstr "計画から第 1 段階の表と `artificial_index` を作るヘルパーは非公開です。自分で表を作るのでなければ `two_stage` を使ってください。"
 
-#: manual/api/core.md:495
-#: manual/design/core.md:177
+#: manual/api/core.md:524
+#: manual/design/core.md:186
 msgid "Numeric tolerance"
 msgstr "数値の許容誤差"
 
-#: manual/api/core.md:499
+#: manual/api/core.md:528
 msgid "`ApproximatelyZero` decides whether a value counts as zero in phase 2."
 msgstr "`ApproximatelyZero` は、第 2 段階で値をゼロとみなすかどうかを決めます。"
 
-#: manual/api/core.md:509
-msgid "An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold. Implement the trait for your own coefficient type to use it with `two_stage`."
-msgstr "`Int` は `0` に等しいときだけゼロです。`Double` は $|x| < 10^{-15}$ のときゼロで、これは絶対的なしきい値です。独自の係数型でこの trait を実装すれば、`two_stage` で使えます。"
+#: manual/api/core.md:538
+msgid "An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold."
+msgstr "`Int` は `0` に等しいときだけ零とみなされます。`Double` は $|x| < 10^{-15}$ のとき零とみなされ、これは絶対的な閾値です。"
 
-#: manual/api/core.md:513
+#: manual/api/core.md:540
+msgid "The trait is declared `pub`, not `pub(open)`, so it is read-only outside this package: other packages cannot implement it for their own types. `Lp::two_stage` and `Lp::phase_2` therefore accept only `Int` and `Double` coefficients, and `Int` gives wrong results because its division truncates."
+msgstr "このトレイトは `pub(open)` ではなく `pub` で宣言されているため、パッケージの外では読み取り専用です。他のパッケージが自分の型に実装することはできません。したがって `Lp::two_stage` と `Lp::phase_2` が受け付けるのは `Int` と `Double` の係数だけで、`Int` は除算が切り捨てになるため誤った結果になります。"
+
+#: manual/api/core.md:544
 msgid "`double_equal_to_zero` calls `is_zero_eps`."
 msgstr "`double_equal_to_zero` は `is_zero_eps` を呼び出します。"
 
-#: manual/api/core.md:527
+#: manual/api/core.md:558
 msgid "Deprecated"
 msgstr "非推奨"
 
-#: manual/api/core.md:529
+#: manual/api/core.md:560
 msgid "The promoted methods below are kept for source compatibility. They are hidden from the interface file and warn when called from another package."
 msgstr "以下の昇格メソッドはソース互換性のために残されています。インターフェースファイルからは隠されており、他のパッケージから呼ぶと警告が出ます。"
 
-#: manual/api/core.md:531
+#: manual/api/core.md:562
 msgid "Method"
 msgstr "メソッド"
 
-#: manual/api/core.md:531
+#: manual/api/core.md:562
 msgid "Replacement"
 msgstr "代替"
 
-#: manual/api/core.md:535
+#: manual/api/core.md:566
 msgid "`to_string()` or `\"\\{x}\"`"
 msgstr "`to_string()` または `\"\\{x}\"`"
 
 #: manual/contributing.md:1
+#: manual/index.md:33
 msgid "Contribution guidelines"
 msgstr "貢献ガイドライン"
 
@@ -621,311 +663,351 @@ msgstr "教科書のアルゴリズム、すなわち密なシンプレックス
 msgid "Stay generic in the coefficient type through the traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and store tableaux as matrices of [linear-algebra](https://lunaflow.cn/en/linear-algebra/)."
 msgstr "[luna-generic](https://lunaflow.cn/en/luna-generic/) の trait によって係数型をジェネリックに保ち、シンプレックス表を [linear-algebra](https://lunaflow.cn/en/linear-algebra/) の行列として保持すること。"
 
-#: manual/design/core.md:11
+#: manual/design/core.md:13
+msgid "luna-generic provides algebraic traits (`Zero`, `One`, `Semiring`, ...) but no order-aware or approximate equality, so the zero test of phase 2 needs a trait of its own, `ApproximatelyZero`. It is declared `pub`, which makes it read-only outside the package."
+msgstr "luna-generic は代数的トレイト（`Zero`、`One`、`Semiring` など）を提供しますが、順序付きや近似的な等価性のトレイトはないため、第 2 段階の零判定には独自のトレイト `ApproximatelyZero` が必要です。これは `pub` で宣言され、パッケージの外では読み取り専用です。"
+
+#: manual/design/core.md:14
+msgid "linear-algebra's `@mutable.Matrix` is a dense row-major matrix with in-place updates, which fits a tableau that is pivoted in place."
+msgstr "linear-algebra の `@mutable.Matrix` はその場で更新できる行優先の密行列で、その場でピボットするタブローに適しています。"
+
+#: manual/design/core.md:15
+msgid "The package predates the Luna-Flow convention of returning `Result`, and its public API (`abort` on infeasible and unbounded programs) is kept as it is."
+msgstr "このパッケージは `Result` を返すという Luna-Flow の規約より前に作られたもので、公開 API（実行不可能や非有界な計画での `abort`）はそのまま維持しています。"
+
+#: manual/design/core.md:16
+msgid "Variables are identified by name, and `Poly` keeps its terms in a `SortedMap` ordered by name."
+msgstr "変数は名前で識別され、`Poly` は項を名前順の `SortedMap` に保持します。"
+
+#: manual/design/core.md:18
 msgid "Mathematical background"
 msgstr "数学的背景"
 
-#: manual/design/core.md:13
+#: manual/design/core.md:20
 msgid "Linear programs and standard form"
 msgstr "線形計画と標準形"
 
-#: manual/design/core.md:15
+#: manual/design/core.md:22
 msgid "A linear program over variables $x \\in \\mathbb{R}^n$ optimises a linear objective subject to linear equalities and inequalities. The solver works on the *standard form*"
 msgstr "変数 $x \\in \\mathbb{R}^n$ 上の線形計画は、線形の等式・不等式のもとで線形の目的関数を最適化します。ソルバーが扱うのは*標準形*"
 
-#: manual/design/core.md:21
+#: manual/design/core.md:28
 msgid "Every program written with this package can be brought into this form without changing its optimal solutions. `Lp::to_standard` applies these rewritings:"
 msgstr "このパッケージで書いた計画はすべて、最適解を変えずにこの形に変換できます。`Lp::to_standard` は次の書き換えを行います。"
 
-#: manual/design/core.md:34
+#: manual/design/core.md:41
 msgid "Each equivalence holds because $y$ measures the slack of the inequality: for $a^\\top x \\le \\beta$, set $y = \\beta - a^\\top x$, which is non-negative exactly when the inequality holds. Multiplying an equation by $-1$ changes nothing, and multiplying an inequality by $-1$ reverses it, which is why the sign of the slack variable flips in the cases with $\\beta < 0$ and $\\beta \\le 0$. In every case the new right-hand side is non-negative, which phase 1 needs."
 msgstr "各同値性が成り立つのは、$y$ が不等式のスラックを測るからです。$a^\\top x \\le \\beta$ に対して $y = \\beta - a^\\top x$ とおくと、これは不等式が成り立つときちょうど非負になります。等式に $-1$ を掛けても何も変わりませんが、不等式に $-1$ を掛けると向きが逆になります。これが $\\beta < 0$ と $\\beta \\le 0$ の場合にスラック変数の符号が反転する理由です。どの場合も新しい右辺は非負になり、これは第 1 段階に必要です。"
 
-#: manual/design/core.md:36
+#: manual/design/core.md:43
 msgid "The standard form assumes $x \\ge 0$ for *every* variable, including the variables of the original program. The bounds stored in `Variable` are not used."
 msgstr "標準形は、元の計画の変数を含む*すべての*変数について $x \\ge 0$ を仮定します。`Variable` に保存された境界は使われません。"
 
-#: manual/design/core.md:38
+#: manual/design/core.md:45
 msgid "Bases and basic solutions"
 msgstr "基底と基底解"
 
-#: manual/design/core.md:40
+#: manual/design/core.md:47
 msgid "Assume $A$ has rank $m$. A *basis* is a set $B$ of $m$ column indices such that the submatrix $A_B$ is invertible; the remaining indices form $N$. Setting the non-basic variables to zero determines the *basic solution*"
 msgstr "$A$ の階数を $m$ とします。*基底*とは、部分行列 $A_B$ が正則となる $m$ 個の列添字の集合 $B$ で、残りの添字が $N$ をなします。非基底変数をゼロとおくと*基底解*"
 
-#: manual/design/core.md:46
+#: manual/design/core.md:53
 msgid "which is *feasible* when $x_B \\ge 0$. The fundamental theorem of linear programming states that if the program has an optimal solution, it has an optimal basic feasible solution, so the simplex method only visits bases.[^fundamental]"
 msgstr "が定まり、$x_B \\ge 0$ のとき*実行可能*です。線形計画法の基本定理によれば、計画に最適解があれば最適な基底実行可能解（基底可能解）も存在するため、シンプレックス法は基底だけを訪れればよいのです。[^fundamental]"
 
-#: manual/design/core.md:48
+#: manual/design/core.md:55
 msgid "See for example Chvátal, *Linear Programming* (1983), chapter 3, or Bertsimas and Tsitsiklis, *Introduction to Linear Optimization* (1997), theorem 2.7."
 msgstr "例えば Chvátal, *Linear Programming*（1983）第 3 章、または Bertsimas と Tsitsiklis, *Introduction to Linear Optimization*（1997）定理 2.7 を参照してください。"
 
-#: manual/design/core.md:50
+#: manual/design/core.md:57
 msgid "The tableau and reduced costs"
 msgstr "シンプレックス表と被約費用"
 
-#: manual/design/core.md:52
+#: manual/design/core.md:59
 msgid "The solver stores the program as an $(m + 1) \\times (n + 1)$ tableau:"
 msgstr "ソルバーは計画を $(m + 1) \\times (n + 1)$ のシンプレックス表として保持します。"
 
-#: manual/design/core.md:58
+#: manual/design/core.md:65
 msgid ""
 "Row 0 is the objective row, rows $1, \\dots, m$ are the constraints, and the last column holds right-hand sides. A *pivot* on position $(r, s)$ with $T_{rs} \\n"
 "e 0$ is a Gauss–Jordan step: divide row $r$ by $T_{rs}$, then subtract $T_{is}$ times the new row $r$ from every other row $i$, including row 0. Afterwards column $s$ is the unit vector $e_r$. This is exactly `Lp::pivot`."
-msgstr "第 0 行が目的関数行、第 $1, \\dots, m$ 行が制約で、最終列が右辺です。$T_{rs} \\ne 0$ である位置 $(r, s)$ での*ピボット*は Gauss–Jordan の 1 ステップです。第 $r$ 行を $T_{rs}$ で割り、第 0 行を含む他のすべての行 $i$ から新しい第 $r$ 行の $T_{is}$ 倍を引きます。その後、第 $s$ 列は単位ベクトル $e_r$ になります。これがまさに `Lp::pivot` です。"
+msgstr ""
+"第 0 行が目的関数行、第 $1, \\dots, m$ 行が制約で、最終列が右辺です。$T_{rs} \\n"
+"e 0$ である位置 $(r, s)$ での*ピボット*は Gauss–Jordan の 1 ステップです。第 $r$ 行を $T_{rs}$ で割り、第 0 行を含む他のすべての行 $i$ から新しい第 $r$ 行の $T_{is}$ 倍を引きます。その後、第 $s$ 列は単位ベクトル $e_r$ になります。これがまさに `Lp::pivot` です。"
 
-#: manual/design/core.md:60
+#: manual/design/core.md:67
 msgid "Suppose a sequence of pivots has made the columns of a basis $B$ into unit vectors. Every pivot is a left multiplication by an invertible matrix, and row 0 has only received multiples of constraint rows, so the tableau has the form"
 msgstr "一連のピボットによって基底 $B$ の列が単位ベクトルになったとします。各ピボットは正則行列を左から掛けることであり、第 0 行には制約行の倍数しか加えられていないので、表は次の形をしています。"
 
-#: manual/design/core.md:66
+#: manual/design/core.md:73
 msgid "for some vector $y \\in \\mathbb{R}^m$. The basic columns of row 0 are zero, so $c_B^\\top - y^\\top A_B = 0$, that is"
 msgstr "ここで $y \\in \\mathbb{R}^m$ はあるベクトルです。第 0 行の基底列はゼロなので $c_B^\\top - y^\\top A_B = 0$、すなわち"
 
-#: manual/design/core.md:72
+#: manual/design/core.md:79
 msgid "Substituting $y$ gives the canonical tableau"
 msgstr "$y$ を代入すると正準形のシンプレックス表が得られます。"
 
-#: manual/design/core.md:83
+#: manual/design/core.md:90
 msgid "The entries $\\bar c_j$ are the *reduced costs*, $\\bar b = x_B$ is the basic solution, and the last entry of row 0 is the *negated* objective value $-z_B = -c^\\top x$. This is why `Lp::phase_2` returns $-z$ and why `Lp::two_stage` negates it again for a minimisation objective."
 msgstr "$\\bar c_j$ が*被約費用*、$\\bar b = x_B$ が基底解で、第 0 行の最後の要素は目的値の*符号反転* $-z_B = -c^\\top x$ です。これが、`Lp::phase_2` が $-z$ を返し、`Lp::two_stage` が最小化の目的関数に対して再び符号を反転する理由です。"
 
-#: manual/design/core.md:85
+#: manual/design/core.md:92
 msgid "The reduced costs describe how the objective changes along the constraints. For any $x$ with $Ax = b$, solve for the basic variables: $x_B = \\bar b - A_B^{-1} A_N x_N$. Then"
 msgstr "被約費用は、制約に沿って目的関数がどう変化するかを表します。$Ax = b$ を満たす任意の $x$ について基底変数を解くと $x_B = \\bar b - A_B^{-1} A_N x_N$ です。したがって"
 
-#: manual/design/core.md:95
+#: manual/design/core.md:102
 msgid "Optimality"
 msgstr "最適性"
 
-#: manual/design/core.md:97
+#: manual/design/core.md:104
 msgid "**If $\\bar c \\ge 0$, the basic feasible solution is optimal.** Every feasible $x$ satisfies $x_N \\ge 0$, so by the identity above $c^\\top x = z_B + \\bar c_N^\\top x_N \\ge z_B$, and the basic solution attains $z_B$. `Lp::simplex_iteration` stops when no entry of row 0 is negative, which is this test ($\\bar c_B = 0$ holds by construction)."
 msgstr "**$\\bar c \\ge 0$ ならば、その基底実行可能解は最適です。** 実行可能な $x$ はすべて $x_N \\ge 0$ を満たすので、上の恒等式から $c^\\top x = z_B + \\bar c_N^\\top x_N \\ge z_B$ であり、基底解は $z_B$ を達成します。`Lp::simplex_iteration` は第 0 行に負の要素がなくなると停止します。これがこの判定です（$\\bar c_B = 0$ は構成により成り立ちます）。"
 
-#: manual/design/core.md:99
+#: manual/design/core.md:106
 msgid "Choosing the entering column"
 msgstr "入る列の選択"
 
-#: manual/design/core.md:101
+#: manual/design/core.md:108
 msgid "If some $\\bar c_s < 0$, increasing $x_s$ from $0$ decreases the objective at rate $|\\bar c_s|$. The solver chooses the most negative reduced cost,"
 msgstr "ある $\\bar c_s < 0$ なら、$x_s$ を $0$ から増やすと目的関数は速さ $|\\bar c_s|$ で減少します。ソルバーは最も負の被約費用を選びます。"
 
-#: manual/design/core.md:107
+#: manual/design/core.md:114
 msgid "Dantzig's rule, and takes the leftmost column on ties."
 msgstr "これが Dantzig の規則で、同値の場合は最も左の列を選びます。"
 
-#: manual/design/core.md:109
+#: manual/design/core.md:116
 msgid "The ratio test and unboundedness"
 msgstr "比テストと非有界性"
 
-#: manual/design/core.md:111
+#: manual/design/core.md:118
 msgid "Increase $x_s$ to $t \\ge 0$ and keep the other non-basic variables at zero. The constraints force $x_B(t) = \\bar b - t\\, \\bar a_s$, where $\\bar a_s$ is column $s$ of $\\bar A$, and the objective becomes $z_B + t\\, \\bar c_s$."
 msgstr "$x_s$ を $t \\ge 0$ まで増やし、他の非基底変数はゼロのままにします。制約により $x_B(t) = \\bar b - t\\, \\bar a_s$（$\\bar a_s$ は $\\bar A$ の第 $s$ 列）となり、目的関数は $z_B + t\\, \\bar c_s$ になります。"
 
-#: manual/design/core.md:113
+#: manual/design/core.md:120
 msgid "**If $\\bar a_s \\le 0$, the program is unbounded.** Every component of $x_B(t)$ is non-decreasing in $t$, so $x(t)$ is feasible for all $t \\ge 0$ while $z_B + t\\,\\bar c_s \\to -\\infty$. `Lp::simplex_iteration` aborts with `Problem is unbounded` in this case."
 msgstr "**$\\bar a_s \\le 0$ ならば、計画は非有界です。** $x_B(t)$ の各成分は $t$ について非減少なので、すべての $t \\ge 0$ で $x(t)$ は実行可能であり、一方 $z_B + t\\,\\bar c_s \\to -\\infty$ となります。この場合 `Lp::simplex_iteration` は `Problem is unbounded` で abort します。"
 
-#: manual/design/core.md:115
+#: manual/design/core.md:122
 msgid "Otherwise feasibility requires $\\bar b_i - t\\, \\bar a_{is} \\ge 0$ for every row with $\\bar a_{is} > 0$, so the largest step is"
 msgstr "そうでなければ、実行可能性のために $\\bar a_{is} > 0$ のすべての行で $\\bar b_i - t\\, \\bar a_{is} \\ge 0$ が必要なので、最大のステップは"
 
-#: manual/design/core.md:121
+#: manual/design/core.md:128
 msgid "the *minimum ratio test*. A row $r$ attaining the minimum leaves the basis: its basic variable reaches zero at $t^\\ast$. Pivoting on $(r, s)$ moves to the new basis $B' = B \\setminus \\{B_r\\} \\cup \\{s\\}$, whose basic solution is $x(t^\\ast) \\ge 0$, so feasibility is preserved, and whose objective value is"
 msgstr "で、これが*最小比テスト*です。最小値を達成する行 $r$ が基底から出ます。その基底変数は $t^\\ast$ でゼロに達します。$(r, s)$ でピボットすると新しい基底 $B' = B \\setminus \\{B_r\\} \\cup \\{s\\}$ に移り、その基底解は $x(t^\\ast) \\ge 0$ なので実行可能性は保たれ、目的値は"
 
-#: manual/design/core.md:127
+#: manual/design/core.md:134
 msgid "The solver takes the topmost row on ties."
 msgstr "同値の場合、ソルバーは最も上の行を選びます。"
 
-#: manual/design/core.md:129
+#: manual/design/core.md:136
 msgid "Termination and degeneracy"
 msgstr "停止性と退化"
 
-#: manual/design/core.md:131
-msgid "If every pivot has $t^\\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\\binom{n}{m}$ pivots. When $\\bar b_r = 0$ for the leaving row, $t^\\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal."
-msgstr "すべてのピボットで $t^\\ast > 0$ なら（計画が*非退化*なら）、目的関数は狭義に減少し、基底は繰り返されず、高々 $\\binom{n}{m}$ 回のピボットで停止します。出る行で $\\bar b_r = 0$ のときは $t^\\ast = 0$ となり、基底は変わっても点と目的値は変わりません。このような退化ピボットが続くと以前の基底に戻り、永遠に繰り返すことがあります。このパッケージが実装する、最小添字で同値を解消する Dantzig の規則は、小さな例で巡回することが知られています。[^cycling] このパッケージには巡回防止の規則がありません。実行は `max_iterations` 回のピボット（既定は 1000）で停止してメッセージを表示し、そのとき返される表は最適ではありません。"
+#: manual/design/core.md:138
+msgid "If every pivot has $t^\\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\\binom{n}{m}$ pivots. When $\\bar b_r = 0$ for the leaving row, $t^\\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal. Beale's example, with three constraints, seven variables and the basis of the first three, shows it: `Lp::simplex_iteration` visits six bases with the objective value $0$ and returns to the first, while the optimum is $-5/4$ at $x = (3/4, 0, 0, 1, 0, 1, 0)$. The [API page](../api/core.md#lpsimplex_iteration) runs it."
+msgstr "すべてのピボットで $t^\\ast > 0$ なら（計画が*非退化*なら）、目的値は狭義に減少し、基底は繰り返されず、方法は高々 $\\binom{n}{m}$ 回のピボットで止まります。出ていく行で $\\bar b_r = 0$ のときは $t^\\ast = 0$ で、基底は変わっても点と目的値は変わりません。こうした退化ピボットの列は以前の基底に戻り、永遠に繰り返すことがあります。このパッケージが実装する、最小添字で同点を解消する Dantzig の規則は、小さな例で巡回することが知られています。[^cycling] パッケージには巡回防止規則がなく、実行は `max_iterations` 回（既定 1000 回）のピボットで止まってメッセージを出力し、そのとき返されるタブローは最適ではありません。Beale の例（制約 3 本、変数 7 個、最初の 3 変数を基底とする）がこれを示します。`Lp::simplex_iteration` は目的値 $0$ のまま 6 つの基底を巡って最初に戻りますが、最適値は $x = (3/4, 0, 0, 1, 0, 1, 0)$ における $-5/4$ です。[API ページ](../api/core.md#lpsimplex_iteration)でこれを実行しています。"
 
-#: manual/design/core.md:133
+#: manual/design/core.md:140
 msgid "E. M. L. Beale, \"Cycling in the dual simplex algorithm\", *Naval Research Logistics Quarterly* 2 (1955), gives a cycling example with three constraints. R. G. Bland, \"New finite pivoting rules for the simplex method\", *Mathematics of Operations Research* 2 (1977), proves that choosing, among the candidates, the entering and the leaving variable with the smallest index prevents cycling."
 msgstr "E. M. L. Beale, \"Cycling in the dual simplex algorithm\", *Naval Research Logistics Quarterly* 2（1955）は 3 つの制約を持つ巡回の例を示しています。R. G. Bland, \"New finite pivoting rules for the simplex method\", *Mathematics of Operations Research* 2（1977）は、候補の中から添字が最小の入る変数と出る変数を選べば巡回が防げることを証明しました。"
 
-#: manual/design/core.md:135
+#: manual/design/core.md:142
 msgid "Design decisions"
 msgstr "設計上の決定"
 
-#: manual/design/core.md:137
+#: manual/design/core.md:144
 msgid "Two phases with artificial variables"
 msgstr "人工変数による 2 段階法"
 
-#: manual/design/core.md:139
+#: manual/design/core.md:146
 msgid "**Problem.** The simplex method starts from a basic feasible solution, and a program in standard form does not come with one."
 msgstr "**問題。** シンプレックス法は基底実行可能解から出発しますが、標準形の計画はそれを伴っていません。"
 
-#: manual/design/core.md:141
+#: manual/design/core.md:148
 msgid "**Options.** (a) The big-M method: add artificial variables with a large cost $M$ to the original objective. (b) The two-phase method: first find a feasible basis with an auxiliary objective, then optimise. (c) Require the user to supply a feasible basis."
 msgstr "**選択肢。** (a) ビッグ M 法: 大きな費用 $M$ を持つ人工変数を元の目的関数に加える。(b) 2 段階法: まず補助的な目的関数で実行可能な基底を見つけ、それから最適化する。(c) 実行可能な基底の提供を利用者に求める。"
 
-#: manual/design/core.md:143
+#: manual/design/core.md:150
 msgid "**Choice.** (b). Big-M needs a numeric value of $M$ that is large enough for the program but small enough not to swamp the other coefficients in floating point; the two-phase method needs no such constant, and its first phase also decides feasibility."
 msgstr "**決定。** (b)。ビッグ M 法には、計画に対して十分大きく、かつ浮動小数点で他の係数を埋没させない程度に小さい $M$ の数値が必要です。2 段階法はそのような定数を必要とせず、第 1 段階で実行可能性も判定できます。"
 
-#: manual/design/core.md:145
+#: manual/design/core.md:152
 msgid "**Phase 1.** For every constraint row $i$ that has no usable unit column, add an artificial variable $a_i \\ge 0$ with coefficient $1$ in row $i$. Let $R$ be the set of these rows. Phase 1 solves"
 msgstr "**第 1 段階。** 使える単位列を持たない各制約行 $i$ に、第 $i$ 行の係数が $1$ の人工変数 $a_i \\ge 0$ を加えます。これらの行の集合を $R$ とします。第 1 段階は次を解きます。"
 
-#: manual/design/core.md:151
+#: manual/design/core.md:158
 msgid "Its initial basis consists of the artificial columns and the existing unit columns, with the basic solution $x_B = b \\ge 0$, which is feasible because `to_standard` made $b$ non-negative."
 msgstr "初期基底は人工列と既存の単位列からなり、基底解は $x_B = b \\ge 0$ です。`to_standard` が $b$ を非負にしているので、これは実行可能です。"
 
-#: manual/design/core.md:153
+#: manual/design/core.md:160
 msgid "*The original program is feasible exactly when the optimum of phase 1 is $w^\\ast = 0$.* If $x$ is feasible for $Ax = b$, then $(x, a = 0)$ is feasible for phase 1 with $w = 0$, and $w \\ge 0$ always, so $w^\\ast = 0$. Conversely, $w^\\ast = 0$ with $a \\ge 0$ forces $a = 0$, so the optimal $x$ satisfies $Ax = b$."
 msgstr "*元の計画が実行可能であるのは、第 1 段階の最適値が $w^\\ast = 0$ のときに限ります。* $x$ が $Ax = b$ について実行可能なら、$(x, a = 0)$ は第 1 段階で $w = 0$ の実行可能解であり、常に $w \\ge 0$ なので $w^\\ast = 0$ です。逆に、$w^\\ast = 0$ と $a \\ge 0$ から $a = 0$ となり、最適な $x$ は $Ax = b$ を満たします。"
 
-#: manual/design/core.md:155
+#: manual/design/core.md:162
 msgid "**Canonical form of the phase 1 tableau.** Row 0 of the phase 1 objective starts as $[\\,0 \\mid \\mathbf 1^\\top \\mid 0\\,]$, which is not canonical because the basic artificial columns have cost $1$. Applying the formula $y^\\top = c_B^\\top A_B^{-1}$ with $A_B = I$ gives $y = \\mathbf 1_R$, so the canonical row 0 is"
 msgstr "**第 1 段階の表の正準形。** 第 1 段階の目的関数の第 0 行は $[\\,0 \\mid \\mathbf 1^\\top \\mid 0\\,]$ から始まりますが、基底の人工列の費用が $1$ なので正準形ではありません。$A_B = I$ として公式 $y^\\top = c_B^\\top A_B^{-1}$ を適用すると $y = \\mathbf 1_R$ となり、正準形の第 0 行は"
 
-#: manual/design/core.md:161
+#: manual/design/core.md:168
 msgid "obtained by subtracting each artificial row from row 0. `Lp::phase_1` performs exactly these subtractions before calling `simplex_iteration`."
 msgstr "で、第 0 行から各人工行を引くことで得られます。`Lp::phase_1` は `simplex_iteration` を呼ぶ前にちょうどこの引き算を行います。"
 
-#: manual/design/core.md:163
+#: manual/design/core.md:170
 msgid ""
 "**Phase 2.** If $w^\\ast \\n"
 "e 0$ (beyond the tolerance below), `Lp::phase_2` aborts: the program is infeasible. Otherwise it drops the artificial columns, writes the original costs $c$ into row 0, and makes row 0 canonical again by subtracting $c_j$ times the row of each basic column $j$, which is the same elimination as above. Then it runs `simplex_iteration` from the feasible basis found by phase 1."
-msgstr "**第 2 段階。** $w^\\ast \\ne 0$（後述の許容誤差を超える）なら `Lp::phase_2` は abort します。計画は実行不可能です。そうでなければ人工列を削除し、元の費用 $c$ を第 0 行に書き込み、各基底列 $j$ についてその行の $c_j$ 倍を引くことで第 0 行を再び正準形にします。これは上と同じ消去です。そして第 1 段階で見つかった実行可能な基底から `simplex_iteration` を実行します。"
+msgstr ""
+"**第 2 段階。** $w^\\ast \\n"
+"e 0$（後述の許容誤差を超える）なら `Lp::phase_2` は abort します。計画は実行不可能です。そうでなければ人工列を削除し、元の費用 $c$ を第 0 行に書き込み、各基底列 $j$ についてその行の $c_j$ 倍を引くことで第 0 行を再び正準形にします。これは上と同じ消去です。そして第 1 段階で見つかった実行可能な基底から `simplex_iteration` を実行します。"
 
-#: manual/design/core.md:165
+#: manual/design/core.md:172
 msgid "Reusing unit columns as the initial basis"
 msgstr "単位列を初期基底として再利用する"
 
-#: manual/design/core.md:167
+#: manual/design/core.md:174
 msgid "A slack variable of a `<=` row with $b \\ge 0$ has a column equal to a unit vector, so it can start in the basis without an artificial variable. The private helper that builds the phase 1 tableau recognises a column as a unit column when one entry equals $1$ and all other entries in the constraint rows are $0$, and adds artificial variables only for the remaining rows. A program whose constraints are all `<=` with non-negative right-hand sides therefore needs no artificial variables at all, and phase 1 is skipped in effect: its tableau keeps the original objective, so phase 1 already optimises it."
 msgstr "$b \\ge 0$ の `<=` 行のスラック変数の列は単位ベクトルに等しいので、人工変数なしで基底に入れて開始できます。第 1 段階の表を作る非公開ヘルパーは、ある列で 1 つの要素が $1$、制約行の他の要素がすべて $0$ であるとき単位列と認識し、残りの行にだけ人工変数を加えます。したがって、すべての制約が非負の右辺を持つ `<=` である計画では人工変数がまったく不要で、第 1 段階は事実上省略されます。その表は元の目的関数を保持するので、第 1 段階ですでにそれを最適化します。"
 
-#: manual/design/core.md:169
+#: manual/design/core.md:176
+msgid "That shortcut is only sound when every starting basic column has cost $0$, as slack columns do. Row 0 then equals $c^\\top$ and is already canonical ($c_B = 0$ gives $\\bar c = c$). A unit column can also belong to one of the program's own variables, for example $x_2$ in $-x_1 + x_2 = 1$. If its cost $c_j$ is not zero, row 0 still holds $c$ instead of $\\bar c = c - c_B^\\top A_B^{-1} A$, and the stopping tests read the wrong numbers: in the example, minimising $-x_1 + 2x_2$, row 0 holds $-1$ for $x_1$, whose column $(-1)$ has no positive entry, so the run aborts as unbounded, although $\\bar c_1 = -1 - 2 \\cdot (-1) = 1 \\ge 0$ and the optimum is $2$ at $x = (0, 1)$. The builder does not make row 0 canonical in this case; see [known defects](#known-defects)."
+msgstr "この近道が正しいのは、初期基底のすべての列のコストが $0$ のとき、つまりスラック列の場合だけです。そのとき第 0 行は $c^\\top$ に等しく、すでに正準形です（$c_B = 0$ から $\\bar c = c$）。しかし単位列は計画自身の変数のものでもありえます。たとえば $-x_1 + x_2 = 1$ の $x_2$ です。そのコスト $c_j$ が零でなければ、第 0 行は $\\bar c = c - c_B^\\top A_B^{-1} A$ ではなく $c$ のままで、停止判定は誤った数を読みます。この例で $-x_1 + 2x_2$ を最小化すると、第 0 行は $x_1$ に $-1$ を持ち、その列 $(-1)$ に正の成分がないので非有界として中断しますが、実際には $\\bar c_1 = -1 - 2 \\cdot (-1) = 1 \\ge 0$ で、最適値は $x = (0, 1)$ における $2$ です。構築関数はこの場合に第 0 行を正準形に直しません。[既知の欠陥](#known-defects)を参照してください。"
+
+#: manual/design/core.md:178
 msgid "Dense tableau"
 msgstr "密なシンプレックス表"
 
-#: manual/design/core.md:171
+#: manual/design/core.md:180
 msgid "The tableau is a dense `@mutable.Matrix`. Each pivot costs $(m + 1)(n + 1)$ multiply–subtract operations, $O(mn)$. A revised simplex method with a factorised basis would cost less per iteration on sparse programs, but the dense tableau shows every quantity of the derivation above as an entry of one matrix, which serves the teaching goal of the package and keeps the code short."
 msgstr "シンプレックス表は密な `@mutable.Matrix` です。各ピボットには $(m + 1)(n + 1)$ 回の乗算と減算、すなわち $O(mn)$ かかります。基底を分解して持つ改訂シンプレックス法なら疎な計画で 1 反復あたりのコストは小さくなりますが、密な表は上の導出のすべての量を 1 つの行列の要素として示し、パッケージの教育的な目標にかない、コードも短く保てます。"
 
-#: manual/design/core.md:173
+#: manual/design/core.md:182
 msgid "Aborting instead of returning errors"
 msgstr "エラーを返す代わりに abort する"
 
-#: manual/design/core.md:175
+#: manual/design/core.md:184
 msgid "Infeasible and unbounded programs, a zero pivot, an unknown objective sense and an unknown relation string end the program with `abort`. The package predates the Luna-Flow convention of returning `Result` with a structured error. Callers cannot recover from these outcomes; see the boundaries below."
 msgstr "実行不可能・非有界な計画、ゼロピボット、未知の目的関数の向き、未知の関係文字列は、`abort` でプログラムを終了させます。このパッケージは、構造化エラーを持つ `Result` を返すという Luna-Flow の規約より前に作られました。呼び出し側はこれらの結果から回復できません。下の境界を参照してください。"
 
-#: manual/design/core.md:179
+#: manual/design/core.md:188
 msgid "The simplex iterations compare entries with zero exactly: a reduced cost of $-10^{-17}$ produced by rounding counts as negative and triggers another pivot. Phase 2 uses the trait `ApproximatelyZero` in two places: to decide whether $w^\\ast$ is zero, and to recognise unit columns. For `Double` the threshold is $|x| < 10^{-15}$, an absolute bound."
 msgstr "シンプレックスの反復は要素をゼロと厳密に比較します。丸めによって生じた $-10^{-17}$ の被約費用は負とみなされ、もう 1 回のピボットを引き起こします。第 2 段階は trait `ApproximatelyZero` を 2 か所で使います。$w^\\ast$ がゼロかどうかの判定と、単位列の認識です。`Double` のしきい値は $|x| < 10^{-15}$ で、絶対的な境界です。"
 
-#: manual/design/core.md:181
+#: manual/design/core.md:190
 msgid "Rounding errors in a pivot are relative to the size of the entries involved. One update $t_{ij} - t_{is}\\, t_{rj}$ in floating point satisfies"
 msgstr "ピボットにおける丸め誤差は、関係する要素の大きさに対して相対的です。浮動小数点での 1 回の更新 $t_{ij} - t_{is}\\, t_{rj}$ は次を満たします。"
 
-#: manual/design/core.md:187
+#: manual/design/core.md:196
 msgid "so its absolute error is bounded by about $u\\,(|t_{ij}| + 2|t_{is}\\, t_{rj}|)$. After $k$ pivots on entries of magnitude around $M$, the error in $w^\\ast$ is of order $k\\,u\\,M$. The threshold $10^{-15} \\approx 9u$ is therefore appropriate for well-scaled programs with entries near $1$ and few pivots. The tests show residuals such as $w^\\ast = -4.44 \\times 10^{-16} = -4u$. For coefficients in the thousands, the residual can exceed the threshold and a feasible program is reported as infeasible. A relative tolerance scaled by the size of $b$ would avoid this, but it is not implemented."
 msgstr "したがって、その絶対誤差はおよそ $u\\,(|t_{ij}| + 2|t_{is}\\, t_{rj}|)$ で抑えられます。大きさがおよそ $M$ の要素に $k$ 回ピボットすると、$w^\\ast$ の誤差は $k\\,u\\,M$ 程度になります。よってしきい値 $10^{-15} \\approx 9u$ は、要素が $1$ 付近でピボット回数の少ない、スケールの整った計画に適しています。テストでは $w^\\ast = -4.44 \\times 10^{-16} = -4u$ のような残差が見られます。係数が数千に及ぶと残差がしきい値を超え、実行可能な計画が実行不可能と報告されることがあります。$b$ の大きさでスケールした相対許容誤差ならこれを避けられますが、実装されていません。"
 
-#: manual/design/core.md:189
+#: manual/design/core.md:198
 msgid "Correctness and invariants"
 msgstr "正しさと不変条件"
 
-#: manual/design/core.md:191
+#: manual/design/core.md:200
 msgid "The solver maintains these invariants between pivots:"
 msgstr "ソルバーはピボットの間で次の不変条件を保ちます。"
 
-#: manual/design/core.md:193
-msgid "**Canonical form.** Every basic column of the constraint rows is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0."
-msgstr "**正準形。** 制約行の各基底列は単位ベクトルで、第 0 行はすべての基底列でゼロです。`Lp::pivot` は構成によりこれを保ち、`Lp::phase_1` は人工基底についてこれを確立し、`Lp::phase_2` は第 0 行を置き換えた後で再確立します。"
+#: manual/design/core.md:202
+msgid "**Canonical form.** Every constraint row has a basic column, every basic column is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0, except in the defective cases below."
+msgstr "**正準形。** すべての制約行が基底列を持ち、すべての基底列は単位ベクトルで、第 0 行はすべての基底列で零です。`Lp::pivot` は構成によりこれを保ち、`Lp::phase_1` は人工基底についてこれを確立し、`Lp::phase_2` は第 0 行を置き換えた後にこれを再確立します。ただし下記の欠陥のある場合を除きます。"
 
-#: manual/design/core.md:194
+#: manual/design/core.md:203
 msgid "**Primal feasibility.** The right-hand sides $\\bar b$ are non-negative. `to_standard` makes $b \\ge 0$, and the ratio test keeps it, as derived above."
 msgstr "**主実行可能性。** 右辺 $\\bar b$ は非負です。`to_standard` が $b \\ge 0$ とし、上で導いたように比テストがそれを保ちます。"
 
-#: manual/design/core.md:195
+#: manual/design/core.md:204
 msgid "**Objective in row 0.** The last entry of row 0 is $-z_B$."
 msgstr "**第 0 行の目的値。** 第 0 行の最後の要素は $-z_B$ です。"
 
-#: manual/design/core.md:197
+#: manual/design/core.md:206
 msgid "Under these invariants, the stopping tests are correct as derived above: no negative reduced cost means optimal, and a negative reduced cost with a non-positive column means unbounded."
 msgstr "これらの不変条件のもとで、停止判定は上で導いたとおり正しいものです。負の被約費用がなければ最適であり、負の被約費用に非正の列が伴えば非有界です。"
 
-#: manual/design/core.md:199
-msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged."
-msgstr "実装には、特定の場合にこれらの保証を破る既知の欠陥があります。利用者が避けられるようにここに挙げます。コードは変更していません。"
+#: manual/design/core.md:208
+msgid "Known defects"
+msgstr "既知の欠陥"
 
-#: manual/design/core.md:201
+#: manual/design/core.md:210
+msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged. An exact-arithmetic replica of the solver, run on random programs with one to three variables, small integer coefficients and non-zero objective coefficients, fails on about 5% of the bounded feasible ones, all through the second and third defects below."
+msgstr "実装には、特定の場合にこれらの保証を破る既知の欠陥があります。利用者が避けられるようここに挙げます。コードは変更していません。ソルバーを厳密算術で再現したものを、変数 1〜3 個、小さな整数係数、非零の目的係数のランダムな計画で実行すると、有界かつ実行可能な計画の約 5% で誤り、そのすべてが下記の 2 番目と 3 番目の欠陥によるものでした。"
+
+#: manual/design/core.md:212
 msgid "**Objective row alignment.** `Lp` builds row 0 with `Obj_func::to_vector`, which takes the stored coefficients in the order of the variable names and skips zero coefficients. Row 0 then disagrees with the column order whenever an objective coefficient is zero or the variables are not declared in name order, and the solver optimises a permuted objective. For example, minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns $1$ instead of $2$."
 msgstr "**目的関数行の整列。** `Lp` は第 0 行を `Obj_func::to_vector` で作ります。これは保存された係数を変数名の順に取り、ゼロ係数を飛ばします。そのため、目的係数にゼロがある場合や変数が名前順に宣言されていない場合、第 0 行は列の順序と食い違い、ソルバーは並べ替えられた目的関数を最適化します。例えば $x_1 \\ge 1$、$x_2 \\ge 2$ のもとで $x_2$ を最小化すると、$2$ ではなく $1$ が返ります。"
 
-#: manual/design/core.md:202
+#: manual/design/core.md:213
+msgid ""
+"**Artificial variables left in the basis.** Phase 1 can end with $w^\\ast = 0$ while an artificial variable $a_k$ is still basic, at value $\\bar b_k = 0$ (a degenerate basis). `Lp::phase_2` drops the artificial columns without pivoting $a_k$ out, so row $k$ has no basic column and invariant 1 fails. Dropping the columns is harmless for the equations themselves: the remaining system is $Ax = b$ after row operations, and row $k$ still states $\\sum_j \\bar a_{kj} x_j = \\bar b_k$. The harm is in the step. Entering $x_s$ with step $t$ changes the right-hand side of row $k$ to $\\bar b_k - t\\,\\bar a_{ks}$, and since row $k$ has no basic variable to absorb the change, the point read from the tableau satisfies row $k$ only while that stays $0$. The step must therefore be $t = 0$ whenever $\\bar a_{ks} \\n"
+"e 0$, but the ratio test only looks at rows with $\\bar a_{ks} > 0$. With $\\bar a_{ks} < 0$, either another row limits the step to $t^\\ast > 0$ and the returned point violates row $k$, or no row does and the run aborts as unbounded. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$, $x_1 \\le 2$ returns $x = (2, 0)$; minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts. The standard repair pivots every remaining artificial variable out on a non-zero entry $\\bar a_{kj}$ of a real column (a degenerate pivot, so feasibility is kept) and deletes row $k$ when no such entry exists, because the row is then redundant."
+msgstr ""
+"**基底に残った人工変数。** 第 1 段階は $w^\\ast = 0$ で終わっても、人工変数 $a_k$ が値 $\\bar b_k = 0$ で基底に残っていることがあります（退化基底）。`Lp::phase_2` は $a_k$ を基底から追い出さずに人工列を捨てるため、行 $k$ は基底列を持たず、不変条件 1 が崩れます。列を捨てること自体は方程式に害を与えません。残る方程式系は行変形された $Ax = b$ で、行 $k$ はなお $\\sum_j \\bar a_{kj} x_j = \\bar b_k$ を表します。問題はステップにあります。$x_s$ をステップ $t$ で入れると行 $k$ の右辺は $\\bar b_k - t\\,\\bar a_{ks}$ に変わり、行 $k$ にはこの変化を吸収する基底変数がないので、タブローから読み取った点が行 $k$ を満たすのはそれが $0$ のままの間だけです。したがって $\\bar a_{ks} \\n"
+"e 0$ ならステップは $t = 0$ でなければなりませんが、比テストは $\\bar a_{ks} > 0$ の行しか見ません。$\\bar a_{ks} < 0$ のとき、別の行がステップを $t^\\ast > 0$ に制限すれば返される点は行 $k$ に違反し、どの行も制限しなければ実行は非有界として中断します。$-x_1 = 0$、$x_1 \\le 2$ のもとで $x_1 - 2x_2$ を最大化すると $x = (2, 0)$ を返し、$-x_2 = 0$ のもとで $x_1 - x_2$ を最小化すると中断します。標準的な修正は、残った人工変数をそれぞれ実変数の列の非零成分 $\\bar a_{kj}$ でピボットして追い出し（退化ピボットなので実行可能性は保たれます）、そのような成分がなければ行 $k$ は冗長なので削除することです。"
+
+#: manual/design/core.md:214
+msgid "**Non-canonical start without artificial variables.** As derived under [reusing unit columns](#reusing-unit-columns-as-the-initial-basis), row 0 is not made canonical when the starting basis contains a unit column with a non-zero cost. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts as unbounded."
+msgstr "**人工変数なしの非正準形の開始。** [単位列の再利用](#reusing-unit-columns-as-the-initial-basis)で導いたとおり、初期基底にコストが零でない単位列が含まれると第 0 行は正準形に直されません。$-x_1 + x_2 = 1$ のもとで $-x_1 + 2x_2$ を最小化すると非有界として中断します。"
+
+#: manual/design/core.md:215
+msgid "**Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If row 0 holds exactly $1$ in column 0 at that moment, a row is subtracted from row 0 that should not be. Without any artificial variable, row 0 holds the program's own costs, so this happens whenever the first entry of the objective row is $1$; it changes which pivots phase 1 takes and can add to the non-canonical start above."
+msgstr "**人工添字。** `Lp::phase_1` は人工変数のない行の人工列として `0` を受け取り、これを列 0 と区別できません。その時点で第 0 行の列 0 がちょうど $1$ なら、引くべきでない行が第 0 行から引かれます。人工変数がまったくないとき第 0 行は計画自身のコストを持つので、目的行の最初の成分が $1$ ならいつでも起こります。これは第 1 段階のピボットの選択を変え、上記の非正準形の開始の問題を助長することがあります。"
+
+#: manual/design/core.md:216
 msgid "**Basis recognition.** Phase 2 recognises basic variables as unit columns and takes the first such column in each row. When two columns are equal unit vectors, the reported solution can name the wrong variable even though the objective value is right."
 msgstr "**基底の認識。** 第 2 段階は単位列を基底変数と認識し、各行で最初のそのような列を採ります。2 つの列が同じ単位ベクトルのとき、目的値は正しくても、報告される解が誤った変数を指すことがあります。"
 
-#: manual/design/core.md:203
-msgid "**Degenerate artificial variables.** If an artificial variable remains basic at value zero after phase 1, phase 2 drops its column without pivoting it out, and that row has no basic column during phase 2."
-msgstr "**退化した人工変数。** 第 1 段階の後に人工変数が値ゼロで基底に残ると、第 2 段階はその列をピボットで追い出さずに削除し、その行は第 2 段階の間基底列を持ちません。"
+#: manual/design/core.md:217
+msgid "**Absolute tolerance.** As shown under [numeric tolerance](#numeric-tolerance), the threshold $10^{-15}$ can report a feasible program with large coefficients as infeasible, and can miss a basic column whose pivot entry is not within $10^{-15}$ of $1$, which then gets the value $0$ in the reported solution."
+msgstr "**絶対許容誤差。** [数値許容誤差](#numeric-tolerance)で示したとおり、閾値 $10^{-15}$ は係数の大きい実行可能な計画を実行不可能と報告することがあり、ピボット成分が $1$ から $10^{-15}$ 以上ずれた基底列を見落とすこともあります。その変数は報告される解で値 $0$ になります。"
 
-#: manual/design/core.md:204
-msgid "**Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If the phase 1 objective coefficient of column 0 happens to be $1$ at that moment, a row is subtracted from row 0 that should not be."
-msgstr "**人工変数の添字。** 人工変数を持たない行について、`Lp::phase_1` は人工列として `0` を受け取り、これを第 0 列と区別できません。その時点で第 0 列の第 1 段階目的係数がたまたま $1$ だと、引くべきでない行が第 0 行から引かれます。"
-
-#: manual/design/core.md:206
+#: manual/design/core.md:219
 msgid "Alternatives rejected"
 msgstr "採用しなかった代替案"
 
-#: manual/design/core.md:208
+#: manual/design/core.md:221
 msgid "**Big-M method.** Rejected for the numeric reasons given under \"Two phases with artificial variables\"."
 msgstr "**ビッグ M 法。** 「人工変数による 2 段階法」で述べた数値的な理由で採用しませんでした。"
 
-#: manual/design/core.md:209
+#: manual/design/core.md:222
 msgid "**Bland's rule.** It guarantees termination, but it often needs many more pivots than Dantzig's rule on non-degenerate programs. The package keeps Dantzig's rule and bounds the number of iterations instead."
 msgstr "**Bland の規則。** 停止は保証されますが、非退化の計画では Dantzig の規則よりはるかに多くのピボットを要することがよくあります。このパッケージは Dantzig の規則を維持し、代わりに反復回数に上限を設けます。"
 
-#: manual/design/core.md:210
+#: manual/design/core.md:223
 msgid "**Revised simplex and interior-point methods.** They scale better to large sparse programs, but they hide the tableau, which the package exposes on purpose."
 msgstr "**改訂シンプレックス法と内点法。** 大規模な疎計画ではよりスケールしますが、シンプレックス表を隠してしまいます。このパッケージは意図的に表を公開しています。"
 
-#: manual/design/core.md:211
+#: manual/design/core.md:224
 msgid "**Enforcing variable bounds by substitution.** Bounds $l \\le x \\le u$ can be reduced to the standard form by $x = l + x'$ and an extra constraint $x' \\le u - l$. The package stores bounds for display only and leaves such constraints to the user."
 msgstr "**代入による変数の境界の適用。** 境界 $l \\le x \\le u$ は $x = l + x'$ と追加の制約 $x' \\le u - l$ によって標準形に帰着できます。このパッケージは境界を表示のためだけに保持し、そのような制約は利用者に任せます。"
 
-#: manual/design/core.md:213
+#: manual/design/core.md:226
 msgid "Boundaries"
 msgstr "対象外"
 
-#: manual/design/core.md:215
+#: manual/design/core.md:228
 msgid "The package deliberately does not:"
 msgstr "このパッケージは意図的に次のことを行いません。"
 
-#: manual/design/core.md:217
+#: manual/design/core.md:230
 msgid "return errors as values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program;"
 msgstr "エラーを値として返すこと。実行不可能・非有界な計画、ゼロピボット、不正な引数はプログラムを abort させます。"
 
-#: manual/design/core.md:218
+#: manual/design/core.md:231
 msgid "enforce variable bounds other than $x \\ge 0$;"
 msgstr "$x \\ge 0$ 以外の変数の境界を適用すること。"
 
-#: manual/design/core.md:219
+#: manual/design/core.md:232
 msgid "prevent cycling beyond the iteration limit of 1000 per simplex run;"
 msgstr "シンプレックス 1 回あたり 1000 反復という上限を超えて巡回を防ぐこと。"
 
-#: manual/design/core.md:220
+#: manual/design/core.md:233
 msgid "exploit sparsity, warm starts or a factorised basis;"
 msgstr "疎性、ウォームスタート、基底の分解を活用すること。"
 
-#: manual/design/core.md:221
+#: manual/design/core.md:234
 msgid "compute dual values or sensitivity ranges, although the vector $y = (A_B^{-1})^\\top c_B$ of the final basis is implicit in the tableau;"
 msgstr "双対値や感度範囲を計算すること。ただし最終基底のベクトル $y = (A_B^{-1})^\\top c_B$ は表の中に暗に含まれています。"
 
-#: manual/design/core.md:222
+#: manual/design/core.md:235
 msgid "solve integer, mixed-integer or nonlinear programs."
 msgstr "整数計画、混合整数計画、非線形計画を解くこと。"
 
@@ -934,96 +1016,164 @@ msgid "linear-program"
 msgstr "linear-program"
 
 #: manual/index.md:3
+msgid "This manual documents the `v0.1.0` release of `linear-program`, as migrated to MoonBit 0.10 on `main`."
+msgstr "このマニュアルは `linear-program` の `v0.1.0` リリースを、`main` で MoonBit 0.10 に移行した状態で説明します。"
+
+#: manual/index.md:5
 msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
 msgstr "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
 
-#: manual/index.md:5
+#: manual/index.md:7
+msgid "Overview"
+msgstr "概要"
+
+#: manual/index.md:9
 msgid "linear-program is a [MoonBit](https://www.moonbitlang.com/) library for writing linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://lunaflow.cn/en/linear-algebra/). Every step of the solver is public, so the library also serves to follow the simplex method by hand."
 msgstr "linear-program は、線形計画を記述し 2 段階シンプレックス法で解くための [MoonBit](https://www.moonbitlang.com/) ライブラリです。係数は [luna-generic](https://lunaflow.cn/en/luna-generic/) の代数的 trait に対してジェネリックで、シンプレックス表は [linear-algebra](https://lunaflow.cn/en/linear-algebra/) の可変行列です。ソルバーの各ステップは公開されているので、シンプレックス法を手で追うためにも使えます。"
 
-#: manual/index.md:7
-msgid "Packages"
-msgstr "パッケージ"
+#: manual/index.md:11
+msgid "The solver is a teaching implementation. It handles small, well-scaled programs with `Double` coefficients, but it has known defects that can make it report a wrong optimum, a point that violates a constraint, or a false \"unbounded\"; the [API](api/core.md) marks each with a warning and the [design notes](design/core.md#known-defects) explain them."
+msgstr "このソルバーは教育用の実装です。`Double` 係数の小さくスケールの整った計画を扱えますが、誤った最適値、制約に違反する点、偽の「非有界」を報告しうる既知の欠陥があります。[API](api/core.md) がそれぞれに警告を付け、[設計ノート](design/core.md#known-defects)が説明しています。"
 
-#: manual/index.md:9
+#: manual/index.md:13
+msgid "Install"
+msgstr "インストール"
+
+#: manual/index.md:15
+msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, so it is not published as `Luna-Flow/linear-program` on mooncakes yet and `moon add` cannot fetch it. Use a local checkout instead: add it, together with checkouts of `luna-generic` and `linear-algebra`, to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
+msgstr "モジュール名は `Luna-Flow/` 名前空間のない `linear-program` なので、まだ `Luna-Flow/linear-program` として mooncakes に公開されておらず、`moon add` では取得できません。代わりにローカルのチェックアウトを使います。`luna-generic` と `linear-algebra` のチェックアウトと一緒に `moon.work` の `members` に加え、`moon.mod` の `import` ブロックに記載します："
+
+#: manual/index.md:24
+msgid "Then import `\"linear-program\"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
+msgstr "次に `moon.pkg` で `\"linear-program\"` をインポートします。完全な設定は[チュートリアル](tutorial/core.md#quick-start)にあります。ライブラリには MoonBit ツールチェーン 0.10 以降（`moonc` ≥ 0.10）が必要で、`Luna-Flow/luna-generic` 0.3.3 と `Luna-Flow/linear-algebra` 0.4.7 に依存します。"
+
+#: manual/index.md:26
+msgid "Pages"
+msgstr "ページ"
+
+#: manual/index.md:28
 msgid "All public names live in the single package at `src`, documented as `core`."
 msgstr "公開名はすべて `src` の単一パッケージにあり、`core` として文書化されています。"
 
-#: manual/index.md:11
-msgid "Package"
-msgstr "パッケージ"
+#: manual/index.md:30
+msgid "Part"
+msgstr "部分"
 
-#: manual/index.md:11
-msgid "Contents"
-msgstr "目次"
-
-#: manual/index.md:11
-msgid "API"
-msgstr "API"
-
-#: manual/index.md:11
+#: manual/index.md:30
 msgid "Tutorial"
 msgstr "チュートリアル"
 
-#: manual/index.md:11
+#: manual/index.md:30
+msgid "API"
+msgstr "API"
+
+#: manual/index.md:30
 msgid "Design"
 msgstr "設計"
 
-#: manual/index.md:13
-msgid "`core` (`src`, import path `linear-program`)"
-msgstr "`core`（`src`、インポートパス `linear-program`）"
+#: manual/index.md:32
+msgid "`core`: programs, standard form, the two-phase simplex solver"
+msgstr "`core`：計画、標準形、二段階単体法ソルバー"
 
-#: manual/index.md:13
-msgid "Variables, linear expressions, objectives and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`); programs and standard form (`Lp`, `Lp::to_standard`); the two-phase simplex solver (`Lp::two_stage`, `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`); the tolerance trait `ApproximatelyZero`."
-msgstr "変数、線形式、目的関数、制約（`Variable`、`Poly`、`Obj_func`、`Constraint`）、計画と標準形（`Lp`、`Lp::to_standard`）、2 段階シンプレックス法のソルバー（`Lp::two_stage`、`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2`）、許容誤差の trait `ApproximatelyZero`。"
+#: manual/index.md:32
+msgid "[tutorial](tutorial/core.md)"
+msgstr "[チュートリアル](tutorial/core.md)"
 
-#: manual/index.md:13
+#: manual/index.md:32
 msgid "[API](api/core.md)"
 msgstr "[API](api/core.md)"
 
-#: manual/index.md:13
-msgid "[Tutorial](tutorial/core.md)"
-msgstr "[チュートリアル](tutorial/core.md)"
-
-#: manual/index.md:13
-msgid "[Design](design/core.md)"
+#: manual/index.md:32
+msgid "[design](design/core.md)"
 msgstr "[設計](design/core.md)"
 
-#: manual/index.md:15
-msgid "Reading paths"
-msgstr "読み進め方"
+#: manual/index.md:33
+msgid "[contributing](contributing.md)"
+msgstr "[貢献ガイド](contributing.md)"
 
-#: manual/index.md:17
-msgid "**New to linear programming.** Work through the [tutorial](tutorial/core.md): it solves a production problem, then a minimisation with `>=` constraints, then pivots a tableau by hand. Keep the [design notes](design/core.md) open for the meaning of standard form, reduced costs and the two phases."
-msgstr "**線形計画法が初めての方。** [チュートリアル](tutorial/core.md)を順に進めてください。生産計画の問題を解き、次に `>=` 制約を持つ最小化問題を解き、最後にシンプレックス表を手でピボットします。標準形、被約費用、2 つの段階の意味については[設計ノート](design/core.md)を参照してください。"
-
-#: manual/index.md:18
-msgid "**Using the solver.** The [tutorial](tutorial/core.md) quick start and its list of common pitfalls are enough to solve small programs. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts."
-msgstr "**ソルバーを使う方。** 小さな計画を解くには、[チュートリアル](tutorial/core.md)のクイックスタートとよくある落とし穴の一覧で十分です。[API リファレンス](api/core.md)は、何が abort するかを含め、各関数の正確な振る舞いを述べています。"
-
-#: manual/index.md:19
-msgid "**Contributing.** Read the [design notes](design/core.md), especially the invariants and the known defects, then the [contribution guidelines](contributing.md)."
-msgstr "**貢献する方。** [設計ノート](design/core.md)、特に不変条件と既知の欠陥を読み、次に[貢献ガイドライン](contributing.md)を読んでください。"
-
-#: manual/index.md:21
-msgid "Toolchain and installation"
-msgstr "ツールチェーンとインストール"
-
-#: manual/index.md:23
-msgid "The library requires MoonBit with `moonc` 0.10 or newer and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
-msgstr "このライブラリには `moonc` 0.10 以降の MoonBit が必要で、`Luna-Flow/luna-generic` 0.3.3 と `Luna-Flow/linear-algebra` 0.4.7 に依存します。"
-
-#: manual/index.md:25
-msgid "[!NOTE] The module is named `linear-program`, without the `Luna-Flow/` namespace, so it cannot be added from mooncakes under the Luna-Flow organisation. Add a checkout of the repository to the `members` of your `moon.work` and list `\"linear-program@0.1.0\"` in the `import` block of your `moon.mod`. The [tutorial](tutorial/core.md) shows the complete setup."
-msgstr "[!NOTE] モジュール名は `Luna-Flow/` 名前空間のない `linear-program` なので、Luna-Flow 組織のものとして mooncakes から追加することはできません。リポジトリのチェックアウトを `moon.work` の `members` に加え、`moon.mod` の `import` ブロックに `\"linear-program@0.1.0\"` を記載してください。完全な設定は[チュートリアル](tutorial/core.md)にあります。"
-
-#: manual/index.md:28
-msgid "Import the package in your `moon.pkg`:"
-msgstr "`moon.pkg` でパッケージをインポートします。"
+#: manual/index.md:35
+msgid "Modelling"
+msgstr "モデル化"
 
 #: manual/index.md:37
-msgid "Before opening a pull request, run `moon fmt`, `moon check --target all`, `moon info` and `moon test`, or the `ready_to_pr.sh` script."
-msgstr "プルリクエストを出す前に、`moon fmt`、`moon check --target all`、`moon info`、`moon test` を実行するか、`ready_to_pr.sh` スクリプトを実行してください。"
+msgid "`Variable`: a named decision variable; its bounds are stored but not enforced"
+msgstr "`Variable`：名前付きの決定変数。上下限は保存されますが強制されません"
+
+#: manual/index.md:38
+msgid "`Poly`: a linear expression, a map from variables to non-zero coefficients"
+msgstr "`Poly`：線形式。変数から非零係数への写像"
+
+#: manual/index.md:39
+msgid "`Obj_func`: an objective, a `Poly` with the sense `min` or `max`"
+msgstr "`Obj_func`：目的関数。`min` または `max` の向きを持つ `Poly`"
+
+#: manual/index.md:40
+msgid "`Constraint`: equalities and `<=` / `>=` inequalities"
+msgstr "`Constraint`：等式と `<=` / `>=` の不等式"
+
+#: manual/index.md:42
+msgid "Programs and standard form"
+msgstr "計画と標準形"
+
+#: manual/index.md:44
+msgid "`Lp`: a program with its variables, objective, constraints and program matrix"
+msgstr "`Lp`：変数、目的、制約、計画行列からなる計画"
+
+#: manual/index.md:45
+msgid "`Lp::new`, `Lp::cons_from_Array`, `Lp::reset_obj_byarray`, `Lp::from_matrix`: build a program"
+msgstr "`Lp::new`、`Lp::cons_from_Array`、`Lp::reset_obj_byarray`、`Lp::from_matrix`：計画を作る"
+
+#: manual/index.md:46
+msgid "`Lp::to_standard`: rewrite it as $\\min c^\\top x$, $Ax = b$, $b \\ge 0$, $x \\ge 0$"
+msgstr "`Lp::to_standard`：$\\min c^\\top x$、$Ax = b$、$b \\ge 0$、$x \\ge 0$ の形に書き換える"
+
+#: manual/index.md:47
+msgid "`Lp::get_coeff_matrix`, `Lp::get_objfunc_vector`, `Lp::get_b_vector`: read $A$, $c$, $b$"
+msgstr "`Lp::get_coeff_matrix`、`Lp::get_objfunc_vector`、`Lp::get_b_vector`：$A$、$c$、$b$ を読む"
+
+#: manual/index.md:49
+msgid "Solver"
+msgstr "ソルバー"
+
+#: manual/index.md:51
+msgid "`Lp::two_stage`: the two-phase simplex method on a program in standard form"
+msgstr "`Lp::two_stage`：標準形の計画に対する二段階単体法"
+
+#: manual/index.md:52
+msgid "`Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`: its steps, public for teaching"
+msgstr "`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2`：その各ステップ。教育のために公開"
+
+#: manual/index.md:53
+msgid "`ApproximatelyZero`, `double_equal_to_zero`: the zero test of phase 2, implemented for `Int` and `Double`"
+msgstr "`ApproximatelyZero`、`double_equal_to_zero`：第 2 段階の零判定。`Int` と `Double` に実装"
+
+#: manual/index.md:55
+msgid "Where to read next"
+msgstr "次に読むもの"
+
+#: manual/index.md:57
+msgid "The [tutorial](tutorial/core.md) solves a production problem, a minimisation with `>=` constraints and a program given as a matrix, then pivots a tableau by hand. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts, and the [design notes](design/core.md) derive standard form, reduced costs, the stopping tests and the two phases."
+msgstr "[チュートリアル](tutorial/core.md)は生産計画の問題、`>=` 制約付きの最小化、行列で与えた計画を解き、その後タブローを手でピボットします。[API リファレンス](api/core.md)はどこで中断するかを含めて各関数の正確な振る舞いを示し、[設計ノート](design/core.md)は標準形、被約費用、停止判定、二つの段階を導出します。"
+
+#: manual/index.md:59
+msgid "New to linear programming: work through the [tutorial](tutorial/core.md), and keep the [design notes](design/core.md) open for the meaning of standard form, reduced costs and the two phases."
+msgstr "線形計画法が初めての方：[チュートリアル](tutorial/core.md)を通して学び、標準形、被約費用、二つの段階の意味については[設計ノート](design/core.md)を参照してください。"
+
+#: manual/index.md:60
+msgid "Using the solver in a library: read the warnings in the [API reference](api/core.md) and the [common pitfalls](tutorial/core.md#common-pitfalls), and check every result against the constraints, as the tutorial shows."
+msgstr "ライブラリでソルバーを使う方：[API リファレンス](api/core.md)の警告と[よくある落とし穴](tutorial/core.md#common-pitfalls)を読み、チュートリアルのようにすべての結果を制約で確かめてください。"
+
+#: manual/index.md:61
+msgid "Contributing: read the [design notes](design/core.md), especially the invariants and the known defects, then the [contribution guidelines](contributing.md)."
+msgstr "貢献する方：[設計ノート](design/core.md)、特に不変条件と既知の欠陥を読み、それから[貢献ガイド](contributing.md)を読んでください。"
+
+#: manual/index.md:63
+msgid "Validation"
+msgstr "検証"
+
+#: manual/index.md:65
+msgid "Recommended release checks, from the repository root (or run `ready_to_pr.sh`):"
+msgstr "推奨されるリリース前の確認（リポジトリのルートで実行、または `ready_to_pr.sh` を実行）："
 
 #: manual/tutorial/core.md:1
 msgid "core tutorial"
@@ -1034,176 +1184,284 @@ msgid "This tutorial shows you how to write a linear program, bring it into stan
 msgstr "このチュートリアルでは、線形計画を記述し、標準形にし、linear-program の 2 段階シンプレックス法で解く方法を示します。2 変数の生産計画問題から始め、最後にシンプレックス表の上でシンプレックス法を手で実行します。各ステップの背後にある数学は[設計ノート](../design/core.md)にあります。"
 
 #: manual/tutorial/core.md:5
+msgid "I want to"
+msgstr "やりたいこと"
+
+#: manual/tutorial/core.md:5
+msgid "Use"
+msgstr "使うもの"
+
+#: manual/tutorial/core.md:7
+msgid "declare decision variables"
+msgstr "決定変数を宣言する"
+
+#: manual/tutorial/core.md:7
+msgid "`Variable::new(name, lower, upper)`; only $x \\ge 0$ is enforced"
+msgstr "`Variable::new(name, lower, upper)`。強制されるのは $x \\ge 0$ だけ"
+
+#: manual/tutorial/core.md:8
+msgid "state the objective"
+msgstr "目的を書く"
+
+#: manual/tutorial/core.md:9
+msgid "state the constraints"
+msgstr "制約を書く"
+
+#: manual/tutorial/core.md:10
+msgid "give an equality-only program as one matrix"
+msgstr "等式だけの計画を 1 つの行列で与える"
+
+#: manual/tutorial/core.md:11
+msgid "solve it"
+msgstr "解く"
+
+#: manual/tutorial/core.md:11
+msgid "`lp.to_standard().two_stage()`, negating the value for `max`"
+msgstr "`lp.to_standard().two_stage()`。`max` では値の符号を反転"
+
+#: manual/tutorial/core.md:12
+msgid "see $A$, $b$ and $c$ of the standard form"
+msgstr "標準形の $A$、$b$、$c$ を見る"
+
+#: manual/tutorial/core.md:13
+msgid "follow the simplex method step by step"
+msgstr "単体法を 1 ステップずつ追う"
+
+#: manual/tutorial/core.md:13
+msgid "`Lp::pivot` and `Lp::simplex_iteration` on a tableau"
+msgstr "タブローに対する `Lp::pivot` と `Lp::simplex_iteration`"
+
+#: manual/tutorial/core.md:14
+msgid "trust a result"
+msgstr "結果を信頼する"
+
+#: manual/tutorial/core.md:14
+msgid "substitute it into the constraints, as in [check the result yourself](#check-the-result-yourself)"
+msgstr "[結果を自分で確かめる](#check-the-result-yourself)のように制約に代入する"
+
+#: manual/tutorial/core.md:16
 msgid "Quick start"
 msgstr "クイックスタート"
 
-#: manual/tutorial/core.md:7
+#: manual/tutorial/core.md:18
 msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, and is not published on mooncakes under the Luna-Flow organisation yet. Use it from a local checkout: add the checkout, together with checkouts of its dependencies [luna-generic](https://lunaflow.cn/en/luna-generic/) and [linear-algebra](https://lunaflow.cn/en/linear-algebra/), to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
 msgstr "モジュール名は `Luna-Flow/` 名前空間のない `linear-program` で、まだ Luna-Flow 組織のものとして mooncakes に公開されていません。ローカルのチェックアウトから使ってください。そのチェックアウトと、依存先 [luna-generic](https://lunaflow.cn/en/luna-generic/) と [linear-algebra](https://lunaflow.cn/en/linear-algebra/) のチェックアウトを `moon.work` の `members` に加え、`moon.mod` の `import` ブロックに記載します。"
 
-#: manual/tutorial/core.md:16
+#: manual/tutorial/core.md:27
 msgid "Then import the package in your `moon.pkg`:"
 msgstr "次に `moon.pkg` でパッケージをインポートします。"
 
-#: manual/tutorial/core.md:26
+#: manual/tutorial/core.md:37
 msgid "The smallest useful program maximises $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$, $x_1 + 3x_2 \\le 10$ and $x_1, x_2 \\ge 0$:"
 msgstr "最小の実用的なプログラムは、$2x_1 + x_2 \\le 12$、$x_1 + 3x_2 \\le 10$、$x_1, x_2 \\ge 0$ のもとで $3x_1 + 4x_2$ を最大化します。"
 
-#: manual/tutorial/core.md:41
+#: manual/tutorial/core.md:52
 msgid "The optimum is $x_1 = 5.2$, $x_2 = 1.6$ with value $22$, up to rounding. The solution has four entries because `to_standard` adds one slack variable per inequality, and the value is negated because the standard form minimises $-3x_1 - 4x_2$."
 msgstr "最適解は丸め誤差を除いて $x_1 = 5.2$、$x_2 = 1.6$ で、値は $22$ です。解が 4 成分あるのは `to_standard` が不等式ごとにスラック変数を 1 つ加えるためで、値の符号が反転しているのは標準形が $-3x_1 - 4x_2$ を最小化するためです。"
 
-#: manual/tutorial/core.md:43
+#: manual/tutorial/core.md:54
 msgid "Everyday tasks"
 msgstr "日常的なタスク"
 
-#: manual/tutorial/core.md:45
+#: manual/tutorial/core.md:56
 msgid "Write a program and read it back"
 msgstr "計画を書いて読み返す"
 
-#: manual/tutorial/core.md:47
+#: manual/tutorial/core.md:58
 msgid "Variables carry a name and bounds; the objective carries a sense and coefficients; constraints are rows of coefficients. `Show` prints the program in the usual notation:"
 msgstr "変数は名前と境界を持ち、目的関数は向きと係数を持ち、制約は係数の行です。`Show` は計画を通常の記法で表示します。"
 
-#: manual/tutorial/core.md:75
+#: manual/tutorial/core.md:86
 msgid "An equality row is `(coefficients, b)`; an inequality row is `(coefficients, relation, b)` with the relation written exactly as `\">=\"` or `\"<=\"`. The `nonneg` helper is used by the remaining examples."
 msgstr "等式の行は `(coefficients, b)`、不等式の行は `(coefficients, relation, b)` で、関係は正確に `\">=\"` か `\"<=\"` と書きます。ヘルパー `nonneg` は以降の例でも使います。"
 
-#: manual/tutorial/core.md:77
+#: manual/tutorial/core.md:88
 msgid "Bring a program into standard form"
 msgstr "計画を標準形にする"
 
-#: manual/tutorial/core.md:79
+#: manual/tutorial/core.md:90
 msgid "The solver works on $\\min c^\\top x$ subject to $Ax = b$, $b \\ge 0$, $x \\ge 0$. `to_standard` produces it, and the accessors return $c$, $A$ and $b$:"
 msgstr "ソルバーは $Ax = b$、$b \\ge 0$、$x \\ge 0$ のもとでの $\\min c^\\top x$ を扱います。`to_standard` がこの形を作り、アクセサが $c$、$A$、$b$ を返します。"
 
-#: manual/tutorial/core.md:102
+#: manual/tutorial/core.md:113
 msgid "Each `>=` row received a surplus variable with coefficient $-1$, so $2x_1 + x_2 \\ge 12$ became $2x_1 + x_2 - y_1 = 12$ with $y_1 \\ge 0$."
 msgstr "各 `>=` 行は係数 $-1$ の余剰変数を受け取ったので、$2x_1 + x_2 \\ge 12$ は $y_1 \\ge 0$ のもとで $2x_1 + x_2 - y_1 = 12$ になりました。"
 
-#: manual/tutorial/core.md:104
+#: manual/tutorial/core.md:115
 msgid "Solve a minimisation problem"
 msgstr "最小化問題を解く"
 
-#: manual/tutorial/core.md:106
+#: manual/tutorial/core.md:117
 msgid "A minimisation problem needs no sign change: the returned value is the minimum."
 msgstr "最小化問題では符号を変える必要はありません。返り値が最小値です。"
 
-#: manual/tutorial/core.md:119
+#: manual/tutorial/core.md:130
 msgid "No slack column is a unit column here, so phase 1 adds two artificial variables, drives them to zero, and phase 2 then minimises the real objective from the feasible point phase 1 found."
 msgstr "ここではどのスラック列も単位列ではないので、第 1 段階は 2 つの人工変数を加えてゼロまで下げ、続いて第 2 段階が第 1 段階の見つけた実行可能点から本来の目的関数を最小化します。"
 
-#: manual/tutorial/core.md:121
+#: manual/tutorial/core.md:132
 msgid "Write a program with equality constraints as a matrix"
 msgstr "等式制約の計画を行列で書く"
 
-#: manual/tutorial/core.md:123
+#: manual/tutorial/core.md:134
 msgid "When every constraint is an equality, the whole program fits in one matrix: row 0 holds the objective coefficients and every further row holds one constraint $[a_i \\mid b_i]$. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
 msgstr "すべての制約が等式なら、計画全体が 1 つの行列に収まります。第 0 行に目的係数を、以降の各行に制約 $[a_i \\mid b_i]$ を 1 つずつ入れます。次の計画は $x_1 + 2x_2 + 3x_3 = 10$ と $2x_1 + x_2 + x_3 = 8$ のもとで $-x_1 - 2x_2 - 3x_3$ を最小化します。"
 
-#: manual/tutorial/core.md:150
+#: manual/tutorial/core.md:161
 msgid "The optimum is $x = (2, 4, 0)$ with value $-10$. The last entry of row 0 is ignored by `from_matrix`."
 msgstr "最適解は $x = (2, 4, 0)$ で、値は $-10$ です。第 0 行の最後の要素は `from_matrix` によって無視されます。"
 
-#: manual/tutorial/core.md:152
+#: manual/tutorial/core.md:163
 msgid "Build expressions term by term"
 msgstr "式を項ごとに組み立てる"
 
-#: manual/tutorial/core.md:154
+#: manual/tutorial/core.md:165
 msgid "`Poly` and `Obj_func` can also be built one term at a time, which is convenient when coefficients come from data:"
 msgstr "`Poly` と `Obj_func` は 1 項ずつ組み立てることもでき、係数がデータから来る場合に便利です。"
 
-#: manual/tutorial/core.md:171
+#: manual/tutorial/core.md:182
 msgid "`add_term_inplace` adds to an existing coefficient, so `x1` ends with $3 + 1 = 4$."
 msgstr "`add_term_inplace` は既存の係数に加算するので、`x1` は最終的に $3 + 1 = 4$ になります。"
 
-#: manual/tutorial/core.md:173
+#: manual/tutorial/core.md:184
 msgid "Going further"
 msgstr "さらに進んで"
 
-#: manual/tutorial/core.md:175
+#: manual/tutorial/core.md:186
 msgid "Drive the simplex method by hand"
 msgstr "シンプレックス法を手で実行する"
 
-#: manual/tutorial/core.md:177
+#: manual/tutorial/core.md:188
 msgid "The steps of `two_stage` are public. When a program is already in canonical form, for example because every constraint is `<=` with $b \\ge 0$ and the slack columns form an identity, you can write the tableau yourself and pivot on it. Row 0 holds the reduced costs and $-z$:"
 msgstr "`two_stage` の各ステップは公開されています。計画がすでに正準形である場合、例えばすべての制約が $b \\ge 0$ の `<=` でスラック列が単位行列をなす場合には、表を自分で書いてピボットできます。第 0 行は被約費用と $-z$ を持ちます。"
 
-#: manual/tutorial/core.md:203
+#: manual/tutorial/core.md:214
 msgid "After the first pivot the objective has improved from $0$ to $40/3$; the remaining negative reduced cost of $x_1$ says that one more pivot improves it further, to $22$. Pass `debug=true` to `simplex_iteration` to print every pivot."
 msgstr "最初のピボットの後、目的値は $0$ から $40/3$ に改善しました。$x_1$ の被約費用がまだ負であることは、もう 1 回のピボットで $22$ までさらに改善することを示しています。`simplex_iteration` に `debug=true` を渡すと各ピボットが表示されます。"
 
-#: manual/tutorial/core.md:205
-msgid "Use another coefficient type"
-msgstr "別の係数型を使う"
+#: manual/tutorial/core.md:216
+msgid "Coefficient types"
+msgstr "係数の型"
 
-#: manual/tutorial/core.md:207
-msgid "Every function is generic in the coefficient type `V`. The solver needs `Zero`, `One`, `Compare`, the arithmetic operators, `Show` and `ApproximatelyZero`. To use your own exact number type, implement those traits for it, including the tolerance trait, which for an exact type is plain equality with zero:"
-msgstr "すべての関数は係数型 `V` に対してジェネリックです。ソルバーには `Zero`、`One`、`Compare`、算術演算子、`Show`、`ApproximatelyZero` が必要です。独自の厳密な数値型を使うには、許容誤差の trait を含めこれらの trait を実装します。厳密な型では、それは単なるゼロとの等値比較です。"
+#: manual/tutorial/core.md:218
+msgid "Every function is generic in the coefficient type `V`, and the modelling functions (`Variable`, `Poly`, `Obj_func`, `Constraint`, `Lp::to_standard`) work with any type that has the luna-generic traits they ask for. The solver also needs `ApproximatelyZero`, which is read-only outside the package: only `Int` and `Double` implement it, and you cannot add your own exact number type. Since integer division truncates, use `Double` for `two_stage`."
+msgstr "すべての関数は係数型 `V` について汎用で、モデル化の関数（`Variable`、`Poly`、`Obj_func`、`Constraint`、`Lp::to_standard`）は、それらが要求する luna-generic のトレイトを持つ任意の型で動きます。ソルバーはさらに `ApproximatelyZero` を必要としますが、これはパッケージの外では読み取り専用です。実装しているのは `Int` と `Double` だけで、独自の厳密な数の型を加えることはできません。整数の除算は切り捨てになるので、`two_stage` には `Double` を使ってください。"
 
-#: manual/tutorial/core.md:215
-msgid "With exact arithmetic the solver returns exact results and the tolerance never matters."
-msgstr "厳密な算術では、ソルバーは厳密な結果を返し、許容誤差は問題になりません。"
-
-#: manual/tutorial/core.md:217
+#: manual/tutorial/core.md:220
 msgid "Check the result yourself"
 msgstr "結果を自分で確かめる"
 
-#: manual/tutorial/core.md:219
+#: manual/tutorial/core.md:222
 msgid "`two_stage` aborts on infeasible and unbounded programs instead of returning an error, so validate the input before calling it when the program comes from user data. After solving, substitute the solution back into the constraints of the standard form to confirm feasibility:"
 msgstr "`two_stage` は実行不可能・非有界な計画に対してエラーを返さずに abort するので、計画が利用者のデータから来る場合は呼び出す前に入力を検証してください。解いた後は、解を標準形の制約に代入して実行可能性を確認します。"
 
-#: manual/tutorial/core.md:240
+#: manual/tutorial/core.md:243
 msgid "Common pitfalls"
 msgstr "よくある落とし穴"
 
-#: manual/tutorial/core.md:242
+#: manual/tutorial/core.md:245
 msgid "**The returned value belongs to the standard form.** `to_standard` turns every program into a minimisation, so for a maximisation problem negate the value returned by `two_stage`."
 msgstr "**返り値は標準形のものです。** `to_standard` はすべての計画を最小化に変えるので、最大化問題では `two_stage` の返り値の符号を反転してください。"
 
-#: manual/tutorial/core.md:243
+#: manual/tutorial/core.md:246
 msgid "**The solution includes slack variables.** Its length is the number of variables of the standard form; your own variables come first, in declaration order."
 msgstr "**解にはスラック変数が含まれます。** その長さは標準形の変数の数で、自分の変数が宣言順に先頭に来ます。"
 
-#: manual/tutorial/core.md:244
+#: manual/tutorial/core.md:247
 msgid "**Objective coefficients must line up.** Because of a known defect, the objective row is filled from the non-zero coefficients in the order of the variable names. Give every variable a non-zero objective coefficient and declare variables in name order (`x1`, `x2`, ..., not `x2` before `x10`), or the solver optimises a different objective."
 msgstr "**目的係数は揃っていなければなりません。** 既知の欠陥のため、目的関数行は非ゼロ係数から変数名の順に埋められます。すべての変数に非ゼロの目的係数を与え、変数を名前順に宣言してください（`x1`、`x2`、…。`x2` を `x10` より前に置かない）。そうしないと、ソルバーは別の目的関数を最適化します。"
 
-#: manual/tutorial/core.md:245
+#: manual/tutorial/core.md:248
 msgid "**Bounds are not enforced.** `Variable::new(\"x\", 0.0, 100.0)` stores the bound $100$, but the solver only assumes $x \\ge 0$. Add an explicit constraint `([1.0, ...], \"<=\", 100.0)` for an upper bound."
 msgstr "**境界は適用されません。** `Variable::new(\"x\", 0.0, 100.0)` は上界 $100$ を保存しますが、ソルバーは $x \\ge 0$ しか仮定しません。上界には明示的な制約 `([1.0, ...], \"<=\", 100.0)` を加えてください。"
 
-#: manual/tutorial/core.md:246
+#: manual/tutorial/core.md:249
 msgid "**Infeasible and unbounded programs abort.** There is no `Result` to inspect."
 msgstr "**実行不可能・非有界な計画は abort します。** 調べるための `Result` はありません。"
 
-#: manual/tutorial/core.md:247
+#: manual/tutorial/core.md:250
 msgid "**Use `Double` coefficients.** `Int` satisfies the trait bounds, but integer division truncates, so pivoting on `Int` gives wrong results."
 msgstr "**`Double` の係数を使ってください。** `Int` も trait 境界を満たしますが、整数除算は切り捨てるため、`Int` でピボットすると誤った結果になります。"
 
-#: manual/tutorial/core.md:248
+#: manual/tutorial/core.md:251
 msgid "**Tolerance is absolute.** Phase 2 treats $|x| < 10^{-15}$ as zero. For programs with large coefficients, rounding errors can exceed this threshold and an infeasibility can be reported for a feasible program; rescale the rows so that coefficients are of moderate size."
 msgstr "**許容誤差は絶対的です。** 第 2 段階は $|x| < 10^{-15}$ をゼロとみなします。係数が大きい計画では丸め誤差がこのしきい値を超え、実行可能な計画が実行不可能と報告されることがあります。係数が適度な大きさになるよう行をスケールしてください。"
 
-#: manual/tutorial/core.md:249
+#: manual/tutorial/core.md:252
 msgid "**Do not name variables `y1`, `y2`, ...** `to_standard` uses these names for slack variables, and variables are identified by name."
 msgstr "**変数に `y1`、`y2`、… と名付けないでください。** `to_standard` はこれらの名前をスラック変数に使い、変数は名前で識別されます。"
 
-#: manual/tutorial/core.md:251
+#: manual/tutorial/core.md:253
+msgid "**Some feasible bounded programs fail.** When phase 1 leaves an artificial variable in the basis, or when one of your own variables already has a unit column, the solver can return a point that violates a constraint or abort with `Problem is unbounded`. The warning under [`Lp::two_stage`](../api/core.md#lptwo_stage) gives small examples; equality constraints with right-hand side $0$ are a typical trigger. Check every solution against the constraints."
+msgstr "**実行可能で有界な計画でも失敗することがあります。** 第 1 段階が人工変数を基底に残したとき、または自分の変数がすでに単位列を持つとき、ソルバーは制約に違反する点を返したり `Problem is unbounded` で中断したりします。[`Lp::two_stage`](../api/core.md#lptwo_stage) の警告に小さな例があります。右辺が $0$ の等式制約が典型的な引き金です。すべての解を制約で確かめてください。"
+
+#: manual/tutorial/core.md:254
+msgid "**Degenerate programs can cycle.** A run that hits the iteration limit prints a message and returns a non-optimal result without an error."
+msgstr "**退化した計画は巡回することがあります。** 反復上限に達した実行はメッセージを出力し、エラーなしで最適でない結果を返します。"
+
+#: manual/tutorial/core.md:256
 msgid "Next steps"
 msgstr "次のステップ"
 
-#: manual/tutorial/core.md:253
+#: manual/tutorial/core.md:258
 msgid "The [API reference](../api/core.md) documents every type and function, including `Lp::phase_1` and `Lp::phase_2`."
 msgstr "[API リファレンス](../api/core.md)は、`Lp::phase_1` と `Lp::phase_2` を含むすべての型と関数を説明しています。"
 
-#: manual/tutorial/core.md:254
+#: manual/tutorial/core.md:259
 msgid "The [design notes](../design/core.md) derive the standard form, the optimality and unboundedness tests and the two phases."
 msgstr "[設計ノート](../design/core.md)は、標準形、最適性と非有界性の判定、および 2 つの段階を導出しています。"
 
-#: manual/tutorial/core.md:255
+#: manual/tutorial/core.md:260
 msgid "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) provides the `Matrix` type used for tableaux, and [luna-generic](https://lunaflow.cn/en/luna-generic/) the traits that bound the coefficient type."
 msgstr "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) はシンプレックス表に使う `Matrix` 型を、[luna-generic](https://lunaflow.cn/en/luna-generic/) は係数型を制約する trait を提供します。"
+
+#~ msgid "The examples on this page are tests in a package with this `moon.pkg`:"
+#~ msgstr "このページの例は、次の `moon.pkg` を持つパッケージ内のテストです。"
+
+#~ msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged."
+#~ msgstr "実装には、特定の場合にこれらの保証を破る既知の欠陥があります。利用者が避けられるようにここに挙げます。コードは変更していません。"
+
+#~ msgid "**Degenerate artificial variables.** If an artificial variable remains basic at value zero after phase 1, phase 2 drops its column without pivoting it out, and that row has no basic column during phase 2."
+#~ msgstr "**退化した人工変数。** 第 1 段階の後に人工変数が値ゼロで基底に残ると、第 2 段階はその列をピボットで追い出さずに削除し、その行は第 2 段階の間基底列を持ちません。"
+
+#~ msgid "Packages"
+#~ msgstr "パッケージ"
+
+#~ msgid "Package"
+#~ msgstr "パッケージ"
+
+#~ msgid "Contents"
+#~ msgstr "目次"
+
+#~ msgid "`core` (`src`, import path `linear-program`)"
+#~ msgstr "`core`（`src`、インポートパス `linear-program`）"
+
+#~ msgid "Variables, linear expressions, objectives and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`); programs and standard form (`Lp`, `Lp::to_standard`); the two-phase simplex solver (`Lp::two_stage`, `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`); the tolerance trait `ApproximatelyZero`."
+#~ msgstr "変数、線形式、目的関数、制約（`Variable`、`Poly`、`Obj_func`、`Constraint`）、計画と標準形（`Lp`、`Lp::to_standard`）、2 段階シンプレックス法のソルバー（`Lp::two_stage`、`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2`）、許容誤差の trait `ApproximatelyZero`。"
+
+#~ msgid "Reading paths"
+#~ msgstr "読み進め方"
+
+#~ msgid "**Using the solver.** The [tutorial](tutorial/core.md) quick start and its list of common pitfalls are enough to solve small programs. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts."
+#~ msgstr "**ソルバーを使う方。** 小さな計画を解くには、[チュートリアル](tutorial/core.md)のクイックスタートとよくある落とし穴の一覧で十分です。[API リファレンス](api/core.md)は、何が abort するかを含め、各関数の正確な振る舞いを述べています。"
+
+#~ msgid "Toolchain and installation"
+#~ msgstr "ツールチェーンとインストール"
+
+#~ msgid "Import the package in your `moon.pkg`:"
+#~ msgstr "`moon.pkg` でパッケージをインポートします。"
+
+#~ msgid "Before opening a pull request, run `moon fmt`, `moon check --target all`, `moon info` and `moon test`, or the `ready_to_pr.sh` script."
+#~ msgstr "プルリクエストを出す前に、`moon fmt`、`moon check --target all`、`moon info`、`moon test` を実行するか、`ready_to_pr.sh` スクリプトを実行してください。"
+
+#~ msgid "Use another coefficient type"
+#~ msgstr "別の係数型を使う"
+
+#~ msgid "Every function is generic in the coefficient type `V`. The solver needs `Zero`, `One`, `Compare`, the arithmetic operators, `Show` and `ApproximatelyZero`. To use your own exact number type, implement those traits for it, including the tolerance trait, which for an exact type is plain equality with zero:"
+#~ msgstr "すべての関数は係数型 `V` に対してジェネリックです。ソルバーには `Zero`、`One`、`Compare`、算術演算子、`Show`、`ApproximatelyZero` が必要です。独自の厳密な数値型を使うには、許容誤差の trait を含めこれらの trait を実装します。厳密な型では、それは単なるゼロとの等値比較です。"
+
+#~ msgid "With exact arithmetic the solver returns exact results and the tolerance never matters."
+#~ msgstr "厳密な算術では、ソルバーは厳密な結果を返し、許容誤差は問題になりません。"
 
 #~ msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/linear-program.mbti`](../../../src/linear-program.mbti). The coefficient type `V` is generic; the solver needs the traits listed in each signature, and `Double` satisfies all of them."
 #~ msgstr "`src` のパッケージが linear-program の公開インターフェースのすべてです。インターフェースファイルは [`src/linear-program.mbti`](../../../src/linear-program.mbti) です。係数型 `V` はジェネリックで、ソルバーは各シグネチャに挙げた trait を必要とします。`Double` はそのすべてを満たします。"
@@ -1265,9 +1523,6 @@ msgstr "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) はシンプレ
 #~ msgid "Every function returns a new program and leaves its argument unchanged."
 #~ msgstr "どの関数も新しい問題を返し、引数は変更しません。"
 
-#~ msgid "A program with objective `obj`, variables `vars` and no constraints."
-#~ msgstr "目的関数 `obj`、変数 `vars` を持ち、制約のない問題。"
-
 #~ msgid "The program with its constraints replaced, as in `Constraint::from_array`."
 #~ msgstr "`Constraint::from_array` と同じ方法で制約を置き換えた問題。"
 
@@ -1310,9 +1565,6 @@ msgstr "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) はシンプレ
 #~ msgid "A linear expression is a sorted map from variables to coefficients. Variables are identified and ordered by name alone, and zero coefficients are never stored, so adding a term that cancels an existing one removes it."
 #~ msgstr "線形式は変数から係数への順序付き写像です。変数は名前だけで識別され並べられ、零係数は保持されないので、既存の項と打ち消し合う項を加えるとその項は削除されます。"
 
-#~ msgid "Standard form"
-#~ msgstr "標準形"
-
 #~ msgid "The solver works on the standard form"
 #~ msgstr "ソルバーは次の標準形を扱います。"
 
@@ -1321,9 +1573,6 @@ msgstr "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) はシンプレ
 
 #~ msgid "Two-phase simplex"
 #~ msgstr "二段階単体法"
-
-#~ msgid "`Lp::two_stage` solves the standard form in two phases on a dense tableau."
-#~ msgstr "`Lp::two_stage` は密な単体表の上で標準形を二段階で解きます。"
 
 #~ msgid "Phase 1 adds an artificial variable to every row that has no unit column yet and minimises the sum of the artificial variables (`Lp::phase_1`). A non-zero optimum means that the program is infeasible."
 #~ msgstr "第一段階では、まだ単位列を持たない各行に人工変数を加え、人工変数の和を最小化します（`Lp::phase_1`）。最適値が非零なら問題は実行不可能です。"
