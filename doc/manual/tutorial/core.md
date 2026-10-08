@@ -2,11 +2,22 @@
 
 This tutorial shows you how to write a linear program, bring it into standard form and solve it with the two-phase simplex method of linear-program. It starts with a two-variable production problem and ends with driving the simplex method by hand on a tableau. The mathematics behind each step is in the [design notes](../design/core.md).
 
+| I want to | Use |
+| --- | --- |
+| declare decision variables | `Variable::new(name, lower, upper)`; only $x \ge 0$ is enforced |
+| state the objective | `Obj_func::from_array("max" or "min", coefficients, vars)` |
+| state the constraints | `Lp::new(objective, vars).cons_from_Array(eq_array=..., ineq_array=...)` |
+| give an equality-only program as one matrix | `Lp::from_matrix(m, vars, sense)` |
+| solve it | `lp.to_standard().two_stage()`, negating the value for `max` |
+| see $A$, $b$ and $c$ of the standard form | `get_coeff_matrix`, `get_b_vector`, `get_objfunc_vector` |
+| follow the simplex method step by step | `Lp::pivot` and `Lp::simplex_iteration` on a tableau |
+| trust a result | substitute it into the constraints, as in [check the result yourself](#check-the-result-yourself) |
+
 ## Quick start
 
 The module is named `linear-program`, without the `Luna-Flow/` namespace, and is not published on mooncakes under the Luna-Flow organisation yet. Use it from a local checkout: add the checkout, together with checkouts of its dependencies [luna-generic](https://lunaflow.cn/en/luna-generic/) and [linear-algebra](https://lunaflow.cn/en/linear-algebra/), to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:
 
-```text
+```moonbit nocheck
 import {
   "linear-program@0.1.0",
   "Luna-Flow/linear-algebra@0.4.7",
@@ -15,7 +26,7 @@ import {
 
 Then import the package in your `moon.pkg`:
 
-```text
+```moonbit nocheck
 import {
   "linear-program" @lp,
   "Luna-Flow/linear-algebra/mutable" @la,
@@ -202,17 +213,9 @@ test "pivot by hand" {
 
 After the first pivot the objective has improved from $0$ to $40/3$; the remaining negative reduced cost of $x_1$ says that one more pivot improves it further, to $22$. Pass `debug=true` to `simplex_iteration` to print every pivot.
 
-### Use another coefficient type
+### Coefficient types
 
-Every function is generic in the coefficient type `V`. The solver needs `Zero`, `One`, `Compare`, the arithmetic operators, `Show` and `ApproximatelyZero`. To use your own exact number type, implement those traits for it, including the tolerance trait, which for an exact type is plain equality with zero:
-
-```moonbit nocheck
-impl @lp.ApproximatelyZero for Rational with fn is_zero_eps(x) {
-  x == Rational::zero()
-}
-```
-
-With exact arithmetic the solver returns exact results and the tolerance never matters.
+Every function is generic in the coefficient type `V`, and the modelling functions (`Variable`, `Poly`, `Obj_func`, `Constraint`, `Lp::to_standard`) work with any type that has the luna-generic traits they ask for. The solver also needs `ApproximatelyZero`, which is read-only outside the package: only `Int` and `Double` implement it, and you cannot add your own exact number type. Since integer division truncates, use `Double` for `two_stage`.
 
 ### Check the result yourself
 
@@ -247,6 +250,8 @@ test "check feasibility" {
 - **Use `Double` coefficients.** `Int` satisfies the trait bounds, but integer division truncates, so pivoting on `Int` gives wrong results.
 - **Tolerance is absolute.** Phase 2 treats $|x| < 10^{-15}$ as zero. For programs with large coefficients, rounding errors can exceed this threshold and an infeasibility can be reported for a feasible program; rescale the rows so that coefficients are of moderate size.
 - **Do not name variables `y1`, `y2`, ...** `to_standard` uses these names for slack variables, and variables are identified by name.
+- **Some feasible bounded programs fail.** When phase 1 leaves an artificial variable in the basis, or when one of your own variables already has a unit column, the solver can return a point that violates a constraint or abort with `Problem is unbounded`. The warning under [`Lp::two_stage`](../api/core.md#lptwo_stage) gives small examples; equality constraints with right-hand side $0$ are a typical trigger. Check every solution against the constraints.
+- **Degenerate programs can cycle.** A run that hits the iteration limit prints a message and returns a non-optimal result without an error.
 
 ## Next steps
 

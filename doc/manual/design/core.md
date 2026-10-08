@@ -8,6 +8,13 @@ linear-program keeps variables, linear expressions, objectives, constraints and 
 - Solve it with the textbook algorithm, the two-phase simplex method on a dense tableau, and expose every step (`Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`) so that the algorithm can be followed and taught.
 - Stay generic in the coefficient type through the traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and store tableaux as matrices of [linear-algebra](https://lunaflow.cn/en/linear-algebra/).
 
+## Constraints
+
+- luna-generic provides algebraic traits (`Zero`, `One`, `Semiring`, ...) but no order-aware or approximate equality, so the zero test of phase 2 needs a trait of its own, `ApproximatelyZero`. It is declared `pub`, which makes it read-only outside the package.
+- linear-algebra's `@mutable.Matrix` is a dense row-major matrix with in-place updates, which fits a tableau that is pivoted in place.
+- The package predates the Luna-Flow convention of returning `Result`, and its public API (`abort` on infeasible and unbounded programs) is kept as it is.
+- Variables are identified by name, and `Poly` keeps its terms in a `SortedMap` ordered by name.
+
 ## Mathematical background
 
 ### Linear programs and standard form
@@ -128,7 +135,7 @@ The solver takes the topmost row on ties.
 
 ### Termination and degeneracy
 
-If every pivot has $t^\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\binom{n}{m}$ pivots. When $\bar b_r = 0$ for the leaving row, $t^\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal.
+If every pivot has $t^\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\binom{n}{m}$ pivots. When $\bar b_r = 0$ for the leaving row, $t^\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal. Beale's example, with three constraints, seven variables and the basis of the first three, shows it: `Lp::simplex_iteration` visits six bases with the objective value $0$ and returns to the first, while the optimum is $-5/4$ at $x = (3/4, 0, 0, 1, 0, 1, 0)$. The [API page](../api/core.md#lpsimplex_iteration) runs it.
 
 [^cycling]: E. M. L. Beale, "Cycling in the dual simplex algorithm", *Naval Research Logistics Quarterly* 2 (1955), gives a cycling example with three constraints. R. G. Bland, "New finite pivoting rules for the simplex method", *Mathematics of Operations Research* 2 (1977), proves that choosing, among the candidates, the entering and the leaving variable with the smallest index prevents cycling.
 
@@ -166,6 +173,8 @@ obtained by subtracting each artificial row from row 0. `Lp::phase_1` performs e
 
 A slack variable of a `<=` row with $b \ge 0$ has a column equal to a unit vector, so it can start in the basis without an artificial variable. The private helper that builds the phase 1 tableau recognises a column as a unit column when one entry equals $1$ and all other entries in the constraint rows are $0$, and adds artificial variables only for the remaining rows. A program whose constraints are all `<=` with non-negative right-hand sides therefore needs no artificial variables at all, and phase 1 is skipped in effect: its tableau keeps the original objective, so phase 1 already optimises it.
 
+That shortcut is only sound when every starting basic column has cost $0$, as slack columns do. Row 0 then equals $c^\top$ and is already canonical ($c_B = 0$ gives $\bar c = c$). A unit column can also belong to one of the program's own variables, for example $x_2$ in $-x_1 + x_2 = 1$. If its cost $c_j$ is not zero, row 0 still holds $c$ instead of $\bar c = c - c_B^\top A_B^{-1} A$, and the stopping tests read the wrong numbers: in the example, minimising $-x_1 + 2x_2$, row 0 holds $-1$ for $x_1$, whose column $(-1)$ has no positive entry, so the run aborts as unbounded, although $\bar c_1 = -1 - 2 \cdot (-1) = 1 \ge 0$ and the optimum is $2$ at $x = (0, 1)$. The builder does not make row 0 canonical in this case; see [known defects](#known-defects).
+
 ### Dense tableau
 
 The tableau is a dense `@mutable.Matrix`. Each pivot costs $(m + 1)(n + 1)$ multiply–subtract operations, $O(mn)$. A revised simplex method with a factorised basis would cost less per iteration on sparse programs, but the dense tableau shows every quantity of the derivation above as an entry of one matrix, which serves the teaching goal of the package and keeps the code short.
@@ -190,18 +199,22 @@ so its absolute error is bounded by about $u\,(|t_{ij}| + 2|t_{is}\, t_{rj}|)$. 
 
 The solver maintains these invariants between pivots:
 
-1. **Canonical form.** Every basic column of the constraint rows is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0.
+1. **Canonical form.** Every constraint row has a basic column, every basic column is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0, except in the defective cases below.
 2. **Primal feasibility.** The right-hand sides $\bar b$ are non-negative. `to_standard` makes $b \ge 0$, and the ratio test keeps it, as derived above.
 3. **Objective in row 0.** The last entry of row 0 is $-z_B$.
 
 Under these invariants, the stopping tests are correct as derived above: no negative reduced cost means optimal, and a negative reduced cost with a non-positive column means unbounded.
 
-The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged.
+### Known defects
+
+The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged. An exact-arithmetic replica of the solver, run on random programs with one to three variables, small integer coefficients and non-zero objective coefficients, fails on about 5% of the bounded feasible ones, all through the second and third defects below.
 
 - **Objective row alignment.** `Lp` builds row 0 with `Obj_func::to_vector`, which takes the stored coefficients in the order of the variable names and skips zero coefficients. Row 0 then disagrees with the column order whenever an objective coefficient is zero or the variables are not declared in name order, and the solver optimises a permuted objective. For example, minimising $x_2$ subject to $x_1 \ge 1$, $x_2 \ge 2$ returns $1$ instead of $2$.
+- **Artificial variables left in the basis.** Phase 1 can end with $w^\ast = 0$ while an artificial variable $a_k$ is still basic, at value $\bar b_k = 0$ (a degenerate basis). `Lp::phase_2` drops the artificial columns without pivoting $a_k$ out, so row $k$ has no basic column and invariant 1 fails. Dropping the columns is harmless for the equations themselves: the remaining system is $Ax = b$ after row operations, and row $k$ still states $\sum_j \bar a_{kj} x_j = \bar b_k$. The harm is in the step. Entering $x_s$ with step $t$ changes the right-hand side of row $k$ to $\bar b_k - t\,\bar a_{ks}$, and since row $k$ has no basic variable to absorb the change, the point read from the tableau satisfies row $k$ only while that stays $0$. The step must therefore be $t = 0$ whenever $\bar a_{ks} \ne 0$, but the ratio test only looks at rows with $\bar a_{ks} > 0$. With $\bar a_{ks} < 0$, either another row limits the step to $t^\ast > 0$ and the returned point violates row $k$, or no row does and the run aborts as unbounded. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$, $x_1 \le 2$ returns $x = (2, 0)$; minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts. The standard repair pivots every remaining artificial variable out on a non-zero entry $\bar a_{kj}$ of a real column (a degenerate pivot, so feasibility is kept) and deletes row $k$ when no such entry exists, because the row is then redundant.
+- **Non-canonical start without artificial variables.** As derived under [reusing unit columns](#reusing-unit-columns-as-the-initial-basis), row 0 is not made canonical when the starting basis contains a unit column with a non-zero cost. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts as unbounded.
+- **Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If row 0 holds exactly $1$ in column 0 at that moment, a row is subtracted from row 0 that should not be. Without any artificial variable, row 0 holds the program's own costs, so this happens whenever the first entry of the objective row is $1$; it changes which pivots phase 1 takes and can add to the non-canonical start above.
 - **Basis recognition.** Phase 2 recognises basic variables as unit columns and takes the first such column in each row. When two columns are equal unit vectors, the reported solution can name the wrong variable even though the objective value is right.
-- **Degenerate artificial variables.** If an artificial variable remains basic at value zero after phase 1, phase 2 drops its column without pivoting it out, and that row has no basic column during phase 2.
-- **Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If the phase 1 objective coefficient of column 0 happens to be $1$ at that moment, a row is subtracted from row 0 that should not be.
+- **Absolute tolerance.** As shown under [numeric tolerance](#numeric-tolerance), the threshold $10^{-15}$ can report a feasible program with large coefficients as infeasible, and can miss a basic column whose pivot entry is not within $10^{-15}$ of $1$, which then gets the value $0$ in the reported solution.
 
 ## Alternatives rejected
 

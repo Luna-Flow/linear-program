@@ -1,12 +1,19 @@
 # core API
 
-The package at `src` is the whole public surface of linear-program. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `"linear-program"`.
+## Purpose
+
+The package at `src` is the whole public surface of linear-program: variables, linear expressions, objectives and constraints, programs and their standard form, and the two-phase simplex solver with each of its steps. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The mathematics is derived in the [design notes](../design/core.md), and the [tutorial](../tutorial/core.md) works through typical programs.
 
 The coefficient type `V` is generic. Each function states the traits it needs; `Double` satisfies all of them, and it is the only type the solver is tested with. Matrices are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://lunaflow.cn/en/linear-algebra/). A *program matrix* or *tableau* stores the objective in row 0 and one equality constraint in each further row; its last column holds the right-hand sides.
 
-The examples on this page are tests in a package with this `moon.pkg`:
+> [!WARNING]
+> The solver has known defects that return a wrong optimum, return a point that violates a constraint, or abort with `Problem is unbounded` on a bounded program. They are listed under [`Lp::two_stage`](#lptwo_stage). Check every solution against the constraints before you use it.
 
-```text
+## Importing
+
+The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `"linear-program"`. The examples on this page are tests in a package with this `moon.pkg`:
+
+```moonbit nocheck
 import {
   "linear-program" @lp,
   "Luna-Flow/linear-algebra/mutable" @la,
@@ -426,10 +433,17 @@ pub fn[V : @luna-generic.Zero + @luna-generic.One + Compare + Mul + Div + Sub + 
 
 Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, in the order of the program's variables, and the optimal value of the standard form. The standard form always minimises, so for a program that maximises, the maximum is the *negation* of the returned value.
 
-`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error.
+`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error. `two_stage` also contains a branch that would return the maximum directly for a maximising objective, but `to_standard` has already turned the objective into a minimisation, so that branch never runs.
 
 > [!WARNING]
-> The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver therefore optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Until this is fixed, give every variable a non-zero objective coefficient and declare variables in name order.
+> Known defects of the solver, each confirmed by running it (the [design notes](../design/core.md#known-defects) explain the causes):
+>
+> - **Objective alignment.** The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Minimising $x_2$ subject to $x_1 \ge 1$, $x_2 \ge 2$ returns the value $1$.
+> - **Artificial variables left in the basis.** When phase 1 ends with an artificial variable basic at value zero, phase 2 drops its column and loses that constraint. Maximising $x_1 - 2x_2$ subject to $-x_1 = 0$ and $x_1 \le 2$ returns $x = (2, 0)$, which violates $-x_1 = 0$, and minimising $x_1 - x_2$ subject to $-x_2 = 0$ aborts with `Problem is unbounded`. Both programs have the optimum $0$ at $x = 0$.
+> - **Starting basis with costs.** When a column of one of your own variables is already a unit column, it starts in the basis without an artificial variable, but the objective row is not made canonical before phase 1 runs on it. Minimising $-x_1 + 2x_2$ subject to $-x_1 + x_2 = 1$ aborts with `Problem is unbounded` instead of returning the optimum $2$ at $x = (0, 1)$.
+> - **Cycling.** Degenerate programs can cycle until the iteration limit; see `Lp::simplex_iteration`.
+>
+> On random programs with one to three variables, small integer coefficients and non-zero objective coefficients, an exact-arithmetic replica of the solver gets about 5% of the bounded feasible programs wrong, all through the second and third defects.
 
 ```moonbit
 test "solve" {
@@ -462,6 +476,21 @@ pub fn[V : @luna-generic.Zero + Compare + Sub + Mul + Div + Show] Lp::simplex_it
 
 The tableau must be in canonical form: row 0 holds the reduced costs and $-z$ in its last column, every basic column is a unit vector, and the right-hand sides are non-negative. Each iteration enters the column with the most negative entry of row 0 (the leftmost one on ties), and leaves the row with the smallest ratio $\bar b_i / \bar a_{is}$ over the rows with $\bar a_{is} > 0$ (the topmost one on ties). The run stops when row 0 has no negative entry, aborts with `Problem is unbounded` when the entering column has no positive entry, and stops after `max_iterations` iterations (1000 by default) with a message. With `debug=true` it prints every pivot and the tableau after it.
 
+Dantzig's rule can cycle. On Beale's example the run returns to its starting basis every six degenerate pivots, so it stops at the iteration limit with the objective value $0$ ($-z$ in the last entry of row 0), while the optimum is $-5/4$:
+
+```moonbit
+test "cycling" {
+  let t : @la.Matrix[Double] = @la.Matrix::from_2d_array([
+    [0.0, 0.0, 0.0, -0.75, 20.0, -0.5, 6.0, 0.0],
+    [1.0, 0.0, 0.0, 0.25, -8.0, -1.0, 9.0, 0.0],
+    [0.0, 1.0, 0.0, 0.5, -12.0, -0.5, 3.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0],
+  ])
+  Lp::simplex_iteration(t) // prints the iteration-limit message
+  inspect(t[0][7], content="0") // the optimum would leave 1.25 here
+}
+```
+
 ```moonbit
 test "simplex by hand" {
   // max 3x1 + 4x2, 2x1 + x2 + y1 = 12, x1 + 3x2 + y2 = 10; y1, y2 basic
@@ -486,9 +515,9 @@ pub fn[V : @luna-generic.Zero + @luna-generic.One + Compare + Sub + Compare + Di
 pub fn[V : @luna-generic.Zero + @luna-generic.One + ApproximatelyZero + Div + Sub + Mul + Show + Compare] Lp::phase_2(Array[Variable], Array[V], @mutable.Matrix[V]) -> (Array[V], V)
 ```
 
-`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts each constraint row with an artificial variable from row 0, which puts the tableau in canonical form, runs `simplex_iteration` and returns the same matrix.
+`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts row `i + 1` from row 0 whenever row 0 holds exactly $1$ in column `artificial_index[i]`, which for the artificial rows puts the tableau in canonical form, then runs `simplex_iteration` and returns the same matrix. Because `0` also names column 0, a row without an artificial variable is subtracted as well whenever row 0 holds $1$ in column 0 at that moment. When no row needs an artificial variable, the private builder puts the program's own objective into row 0 instead, so phase 1 already optimises it, without making it canonical first.
 
-`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective.
+`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective. A row whose basic variable after phase 1 is still an artificial one has no basic column in the new tableau; this is the cause of the second defect listed under `Lp::two_stage`.
 
 The helper that builds the phase 1 tableau and `artificial_index` from a program is private; use `two_stage` unless you build tableaux yourself.
 
@@ -506,7 +535,9 @@ pub impl ApproximatelyZero for Int
 pub impl ApproximatelyZero for Double
 ```
 
-An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold. Implement the trait for your own coefficient type to use it with `two_stage`.
+An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold.
+
+The trait is declared `pub`, not `pub(open)`, so it is read-only outside this package: other packages cannot implement it for their own types. `Lp::two_stage` and `Lp::phase_2` therefore accept only `Int` and `Double` coefficients, and `Int` gives wrong results because its division truncates.
 
 ### `double_equal_to_zero`
 
