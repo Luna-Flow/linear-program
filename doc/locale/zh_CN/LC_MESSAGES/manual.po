@@ -16,262 +16,349 @@ msgid "core API"
 msgstr "core API"
 
 #: manual/api/core.md:3
-msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/linear-program.mbti`](../../../src/linear-program.mbti). The coefficient type `V` is generic; the solver needs the traits listed in each signature, and `Double` satisfies all of them."
-msgstr "`src` 下的包构成了 linear-program 的全部公开接口，其接口文件为 [`src/linear-program.mbti`](../../../src/linear-program.mbti)。系数类型 `V` 是泛型的；求解器需要各签名中列出的 trait，`Double` 满足所有这些 trait。"
+msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti). The package path is `linear-program`: the module name has no `Luna-Flow/` namespace yet, so other packages import it as `\"linear-program\"`."
+msgstr "`src` 下的包就是 linear-program 的全部公开接口。其接口文件为 [`src/pkg.generated.mbti`](../../../src/pkg.generated.mbti)。包路径是 `linear-program`：模块名目前还没有 `Luna-Flow/` 命名空间，因此其他包以 `\"linear-program\"` 导入它。"
 
 #: manual/api/core.md:5
-msgid "Matrices in this package are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://luna-flow.github.io/en/linear-algebra/). Row 0 of a program matrix holds the objective coefficients, the other rows hold one equality constraint each, and the last column holds the right-hand sides."
-msgstr "本包中的矩阵是 [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) 中 `mutable` 包的 `@mutable.Matrix[V]`。规划矩阵的第 0 行存放目标函数系数，其余每行存放一个等式约束，最后一列存放右端项。"
+msgid "The coefficient type `V` is generic. Each function states the traits it needs; `Double` satisfies all of them, and it is the only type the solver is tested with. Matrices are `@mutable.Matrix[V]` from the `mutable` package of [linear-algebra](https://lunaflow.cn/en/linear-algebra/). A *program matrix* or *tableau* stores the objective in row 0 and one equality constraint in each further row; its last column holds the right-hand sides."
+msgstr "系数类型 `V` 是泛型的。每个函数都列出了它所需的 trait；`Double` 满足全部要求，也是求解器唯一经过测试的类型。矩阵是 [linear-algebra](https://lunaflow.cn/en/linear-algebra/) 中 `mutable` 包的 `@mutable.Matrix[V]`。*规划矩阵*或*单纯形表*在第 0 行存放目标函数，其后每行存放一个等式约束；最后一列存放右端项。"
 
 #: manual/api/core.md:7
+msgid "The examples on this page are tests in a package with this `moon.pkg`:"
+msgstr "本页的示例都是位于如下 `moon.pkg` 所在包中的测试："
+
+#: manual/api/core.md:17
+msgid "and they share these declarations:"
+msgstr "并且共享以下声明："
+
+#: manual/api/core.md:27
 msgid "Variables"
 msgstr "变量"
 
-#: manual/api/core.md:11
+#: manual/api/core.md:31
 msgid "`Variable` is a named decision variable with a lower and an upper bound."
 msgstr "`Variable` 是带有下界和上界的具名决策变量。"
 
-#: manual/api/core.md:23
-msgid "`Variable::new(name, low, up)` creates a variable. Two variables are equal when their names are equal, and they are ordered by name. `Show` prints the name; `show_all` prints the name with its bounds, for example `x1 : [0, 100]`. `One::one()` is the unnamed variable that `Poly::from_var_array` uses for a constant term."
-msgstr "`Variable::new(name, low, up)` 创建一个变量。两个变量的名称相同即视为相等，并按名称排序。`Show` 输出名称；`show_all` 输出名称及其上下界，例如 `x1 : [0, 100]`。`One::one()` 是一个无名变量，`Poly::from_var_array` 用它表示常数项。"
+#: manual/api/core.md:41
+msgid "`Variable` is an abstract type: you create values with `Variable::new` and cannot read the fields directly. Two variables are equal when their names are equal, whatever their bounds, and they are ordered by name. The bounds are stored and printed, but the solver does not read them: every variable of a program is treated as non-negative."
+msgstr "`Variable` 是抽象类型：只能用 `Variable::new` 创建值，不能直接读取其字段。两个变量名称相同即相等，与边界无关，并按名称排序。边界会被保存和打印，但求解器不会读取它们：规划中的每个变量都被视为非负。"
 
-#: manual/api/core.md:25
-msgid "The bounds are stored and printed, but the solver does not read them: every variable is treated as non-negative. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
-msgstr "上下界会被保存并输出，但求解器并不读取它们：所有变量都按非负处理。`Lp::to_standard` 会把它添加的变量命名为 `y1`、`y2`、……，因此请勿将这些名称用于自己的变量。"
+#: manual/api/core.md:45
+msgid "`Variable::new` creates a variable from its name, lower bound and upper bound."
+msgstr "`Variable::new` 由名称、下界和上界创建一个变量。"
 
-#: manual/api/core.md:27
+#: manual/api/core.md:51
+msgid "Use `@double.max_value` for an upper bound that is not meant to restrict anything. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
+msgstr "若上界不应起任何限制作用，请使用 `@double.max_value`。`Lp::to_standard` 会把它新增的变量命名为 `y1`、`y2`……，因此不要把这些名称用于自己的变量。"
+
+#: manual/api/core.md:55
+msgid "`show_all` prints the name of a variable together with its bounds."
+msgstr "`show_all` 打印变量名及其边界。"
+
+#: manual/api/core.md:73
+msgid "These are the `Show`, `Eq` and `Compare` methods, promoted to methods of `Variable`."
+msgstr "它们是 `Show`、`Eq` 与 `Compare` 的方法，被提升为 `Variable` 的方法。"
+
+#: manual/api/core.md:81
+msgid "`to_string` returns the name. `equal` and `compare` look at the name only; `compare` is the lexicographic order of the names, so `\"x10\"` comes before `\"x2\"`. Prefer `\"\\{x}\"`, `==` and `<` in new code."
+msgstr "`to_string` 返回变量名。`equal` 与 `compare` 只看名称；`compare` 是名称的字典序，因此 `\"x10\"` 排在 `\"x2\"` 之前。新代码中请优先使用 `\"\\{x}\"`、`==` 与 `<`。"
+
+#: manual/api/core.md:85
+msgid "`Variable::one` is the unnamed variable that stands for the constant term of a linear expression."
+msgstr "`Variable::one` 是表示线性表达式常数项的无名变量。"
+
+#: manual/api/core.md:91
+msgid "It is the `One` method of luna-generic promoted to a method. Its name is empty and its bounds are `@double.min_value` and `@double.max_value`. `Poly::from_var_array` attaches a coefficient that has no matching variable to it."
+msgstr "它是 luna-generic 的 `One` 方法提升而来的方法。其名称为空，边界为 `@double.min_value` 与 `@double.max_value`。`Poly::from_var_array` 会把没有对应变量的系数挂到它上面。"
+
+#: manual/api/core.md:93
 msgid "Linear expressions"
 msgstr "线性表达式"
 
-#: manual/api/core.md:31
+#: manual/api/core.md:97
 msgid "`Poly[V]` is a linear expression: a map from variables to non-zero coefficients, kept in the order of the variable names."
 msgstr "`Poly[V]` 是线性表达式：从变量到非零系数的映射，按变量名称排序保存。"
 
-#: manual/api/core.md:46
-#: manual/api/core.md:77
-#: manual/api/core.md:107
-#: manual/api/core.md:139
-msgid "Function"
-msgstr "函数"
+#: manual/api/core.md:105
+msgid "A `Poly` is mutable: `add_term_inplace` changes it, and every value that shares it sees the change. Use `copy` when you need an independent expression. Two expressions are equal when they have the same variables with equal coefficients."
+msgstr "`Poly` 是可变的：`add_term_inplace` 会修改它，所有共享它的值都能看到变化。需要独立的表达式时请使用 `copy`。两个表达式当且仅当变量相同且系数相等时相等。"
 
-#: manual/api/core.md:46
-#: manual/api/core.md:77
-#: manual/api/core.md:107
-#: manual/api/core.md:139
-msgid "Meaning"
-msgstr "含义"
+#: manual/api/core.md:109
+msgid "`Poly::new` creates the empty expression; `Poly::from_var_array` creates one from coefficients."
+msgstr "`Poly::new` 创建空表达式；`Poly::from_var_array` 由系数创建表达式。"
 
-#: manual/api/core.md:48
-msgid "The empty expression."
-msgstr "空表达式。"
+#: manual/api/core.md:116
+msgid "`Poly::from_var_array(coeffs, vars)` pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient at a position beyond the last variable is attached to `Variable::one()`, the constant term; when there are several such coefficients, the last one wins."
+msgstr "`Poly::from_var_array(coeffs, vars)` 将 `coeffs[i]` 与 `vars[i]` 配对，并跳过零系数。位置超出最后一个变量的系数挂到常数项 `Variable::one()` 上；若有多个这样的系数，以最后一个为准。"
 
-#: manual/api/core.md:49
-msgid "Pairs `coeffs[i]` with `vars[i]` and skips zero coefficients. A coefficient beyond the last variable becomes the constant term."
-msgstr "将 `coeffs[i]` 与 `vars[i]` 配对并跳过零系数。超出最后一个变量的系数成为常数项。"
+#: manual/api/core.md:120
+msgid "`add_term_inplace` adds a multiple of a variable to an expression in place."
+msgstr "`add_term_inplace` 原地向表达式加上某个变量的倍数。"
 
-#: manual/api/core.md:50
-msgid "Adds `coeff` to the coefficient of `var` and removes the term when the sum is zero."
-msgstr "将 `coeff` 加到 `var` 的系数上，和为零时删除该项。"
+#: manual/api/core.md:126
+msgid "`p.add_term_inplace(x, c)` adds `c` to the coefficient of `x`. Adding zero does nothing, and a term whose coefficient becomes zero is removed, so no zero coefficient is ever stored."
+msgstr "`p.add_term_inplace(x, c)` 把 `c` 加到 `x` 的系数上。加零不做任何事；系数变为零的项会被删除，因此永远不会存储零系数。"
 
-#: manual/api/core.md:51
-msgid "A copy that does not share storage with the original."
-msgstr "与原对象不共享存储的副本。"
+#: manual/api/core.md:130
+msgid "`copy` returns an expression with the same terms that does not share storage with the original."
+msgstr "`copy` 返回一个项相同、但不与原表达式共享存储的表达式。"
 
-#: manual/api/core.md:52
-msgid "The stored coefficients in the order of the variable names."
-msgstr "按变量名称顺序排列的已存储系数。"
+#: manual/api/core.md:138
+msgid "`to_array` lists the stored coefficients; `to_vector` lists one coefficient per given variable."
+msgstr "`to_array` 列出已存储的系数；`to_vector` 为每个给定变量列出一个系数。"
 
-#: manual/api/core.md:53
-msgid "One coefficient per entry of `vars`, with zero for a variable that does not occur."
-msgstr "`vars` 中每一项对应一个系数，未出现的变量记为零。"
+#: manual/api/core.md:145
+msgid "`to_array` returns the non-zero coefficients in the order of the variable names, without the variables. `to_vector(vars)` returns `vars.length()` coefficients in the order of `vars`, with zero for a variable that does not occur; this is the dense row used in a program matrix."
+msgstr "`to_array` 按变量名顺序返回非零系数，不含变量本身。`to_vector(vars)` 按 `vars` 的顺序返回 `vars.length()` 个系数，未出现的变量取零；这正是规划矩阵中使用的稠密行。"
 
-#: manual/api/core.md:55
-msgid "`Show` prints an expression such as `3.5x1 + 1.5x2 + -2x3`, and `-poly` negates every coefficient."
-msgstr "`Show` 输出形如 `3.5x1 + 1.5x2 + -2x3` 的表达式，`-poly` 对每个系数取负。"
+#: manual/api/core.md:149
+msgid "These are the `Neg`, `Eq` and `Show` methods, promoted to methods of `Poly`."
+msgstr "它们是 `Neg`、`Eq` 与 `Show` 的方法，被提升为 `Poly` 的方法。"
 
-#: manual/api/core.md:57
+#: manual/api/core.md:157
+msgid "`-p` negates every coefficient and returns a new expression. `Show` prints the terms in name order, joined by `\" + \"`, and leaves out a coefficient equal to one, for example `3.5x1 + x2 + -2x3`."
+msgstr "`-p` 对每个系数取负并返回新表达式。`Show` 按名称顺序打印各项，以 `\" + \"` 连接，并省略等于一的系数，例如 `3.5x1 + x2 + -2x3`。"
+
+#: manual/api/core.md:174
 msgid "Objective functions"
 msgstr "目标函数"
 
-#: manual/api/core.md:61
-msgid "`Obj_func[V]` is an objective: a linear expression with the sense minimise or maximise."
-msgstr "`Obj_func[V]` 是目标函数：带有最小化或最大化方向的线性表达式。"
+#: manual/api/core.md:178
+msgid "`Obj_func[V]` is an objective: a linear expression together with the sense, minimise or maximise."
+msgstr "`Obj_func[V]` 是目标函数：一个线性表达式加上优化方向（最小化或最大化）。"
 
-#: manual/api/core.md:75
-msgid "`Obj_func::new(sense)` creates an objective with an empty expression. The sense is `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"` or `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"` or `\"Maximize\"` for maximisation; any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` also sets the expression from coefficients, like `Poly::from_var_array`."
-msgstr "`Obj_func::new(sense)` 创建一个表达式为空的目标函数。最小化的方向写作 `\"min\"`、`\"Min\"`、`\"MIN\"`、`\"minimize\"` 或 `\"Minimize\"`，最大化写作 `\"max\"`、`\"Max\"`、`\"MAX\"`、`\"maximize\"` 或 `\"Maximize\"`；其他字符串会导致中止。`Obj_func::from_array(sense, coeffs, vars)` 还会像 `Poly::from_var_array` 一样由系数设置表达式。"
+#: manual/api/core.md:185
+msgid "`Show` prints the sense and the expression, for example `max  3x1 + 4x2`. `Obj_func::to_string` is the promoted `Show` method."
+msgstr "`Show` 打印优化方向和表达式，例如 `max  3x1 + 4x2`。`Obj_func::to_string` 是提升而来的 `Show` 方法。"
 
-#: manual/api/core.md:79
-msgid "A new objective with the same sense and the expression `poly`."
-msgstr "方向相同、表达式为 `poly` 的新目标函数。"
+#: manual/api/core.md:193
+msgid "`Obj_func::new` creates an objective with an empty expression; `Obj_func::from_array` also sets the expression."
+msgstr "`Obj_func::new` 创建表达式为空的目标函数；`Obj_func::from_array` 还会同时设置表达式。"
 
-#: manual/api/core.md:80
-msgid "Adds a term to the expression in place."
-msgstr "原地向表达式添加一项。"
+#: manual/api/core.md:200
+msgid "The sense is one of `\"min\"`, `\"Min\"`, `\"MIN\"`, `\"minimize\"`, `\"Minimize\"` for minimisation and `\"max\"`, `\"Max\"`, `\"MAX\"`, `\"maximize\"`, `\"Maximize\"` for maximisation. Any other string aborts. `Obj_func::from_array(sense, coeffs, vars)` builds the expression with `Poly::from_var_array`."
+msgstr "优化方向为 `\"min\"`、`\"Min\"`、`\"MIN\"`、`\"minimize\"`、`\"Minimize\"` 之一时表示最小化，为 `\"max\"`、`\"Max\"`、`\"MAX\"`、`\"maximize\"`、`\"Maximize\"` 之一时表示最大化。其他字符串会导致 abort。`Obj_func::from_array(sense, coeffs, vars)` 用 `Poly::from_var_array` 构造表达式。"
 
-#: manual/api/core.md:81
-msgid "`true` for a maximisation objective."
-msgstr "最大化目标时为 `true`。"
+#: manual/api/core.md:204
+msgid "`set_poly` replaces the expression; `add_term_inplace` adds a term to it in place."
+msgstr "`set_poly` 替换表达式；`add_term_inplace` 原地向其添加一项。"
 
-#: manual/api/core.md:82
-msgid "The equivalent minimisation objective; a maximisation objective is negated."
-msgstr "等价的最小化目标函数；最大化目标会被取负。"
+#: manual/api/core.md:211
+msgid "`set_poly(p)` returns a new objective with the same sense and the expression `p`; it does not copy `p`."
+msgstr "`set_poly(p)` 返回一个方向相同、表达式为 `p` 的新目标函数；它不会复制 `p`。"
 
-#: manual/api/core.md:83
-msgid "The coefficients of `to_array`, padded with zeros to length `n + 1`, the width of a tableau row."
-msgstr "`to_array` 的系数，用零补齐到长度 `n + 1`，即单纯形表一行的宽度。"
+#: manual/api/core.md:215
+msgid "`judge_max` tells whether an objective maximises; `to_min` returns the equivalent minimisation objective."
+msgstr "`judge_max` 判断目标函数是否为最大化；`to_min` 返回等价的最小化目标函数。"
 
-#: manual/api/core.md:85
-msgid "`Show` prints the sense and the expression, for example `max  3.5x1 + 1.5x2 + -2x3`."
-msgstr "`Show` 输出方向与表达式，例如 `max  3.5x1 + 1.5x2 + -2x3`。"
+#: manual/api/core.md:222
+msgid "`to_min` returns a minimisation objective unchanged and negates the expression of a maximisation objective, because $\\max c^\\top x = -\\min\\,(-c)^\\top x$."
+msgstr "`to_min` 对最小化目标原样返回，对最大化目标则将表达式取负，因为 $\\max c^\\top x = -\\min\\,(-c)^\\top x$。"
 
-#: manual/api/core.md:87
+#: manual/api/core.md:226
+msgid "`to_vector` returns the objective row of a program matrix."
+msgstr "`to_vector` 返回规划矩阵的目标行。"
+
+#: manual/api/core.md:232
+msgid "`to_vector(n)` takes the coefficients of `to_array` and pads them with zeros to length `n + 1`, the width of a tableau row. Because `to_array` lists only non-zero coefficients in name order, the result lines up with the variables only when every variable has a non-zero coefficient and the variables are declared in name order. See the warning under `Lp::two_stage` below."
+msgstr "`to_vector(n)` 取 `to_array` 的系数，并用零补齐到长度 `n + 1`，即单纯形表一行的宽度。由于 `to_array` 只按名称顺序列出非零系数，只有当每个变量的系数都非零且变量按名称顺序声明时，结果才与变量对齐。参见下文 `Lp::two_stage` 中的警告。"
+
+#: manual/api/core.md:245
 msgid "Constraints"
 msgstr "约束"
 
-#: manual/api/core.md:91
+#: manual/api/core.md:249
 msgid "`Constraint[V]` is the constraint set of a program: equalities `poly = b` and inequalities `poly <= b` or `poly >= b`."
 msgstr "`Constraint[V]` 是线性规划的约束集合：等式 `poly = b` 以及不等式 `poly <= b` 或 `poly >= b`。"
 
-#: manual/api/core.md:105
-msgid "`Constraint::from_array(eq_array~, ineq_array~, vars)` builds the set from rows of coefficients. An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is `\">=\"` or `\"<=\"`. Any other relation aborts."
-msgstr "`Constraint::from_array(eq_array~, ineq_array~, vars)` 由系数行构造约束集合。等式行为 `(coeffs, b)`；不等式行为 `(coeffs, relation, b)`，其中 `relation` 为 `\">=\"` 或 `\"<=\"`。其他关系符会导致中止。"
+#: manual/api/core.md:257
+msgid "`Show` prints the set after `s.t.`, one constraint per line, equalities first. A program receives its constraints through `Lp::cons_from_Array`; a `Constraint` value on its own is useful for building and printing constraint sets."
+msgstr "`Show` 在 `s.t.` 之后打印约束集，每行一个约束，等式在前。规划通过 `Lp::cons_from_Array` 获得约束；单独的 `Constraint` 值适合用来构造和打印约束集。"
 
-#: manual/api/core.md:109
-msgid "The empty set."
-msgstr "空集合。"
+#: manual/api/core.md:261
+msgid "`Constraint::new` creates the empty set; `Constraint::from_array` builds one from coefficient rows."
+msgstr "`Constraint::new` 创建空集合；`Constraint::from_array` 由系数行构造约束集。"
 
-#: manual/api/core.md:110
-msgid "Appends `poly = b`."
-msgstr "追加 `poly = b`。"
+#: manual/api/core.md:268
+msgid "An equality row is `(coeffs, b)`; an inequality row is `(coeffs, relation, b)` where `relation` is exactly `\">=\"` or `\"<=\"`. Any other relation aborts. Both arrays default to empty."
+msgstr "等式行为 `(coeffs, b)`；不等式行为 `(coeffs, relation, b)`，其中 `relation` 必须恰好是 `\">=\"` 或 `\"<=\"`。其他关系会导致 abort。两个数组默认都为空。"
 
-#: manual/api/core.md:111
-msgid "Appends `poly relation b`; `relation` should be `\">=\"` or `\"<=\"`."
-msgstr "追加 `poly relation b`；`relation` 应为 `\">=\"` 或 `\"<=\"`。"
+#: manual/api/core.md:272
+msgid "`add_eqpoly` appends an equality and `add_ineqpoly` appends an inequality."
+msgstr "`add_eqpoly` 追加一个等式，`add_ineqpoly` 追加一个不等式。"
 
-#: manual/api/core.md:112
-msgid "Replaces the equality at the 1-based position `i`; aborts when `i` is out of range."
-msgstr "替换从 1 开始计数的第 `i` 个等式；`i` 越界时中止。"
+#: manual/api/core.md:279
+msgid "`add_ineqpoly` does not check the relation string; pass `\">=\"` or `\"<=\"`."
+msgstr "`add_ineqpoly` 不检查关系字符串；请传入 `\">=\"` 或 `\"<=\"`。"
 
-#: manual/api/core.md:113
-msgid "Replaces the inequality at the 1-based position `i`; aborts when `i` is out of range."
-msgstr "替换从 1 开始计数的第 `i` 个不等式；`i` 越界时中止。"
+#: manual/api/core.md:283
+msgid "These replace the constraint at a 1-based position."
+msgstr "它们替换从 1 开始计数的某个位置上的约束。"
 
-#: manual/api/core.md:114
-msgid "One row `[coefficients..., b]` per equality, with columns in the order of `vars`. Inequalities are left out, so call it on a program in standard form."
-msgstr "每个等式对应一行 `[coefficients..., b]`，列按 `vars` 的顺序排列。不等式不会包含在内，因此应对标准形的线性规划调用它。"
+#: manual/api/core.md:290
+msgid "`change_eqpoly(i, poly, b)` replaces equality number `i`, counting from 1. Both functions abort when `i` is not positive or not below the *capacity* of the equality array, which is an implementation detail of the array."
+msgstr "`change_eqpoly(i, poly, b)` 替换第 `i` 个等式（从 1 开始计数）。当 `i` 不为正，或不小于等式数组的*容量*（数组的实现细节）时，两个函数都会 abort。"
 
-#: manual/api/core.md:116
-msgid "`Show` prints the set after `s.t.`, one constraint per line."
-msgstr "`Show` 在 `s.t.` 之后输出约束集合，每行一个约束。"
+#: manual/api/core.md:292
+msgid "[!WARNING] The range check is unreliable. Both functions compare `i` with the capacity of the array, not its length, and `change_ineqpoly` checks the *equality* array instead of the inequality array. An index that the check lets through can still abort on the array access, and a valid inequality index can be rejected when there are fewer equalities. Only pass indices of constraints that exist."
+msgstr "[!WARNING] 范围检查并不可靠。两个函数都把 `i` 与数组的容量而非长度比较，并且 `change_ineqpoly` 检查的是*等式*数组而不是不等式数组。通过检查的索引仍可能在访问数组时 abort，而当等式较少时，合法的不等式索引也可能被拒绝。只传入确实存在的约束的索引。"
 
-#: manual/api/core.md:118
+#: manual/api/core.md:297
+msgid "`to_matrix` returns one dense row `[coefficients..., b]` per equality."
+msgstr "`to_matrix` 为每个等式返回一个稠密行 `[coefficients..., b]`。"
+
+#: manual/api/core.md:303
+msgid "Columns follow the order of the given variables. Inequalities are left out, so call it on the constraints of a program in standard form."
+msgstr "列的顺序与给定变量的顺序一致。不等式会被忽略，因此请对标准形规划的约束调用它。"
+
+#: manual/api/core.md:325
 msgid "Programs"
 msgstr "线性规划"
 
-#: manual/api/core.md:122
-msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the matrix built from them."
-msgstr "`Lp[V]` 是一个线性规划：包括变量、目标函数、约束以及由它们构造的矩阵。"
+#: manual/api/core.md:329
+msgid "`Lp[V]` is a linear program: its variables, objective, constraints and the program matrix built from them."
+msgstr "`Lp[V]` 是线性规划：包括变量、目标函数、约束，以及由它们构造的规划矩阵。"
 
-#: manual/api/core.md:137
-msgid "Every function returns a new program and leaves its argument unchanged."
-msgstr "每个函数都返回一个新的线性规划，不修改其参数。"
+#: manual/api/core.md:337
+msgid "The functions that build a program return a new `Lp` and leave their argument unchanged. `Show` prints the objective, the constraints and every variable with its bounds."
+msgstr "构造规划的函数都返回新的 `Lp`，不修改参数。`Show` 打印目标函数、约束以及每个变量及其边界。"
 
-#: manual/api/core.md:141
-msgid "A program with objective `obj`, variables `vars` and no constraints."
-msgstr "目标函数为 `obj`、变量为 `vars` 且没有约束的线性规划。"
+#: manual/api/core.md:341
+msgid "`Lp::new` creates a program without constraints; the other two replace its constraints or its objective coefficients."
+msgstr "`Lp::new` 创建一个没有约束的规划；另外两个函数分别替换其约束或目标系数。"
 
-#: manual/api/core.md:142
-msgid "The program with its constraints replaced, as in `Constraint::from_array`."
-msgstr "约束被替换后的线性规划，替换方式同 `Constraint::from_array`。"
+#: manual/api/core.md:349
+msgid "`cons_from_Array` replaces all constraints, as `Constraint::from_array` with the program's variables. `reset_obj_byarray(coeffs)` keeps the sense and sets new objective coefficients."
+msgstr "`cons_from_Array` 用规划的变量按 `Constraint::from_array` 的方式替换全部约束。`reset_obj_byarray(coeffs)` 保留优化方向并设置新的目标系数。"
 
-#: manual/api/core.md:143
-msgid "The program with new objective coefficients and the same sense."
-msgstr "目标函数系数更新而方向不变的线性规划。"
+#: manual/api/core.md:353
+msgid "`Lp::from_matrix` creates a program with equality constraints from a program matrix."
+msgstr "`Lp::from_matrix` 由规划矩阵创建只含等式约束的规划。"
 
-#: manual/api/core.md:144
-msgid "A program from a matrix: row 0 without its last entry gives the objective, every other row `[a..., b]` gives the equality `a · x = b`."
-msgstr "由矩阵构造的线性规划：去掉最后一项的第 0 行给出目标函数，其余每行 `[a..., b]` 给出等式 `a · x = b`。"
+#: manual/api/core.md:359
+msgid "`Lp::from_matrix(m, vars, sense)` reads the objective from row 0 without its last entry, and the equality $a_i \\cdot x = b_i$ from every further row $[a_i \\mid b_i]$. The program keeps `m` itself as its matrix, without copying it."
+msgstr "`Lp::from_matrix(m, vars, sense)` 从第 0 行（去掉最后一项）读取目标函数，并从其后每一行 $[a_i \\mid b_i]$ 读取等式 $a_i \\cdot x = b_i$。规划直接把 `m` 本身作为其矩阵，不做复制。"
 
-#: manual/api/core.md:145
-msgid "The equivalent program in standard form: a minimisation objective, equality constraints only, and non-negative right-hand sides. Each inequality receives a slack or surplus variable `y1`, `y2`, ... appended to the variables."
-msgstr "等价的标准形线性规划：最小化目标、仅含等式约束、右端项非负。每个不等式会得到一个松弛或剩余变量 `y1`、`y2`、……，并追加到变量列表末尾。"
+#: manual/api/core.md:363
+msgid "`to_standard` returns the equivalent program in standard form."
+msgstr "`to_standard` 返回等价的标准形规划。"
 
-#: manual/api/core.md:146
-msgid "The constraint coefficients $A$ of the program matrix."
-msgstr "规划矩阵中的约束系数 $A$。"
+#: manual/api/core.md:369
+msgid "The result minimises, has only equality constraints, and has non-negative right-hand sides:"
+msgstr "结果为最小化问题，只含等式约束，且右端项非负："
 
-#: manual/api/core.md:147
-msgid "Row 0 of the program matrix without its last entry."
-msgstr "规划矩阵去掉最后一项的第 0 行。"
+#: manual/api/core.md:371
+msgid "a maximisation objective is negated (`Obj_func::to_min`);"
+msgstr "最大化目标被取负（`Obj_func::to_min`）；"
 
-#: manual/api/core.md:148
-msgid "The right-hand sides $b$ of the program matrix."
-msgstr "规划矩阵的右端项 $b$。"
+#: manual/api/core.md:372
+msgid "an equality with $b < 0$ is multiplied by $-1$;"
+msgstr "$b < 0$ 的等式乘以 $-1$；"
 
-#: manual/api/core.md:150
-msgid "The program matrix is built from the objective and the equality constraints, so the three accessors describe a program with inequalities only after `to_standard`. `Show` prints the objective, the constraints and every variable with its bounds."
-msgstr "规划矩阵由目标函数和等式约束构造，因此对于含不等式的线性规划，这三个访问函数只有在 `to_standard` 之后才能完整描述它。`Show` 输出目标函数、约束以及每个变量及其上下界。"
+#: manual/api/core.md:373
+msgid "every inequality receives a new variable `y1`, `y2`, ... (counting the inequalities in order), added with coefficient $+1$ to a `<=` row and $-1$ to a `>=` row, after multiplying the row by $-1$ when needed so that $b \\ge 0$."
+msgstr "每个不等式获得一个新变量 `y1`、`y2`……（按不等式顺序计数），在必要时先将该行乘以 $-1$ 使 $b \\ge 0$，然后在 `<=` 行中以系数 $+1$、在 `>=` 行中以系数 $-1$ 加入。"
 
-#: manual/api/core.md:152
+#: manual/api/core.md:375
+msgid "The new variables are appended to the variables of the program. The [design notes](../design/core.md) derive each case."
+msgstr "新变量追加在规划变量之后。[设计说明](../design/core.md)推导了每种情形。"
+
+#: manual/api/core.md:379
+msgid "These read $A$, $c$ and $b$ from the program matrix."
+msgstr "它们从规划矩阵中读取 $A$、$c$ 与 $b$。"
+
+#: manual/api/core.md:387
+msgid "The program matrix contains the objective and the equality constraints only, so these accessors describe a program with inequalities only after `to_standard`."
+msgstr "规划矩阵只包含目标函数和等式约束，因此对于含不等式的规划，这些访问函数只有在 `to_standard` 之后才描述该规划。"
+
+#: manual/api/core.md:417
 msgid "Solving"
 msgstr "求解"
 
-#: manual/api/core.md:156
+#: manual/api/core.md:421
 msgid "`two_stage` solves a program in standard form with the two-phase simplex method."
 msgstr "`two_stage` 以两阶段单纯形法求解标准形线性规划。"
 
-#: manual/api/core.md:162
-msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, and the optimal value of the standard form, which is always a minimisation. For a program that maximises, the maximum is the negation of the returned value."
-msgstr "请对 `to_standard` 的结果调用它。它返回标准形中所有变量（包括添加的 `y` 变量）的取值，以及标准形的最优值，而标准形总是最小化问题。对于最大化问题，最大值等于返回值取负。"
+#: manual/api/core.md:427
+msgid "Call it on the result of `to_standard`. It returns the values of all variables of the standard form, including the added `y` variables, in the order of the program's variables, and the optimal value of the standard form. The standard form always minimises, so for a program that maximises, the maximum is the *negation* of the returned value."
+msgstr "请对 `to_standard` 的结果调用它。它按规划变量的顺序返回标准形所有变量（包括新增的 `y` 变量）的取值，以及标准形的最优值。标准形总是最小化，因此对于最大化规划，最大值是返回值的*相反数*。"
 
-#: manual/api/core.md:164
-msgid "The solver aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints a message if it has not converged."
-msgstr "当线性规划不可行（第一阶段结束时人工目标非零）或无界时，求解器会中止。每次单纯形运行最多迭代 1000 次，若仍未收敛则输出一条提示信息。"
+#: manual/api/core.md:429
+msgid "`two_stage` aborts when the program is infeasible (phase 1 ends with a non-zero artificial objective) and when it is unbounded. Each simplex run stops after 1000 iterations and prints `Maximum iterations reached, may not have converged` if it has not finished; the result is then returned without an error."
+msgstr "当规划不可行（第一阶段结束时人工目标不为零）或无界时，`two_stage` 会 abort。每次单纯形运行在 1000 次迭代后停止；若尚未结束，会打印 `Maximum iterations reached, may not have converged`，随后结果照常返回，不报错。"
 
-#: manual/api/core.md:168
+#: manual/api/core.md:431
+msgid "[!WARNING] The objective row is built by `Obj_func::to_vector`, which lists the non-zero objective coefficients in the order of the variable names. The solver therefore optimises the wrong objective when an objective coefficient is zero or when the variables are not declared in name order (for example `b` before `a`, or `x2` before `x10`). Until this is fixed, give every variable a non-zero objective coefficient and declare variables in name order."
+msgstr "[!WARNING] 目标行由 `Obj_func::to_vector` 构造，它按变量名顺序列出非零目标系数。因此当某个目标系数为零，或变量未按名称顺序声明时（例如 `b` 在 `a` 之前，或 `x2` 在 `x10` 之前），求解器会优化错误的目标。在修复之前，请给每个变量一个非零目标系数，并按名称顺序声明变量。"
+
+#: manual/api/core.md:447
 msgid "`pivot` performs one Gauss–Jordan pivot of a tableau in place."
 msgstr "`pivot` 原地对单纯形表执行一次 Gauss–Jordan 主元变换。"
 
-#: manual/api/core.md:174
-msgid "`Lp::pivot(matrix, row, col)` divides row `row` by the pivot element and eliminates column `col` from every other row. It aborts when the position lies outside the matrix or the pivot element is zero."
-msgstr "`Lp::pivot(matrix, row, col)` 将第 `row` 行除以主元，并从其他各行中消去第 `col` 列。位置超出矩阵范围或主元为零时中止。"
+#: manual/api/core.md:453
+msgid "`Lp::pivot(t, r, s)` divides row `r` by the pivot $t_{rs}$ and subtracts $t_{is}$ times the new row `r` from every other row `i`, including row 0, so that column `s` becomes the unit vector $e_r$. It aborts when the position lies outside the matrix or the pivot is exactly zero."
+msgstr "`Lp::pivot(t, r, s)` 将第 `r` 行除以主元 $t_{rs}$，再从其他每一行 `i`（包括第 0 行）中减去新第 `r` 行的 $t_{is}$ 倍，使第 `s` 列成为单位向量 $e_r$。当位置超出矩阵或主元恰为零时会 abort。"
 
-#: manual/api/core.md:178
+#: manual/api/core.md:457
 msgid "`simplex_iteration` runs the simplex method on a tableau in place."
 msgstr "`simplex_iteration` 原地在单纯形表上运行单纯形法。"
 
-#: manual/api/core.md:184
-msgid "Row 0 of the tableau is the objective row and the last column holds the right-hand sides. Each iteration enters the column with the most negative objective coefficient and leaves the row chosen by the minimum ratio test. The run stops when no objective coefficient is negative or after `max_iterations` iterations (1000 by default), and aborts when the program is unbounded. With `debug=true` it prints every pivot and the tableau after it."
-msgstr "单纯形表的第 0 行是目标行，最后一列存放右端项。每次迭代选择目标系数最小（最负）的列入基，并按最小比值检验选出离基行。当目标系数均非负或迭代达到 `max_iterations` 次（默认 1000）时停止；线性规划无界时中止。设置 `debug=true` 时，会输出每次主元变换及变换后的单纯形表。"
+#: manual/api/core.md:463
+msgid "The tableau must be in canonical form: row 0 holds the reduced costs and $-z$ in its last column, every basic column is a unit vector, and the right-hand sides are non-negative. Each iteration enters the column with the most negative entry of row 0 (the leftmost one on ties), and leaves the row with the smallest ratio $\\bar b_i / \\bar a_{is}$ over the rows with $\\bar a_{is} > 0$ (the topmost one on ties). The run stops when row 0 has no negative entry, aborts with `Problem is unbounded` when the entering column has no positive entry, and stops after `max_iterations` iterations (1000 by default) with a message. With `debug=true` it prints every pivot and the tableau after it."
+msgstr "单纯形表必须处于典范形式：第 0 行存放检验数（约简成本），最后一列为 $-z$，每个基列都是单位向量，且右端项非负。每次迭代选择第 0 行中最负的项所在列进基（相同时取最左列），并在 $\\bar a_{is} > 0$ 的行中选择比值 $\\bar b_i / \\bar a_{is}$ 最小的行出基（相同时取最上面的行）。当第 0 行没有负项时停止；当进基列没有正项时以 `Problem is unbounded` abort；达到 `max_iterations` 次迭代（默认 1000）时打印消息并停止。设置 `debug=true` 时，会打印每次转轴及其后的单纯形表。"
 
-#: manual/api/core.md:186
-msgid "`Lp::phase_1` and `Lp::phase_2`"
-msgstr "`Lp::phase_1` 与 `Lp::phase_2`"
-
-#: manual/api/core.md:188
+#: manual/api/core.md:482
 msgid "`phase_1` and `phase_2` are the two halves of `two_stage`."
 msgstr "`phase_1` 与 `phase_2` 是 `two_stage` 的两个阶段。"
 
-#: manual/api/core.md:195
-msgid "`Lp::phase_1(tableau, artificial_index)` takes a tableau extended with artificial variables, where `artificial_index[i]` is the column of the artificial variable of constraint `i`. It eliminates the artificial columns from the objective row, runs `simplex_iteration` and returns the tableau."
-msgstr "`Lp::phase_1(tableau, artificial_index)` 接收一个加入了人工变量的单纯形表，其中 `artificial_index[i]` 是约束 `i` 的人工变量所在列。它从目标行中消去人工变量列，运行 `simplex_iteration`，并返回单纯形表。"
+#: manual/api/core.md:489
+msgid "`Lp::phase_1(t, artificial_index)` takes a tableau extended with artificial columns whose row 0 holds $1$ in each artificial column and $0$ elsewhere. `artificial_index[i]` is the column of the artificial variable of constraint `i`, or `0` when the constraint has none. It subtracts each constraint row with an artificial variable from row 0, which puts the tableau in canonical form, runs `simplex_iteration` and returns the same matrix."
+msgstr "`Lp::phase_1(t, artificial_index)` 接受一个扩展了人工列的单纯形表，其第 0 行在每个人工列中为 $1$，其余为 $0$。`artificial_index[i]` 是约束 `i` 的人工变量所在列，若该约束没有人工变量则为 `0`。它从第 0 行中减去每个带人工变量的约束行，使单纯形表成为典范形式，然后运行 `simplex_iteration` 并返回同一个矩阵。"
 
-#: manual/api/core.md:197
-msgid "`Lp::phase_2(vars, objective, tableau)` drops the artificial columns of the phase 1 tableau, restores the original `objective`, runs `simplex_iteration` again and returns the basic solution with the value in the objective row. It aborts when phase 1 did not reach zero, because the program then has no feasible solution."
-msgstr "`Lp::phase_2(vars, objective, tableau)` 去掉第一阶段单纯形表中的人工变量列，恢复原目标 `objective`，再次运行 `simplex_iteration`，并返回基本解以及目标行中的值。若第一阶段未达到零，则说明线性规划没有可行解，此时中止。"
+#: manual/api/core.md:491
+msgid "`Lp::phase_2(vars, c, t)` checks that phase 1 reached zero, copies the columns of the first `vars.length()` variables and the right-hand side into a new tableau, writes the objective `c` into row 0, eliminates the basic columns (recognised as columns equal to a unit vector, within `ApproximatelyZero`) from row 0, runs `simplex_iteration` and returns the basic solution together with the last entry of row 0, which is $-z$. It aborts with `W* from Phase1 isn't zero, Lp doesn't have solution` when phase 1 ended with a non-zero objective."
+msgstr "`Lp::phase_2(vars, c, t)` 检查第一阶段是否达到零，把前 `vars.length()` 个变量的列和右端项复制到新的单纯形表中，把目标 `c` 写入第 0 行，从第 0 行中消去基列（在 `ApproximatelyZero` 意义下等于单位向量的列），运行 `simplex_iteration`，并返回基本解以及第 0 行的最后一项，即 $-z$。若第一阶段以非零目标结束，它以 `W* from Phase1 isn't zero, Lp doesn't have solution` abort。"
 
-#: manual/api/core.md:199
+#: manual/api/core.md:493
+msgid "The helper that builds the phase 1 tableau and `artificial_index` from a program is private; use `two_stage` unless you build tableaux yourself."
+msgstr "由规划构造第一阶段单纯形表和 `artificial_index` 的辅助函数是私有的；除非自己构造单纯形表，否则请使用 `two_stage`。"
+
+#: manual/api/core.md:495
+#: manual/design/core.md:177
 msgid "Numeric tolerance"
 msgstr "数值容差"
 
-#: manual/api/core.md:203
-msgid "`ApproximatelyZero` decides whether a value is zero for the purposes of the solver."
-msgstr "`ApproximatelyZero` 判定一个值在求解器看来是否为零。"
+#: manual/api/core.md:499
+msgid "`ApproximatelyZero` decides whether a value counts as zero in phase 2."
+msgstr "`ApproximatelyZero` 判断某个值在第二阶段中是否算作零。"
 
-#: manual/api/core.md:214
-msgid "An `Int` is zero only when it equals `0`; a `Double` is zero when its absolute value is below $10^{-15}$. `double_equal_to_zero(x)` calls `is_zero_eps(x)`."
-msgstr "`Int` 仅在等于 `0` 时为零；`Double` 在绝对值小于 $10^{-15}$ 时为零。`double_equal_to_zero(x)` 调用 `is_zero_eps(x)`。"
+#: manual/api/core.md:509
+msgid "An `Int` is zero only when it equals `0`. A `Double` is zero when $|x| < 10^{-15}$, an absolute threshold. Implement the trait for your own coefficient type to use it with `two_stage`."
+msgstr "`Int` 只有等于 `0` 时才为零。`Double` 在 $|x| < 10^{-15}$ 时为零，这是一个绝对阈值。为自己的系数类型实现该 trait，即可将其用于 `two_stage`。"
+
+#: manual/api/core.md:513
+msgid "`double_equal_to_zero` calls `is_zero_eps`."
+msgstr "`double_equal_to_zero` 调用 `is_zero_eps`。"
+
+#: manual/api/core.md:527
+msgid "Deprecated"
+msgstr "已弃用"
+
+#: manual/api/core.md:529
+msgid "The promoted methods below are kept for source compatibility. They are hidden from the interface file and warn when called from another package."
+msgstr "以下提升而来的方法为保持源码兼容而保留。它们在接口文件中隐藏，从其他包调用时会发出警告。"
+
+#: manual/api/core.md:531
+msgid "Method"
+msgstr "方法"
+
+#: manual/api/core.md:531
+msgid "Replacement"
+msgstr "替代"
+
+#: manual/api/core.md:535
+msgid "`to_string()` or `\"\\{x}\"`"
+msgstr "`to_string()` 或 `\"\\{x}\"`"
 
 #: manual/contributing.md:1
 msgid "Contribution guidelines"
@@ -515,84 +602,332 @@ msgid "core design"
 msgstr "core 设计"
 
 #: manual/design/core.md:3
-msgid "linear-program keeps variables, linear expressions, objectives, constraints and the solver in one package at `src`. This page explains how a program is represented and how it is solved."
-msgstr "linear-program 将变量、线性表达式、目标函数、约束和求解器放在 `src` 下的同一个包中。本页说明线性规划如何表示以及如何求解。"
+msgid "linear-program keeps variables, linear expressions, objectives, constraints and a two-phase simplex solver in one package at `src`. This page states the mathematics the solver implements, derives the tests it uses to stop, and explains how the code is organised around them."
+msgstr "linear-program 把变量、线性表达式、目标函数、约束和两阶段单纯形求解器放在 `src` 下的一个包中。本页给出求解器实现的数学内容，推导其停止判据，并说明代码如何围绕它们组织。"
 
 #: manual/design/core.md:5
-msgid "Representation"
-msgstr "表示"
+msgid "Design goal"
+msgstr "设计目标"
 
 #: manual/design/core.md:7
-msgid "A program is described twice. The symbolic description is an objective (`Obj_func`) and a constraint set (`Constraint`), both built from linear expressions (`Poly`) over named variables. The numeric description is the program matrix: row 0 holds the objective coefficients, every other row holds one equality constraint, and the last column holds the right-hand sides."
-msgstr "一个线性规划有两种描述。符号描述由目标函数（`Obj_func`）和约束集合（`Constraint`）组成，二者都由具名变量上的线性表达式（`Poly`）构成。数值描述是规划矩阵：第 0 行存放目标函数系数，其余每行存放一个等式约束，最后一列存放右端项。"
+msgid "Let a user write a linear program in the notation of a textbook: named variables, an objective with a sense, and equality and inequality constraints."
+msgstr "让用户以教科书的记法编写线性规划：命名变量、带优化方向的目标函数，以及等式和不等式约束。"
+
+#: manual/design/core.md:8
+msgid "Solve it with the textbook algorithm, the two-phase simplex method on a dense tableau, and expose every step (`Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`) so that the algorithm can be followed and taught."
+msgstr "用教科书算法——在稠密单纯形表上的两阶段单纯形法——求解，并公开每一步（`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2`），以便跟踪和讲授算法。"
 
 #: manual/design/core.md:9
-msgid "Every function that builds an `Lp` rebuilds the matrix from the symbolic description, and `Lp::from_matrix` goes the other way. A program can therefore be written either way and printed in readable form with `Show`."
-msgstr "每个构造 `Lp` 的函数都会根据符号描述重建矩阵，而 `Lp::from_matrix` 则反向进行。因此，线性规划可以用任一种方式书写，并能通过 `Show` 以可读形式输出。"
+msgid "Stay generic in the coefficient type through the traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and store tableaux as matrices of [linear-algebra](https://lunaflow.cn/en/linear-algebra/)."
+msgstr "通过 [luna-generic](https://lunaflow.cn/en/luna-generic/) 的 trait 保持系数类型泛型，并把单纯形表存为 [linear-algebra](https://lunaflow.cn/en/linear-algebra/) 的矩阵。"
 
 #: manual/design/core.md:11
-msgid "A linear expression is a sorted map from variables to coefficients. Variables are identified and ordered by name alone, and zero coefficients are never stored, so adding a term that cancels an existing one removes it."
-msgstr "线性表达式是从变量到系数的有序映射。变量仅凭名称识别和排序，零系数从不保存，因此添加一个与已有项相消的项会将其删除。"
+msgid "Mathematical background"
+msgstr "数学背景"
 
 #: manual/design/core.md:13
-msgid "Standard form"
-msgstr "标准形"
+msgid "Linear programs and standard form"
+msgstr "线性规划与标准形"
 
 #: manual/design/core.md:15
-msgid "The solver works on the standard form"
-msgstr "求解器作用于标准形"
+msgid "A linear program over variables $x \\in \\mathbb{R}^n$ optimises a linear objective subject to linear equalities and inequalities. The solver works on the *standard form*"
+msgstr "变量 $x \\in \\mathbb{R}^n$ 上的线性规划在线性等式与不等式约束下优化一个线性目标。求解器处理的是*标准形*"
 
 #: manual/design/core.md:21
-msgid "`Lp::to_standard` produces it: a maximisation objective is negated, a constraint with a negative right-hand side is multiplied by $-1$, and every inequality receives its own slack or surplus variable, named `y1`, `y2`, ... in order. Variable bounds are kept for display, but the standard form assumes $x \\ge 0$ for every variable."
-msgstr "`Lp::to_standard` 负责生成标准形：最大化目标取负，右端项为负的约束乘以 $-1$，每个不等式各自获得一个松弛或剩余变量，依次命名为 `y1`、`y2`、……。变量的上下界仅用于显示，标准形对每个变量都假定 $x \\ge 0$。"
-
-#: manual/design/core.md:23
-msgid "Two-phase simplex"
-msgstr "两阶段单纯形法"
-
-#: manual/design/core.md:25
-msgid "`Lp::two_stage` solves the standard form in two phases on a dense tableau."
-msgstr "`Lp::two_stage` 在稠密单纯形表上分两个阶段求解标准形。"
-
-#: manual/design/core.md:27
-msgid "Phase 1 adds an artificial variable to every row that has no unit column yet and minimises the sum of the artificial variables (`Lp::phase_1`). A non-zero optimum means that the program is infeasible."
-msgstr "第一阶段为每个尚无单位列的行添加一个人工变量，并最小化人工变量之和（`Lp::phase_1`）。最优值非零意味着线性规划不可行。"
-
-#: manual/design/core.md:28
-msgid "Phase 2 drops the artificial columns, restores the original objective, eliminates the basic columns from the objective row and runs the simplex method again (`Lp::phase_2`)."
-msgstr "第二阶段去掉人工变量列，恢复原目标函数，从目标行中消去基变量列，并再次运行单纯形法（`Lp::phase_2`）。"
-
-#: manual/design/core.md:30
-msgid "Both phases use `Lp::simplex_iteration`: Dantzig's rule picks the column with the most negative objective coefficient, the minimum ratio test picks the row, and `Lp::pivot` performs a Gauss–Jordan step. The steps are public so that a tableau can be examined or driven by hand."
-msgstr "两个阶段都使用 `Lp::simplex_iteration`：Dantzig 规则选取目标系数最负的列，最小比值检验选取行，`Lp::pivot` 执行一步 Gauss–Jordan 消元。这些步骤都是公开的，便于检查单纯形表或手动推进求解。"
-
-#: manual/design/core.md:32
-msgid "Floating-point tableaux rarely produce exact zeros, so phase 2 compares values with `ApproximatelyZero`, which treats a `Double` below $10^{-15}$ in absolute value as zero."
-msgstr "浮点单纯形表很少产生精确的零，因此第二阶段使用 `ApproximatelyZero` 比较数值，它把绝对值小于 $10^{-15}$ 的 `Double` 视为零。"
+msgid "Every program written with this package can be brought into this form without changing its optimal solutions. `Lp::to_standard` applies these rewritings:"
+msgstr "用本包编写的任何规划都可以在不改变最优解的前提下化为这种形式。`Lp::to_standard` 执行以下改写："
 
 #: manual/design/core.md:34
+msgid "Each equivalence holds because $y$ measures the slack of the inequality: for $a^\\top x \\le \\beta$, set $y = \\beta - a^\\top x$, which is non-negative exactly when the inequality holds. Multiplying an equation by $-1$ changes nothing, and multiplying an inequality by $-1$ reverses it, which is why the sign of the slack variable flips in the cases with $\\beta < 0$ and $\\beta \\le 0$. In every case the new right-hand side is non-negative, which phase 1 needs."
+msgstr "每个等价关系成立，是因为 $y$ 度量了不等式的松弛量：对于 $a^\\top x \\le \\beta$，令 $y = \\beta - a^\\top x$，它非负当且仅当不等式成立。等式乘以 $-1$ 不改变任何东西，而不等式乘以 $-1$ 会反向，这就是在 $\\beta < 0$ 与 $\\beta \\le 0$ 的情形中松弛变量符号翻转的原因。在每种情形下，新的右端项都非负，这是第一阶段所需要的。"
+
+#: manual/design/core.md:36
+msgid "The standard form assumes $x \\ge 0$ for *every* variable, including the variables of the original program. The bounds stored in `Variable` are not used."
+msgstr "标准形假定*每个*变量都满足 $x \\ge 0$，包括原规划的变量。`Variable` 中保存的边界不会被使用。"
+
+#: manual/design/core.md:38
+msgid "Bases and basic solutions"
+msgstr "基与基本解"
+
+#: manual/design/core.md:40
+msgid "Assume $A$ has rank $m$. A *basis* is a set $B$ of $m$ column indices such that the submatrix $A_B$ is invertible; the remaining indices form $N$. Setting the non-basic variables to zero determines the *basic solution*"
+msgstr "设 $A$ 的秩为 $m$。*基*是由 $m$ 个列下标组成的集合 $B$，使得子矩阵 $A_B$ 可逆；其余下标构成 $N$。令非基变量为零即确定了*基本解*"
+
+#: manual/design/core.md:46
+msgid "which is *feasible* when $x_B \\ge 0$. The fundamental theorem of linear programming states that if the program has an optimal solution, it has an optimal basic feasible solution, so the simplex method only visits bases.[^fundamental]"
+msgstr "当 $x_B \\ge 0$ 时它是*可行*的。线性规划基本定理指出：若规划有最优解，则它有最优的基本可行解，因此单纯形法只需访问各个基。[^fundamental]"
+
+#: manual/design/core.md:48
+msgid "See for example Chvátal, *Linear Programming* (1983), chapter 3, or Bertsimas and Tsitsiklis, *Introduction to Linear Optimization* (1997), theorem 2.7."
+msgstr "参见例如 Chvátal，*Linear Programming*（1983）第 3 章，或 Bertsimas 与 Tsitsiklis，*Introduction to Linear Optimization*（1997）定理 2.7。"
+
+#: manual/design/core.md:50
+msgid "The tableau and reduced costs"
+msgstr "单纯形表与检验数"
+
+#: manual/design/core.md:52
+msgid "The solver stores the program as an $(m + 1) \\times (n + 1)$ tableau:"
+msgstr "求解器把规划存为一个 $(m + 1) \\times (n + 1)$ 的单纯形表："
+
+#: manual/design/core.md:58
+msgid ""
+"Row 0 is the objective row, rows $1, \\dots, m$ are the constraints, and the last column holds right-hand sides. A *pivot* on position $(r, s)$ with $T_{rs} \\n"
+"e 0$ is a Gauss–Jordan step: divide row $r$ by $T_{rs}$, then subtract $T_{is}$ times the new row $r$ from every other row $i$, including row 0. Afterwards column $s$ is the unit vector $e_r$. This is exactly `Lp::pivot`."
+msgstr "第 0 行是目标行，第 $1, \\dots, m$ 行是约束，最后一列为右端项。在 $T_{rs} \\ne 0$ 的位置 $(r, s)$ 上的*转轴*是一步 Gauss–Jordan 消元：将第 $r$ 行除以 $T_{rs}$，再从其他每一行 $i$（包括第 0 行）中减去新第 $r$ 行的 $T_{is}$ 倍。之后第 $s$ 列成为单位向量 $e_r$。这正是 `Lp::pivot`。"
+
+#: manual/design/core.md:60
+msgid "Suppose a sequence of pivots has made the columns of a basis $B$ into unit vectors. Every pivot is a left multiplication by an invertible matrix, and row 0 has only received multiples of constraint rows, so the tableau has the form"
+msgstr "假设一系列转轴已经把基 $B$ 的各列变成单位向量。每次转轴都是左乘一个可逆矩阵，而第 0 行只被加上过约束行的倍数，因此单纯形表具有如下形式"
+
+#: manual/design/core.md:66
+msgid "for some vector $y \\in \\mathbb{R}^m$. The basic columns of row 0 are zero, so $c_B^\\top - y^\\top A_B = 0$, that is"
+msgstr "其中 $y \\in \\mathbb{R}^m$ 是某个向量。第 0 行的基列为零，所以 $c_B^\\top - y^\\top A_B = 0$，即"
+
+#: manual/design/core.md:72
+msgid "Substituting $y$ gives the canonical tableau"
+msgstr "代入 $y$ 即得典范单纯形表"
+
+#: manual/design/core.md:83
+msgid "The entries $\\bar c_j$ are the *reduced costs*, $\\bar b = x_B$ is the basic solution, and the last entry of row 0 is the *negated* objective value $-z_B = -c^\\top x$. This is why `Lp::phase_2` returns $-z$ and why `Lp::two_stage` negates it again for a minimisation objective."
+msgstr "其中 $\\bar c_j$ 是*检验数*（约简成本），$\\bar b = x_B$ 是基本解，第 0 行的最后一项是*取负*的目标值 $-z_B = -c^\\top x$。这就是 `Lp::phase_2` 返回 $-z$、而 `Lp::two_stage` 对最小化目标再次取负的原因。"
+
+#: manual/design/core.md:85
+msgid "The reduced costs describe how the objective changes along the constraints. For any $x$ with $Ax = b$, solve for the basic variables: $x_B = \\bar b - A_B^{-1} A_N x_N$. Then"
+msgstr "检验数描述目标沿约束如何变化。对任意满足 $Ax = b$ 的 $x$，解出基变量：$x_B = \\bar b - A_B^{-1} A_N x_N$。于是"
+
+#: manual/design/core.md:95
+msgid "Optimality"
+msgstr "最优性"
+
+#: manual/design/core.md:97
+msgid "**If $\\bar c \\ge 0$, the basic feasible solution is optimal.** Every feasible $x$ satisfies $x_N \\ge 0$, so by the identity above $c^\\top x = z_B + \\bar c_N^\\top x_N \\ge z_B$, and the basic solution attains $z_B$. `Lp::simplex_iteration` stops when no entry of row 0 is negative, which is this test ($\\bar c_B = 0$ holds by construction)."
+msgstr "**若 $\\bar c \\ge 0$，则该基本可行解是最优的。** 每个可行的 $x$ 都满足 $x_N \\ge 0$，因此由上面的恒等式得 $c^\\top x = z_B + \\bar c_N^\\top x_N \\ge z_B$，而基本解取到 $z_B$。当第 0 行没有负项时 `Lp::simplex_iteration` 停止，这正是该判据（$\\bar c_B = 0$ 由构造保证）。"
+
+#: manual/design/core.md:99
+msgid "Choosing the entering column"
+msgstr "选择进基列"
+
+#: manual/design/core.md:101
+msgid "If some $\\bar c_s < 0$, increasing $x_s$ from $0$ decreases the objective at rate $|\\bar c_s|$. The solver chooses the most negative reduced cost,"
+msgstr "若某个 $\\bar c_s < 0$，则将 $x_s$ 从 $0$ 增大会使目标以速率 $|\\bar c_s|$ 减小。求解器选择最负的检验数，"
+
+#: manual/design/core.md:107
+msgid "Dantzig's rule, and takes the leftmost column on ties."
+msgstr "即 Dantzig 规则，相同时取最左列。"
+
+#: manual/design/core.md:109
+msgid "The ratio test and unboundedness"
+msgstr "比值检验与无界性"
+
+#: manual/design/core.md:111
+msgid "Increase $x_s$ to $t \\ge 0$ and keep the other non-basic variables at zero. The constraints force $x_B(t) = \\bar b - t\\, \\bar a_s$, where $\\bar a_s$ is column $s$ of $\\bar A$, and the objective becomes $z_B + t\\, \\bar c_s$."
+msgstr "将 $x_s$ 增大到 $t \\ge 0$，其他非基变量保持为零。约束迫使 $x_B(t) = \\bar b - t\\, \\bar a_s$，其中 $\\bar a_s$ 是 $\\bar A$ 的第 $s$ 列，目标变为 $z_B + t\\, \\bar c_s$。"
+
+#: manual/design/core.md:113
+msgid "**If $\\bar a_s \\le 0$, the program is unbounded.** Every component of $x_B(t)$ is non-decreasing in $t$, so $x(t)$ is feasible for all $t \\ge 0$ while $z_B + t\\,\\bar c_s \\to -\\infty$. `Lp::simplex_iteration` aborts with `Problem is unbounded` in this case."
+msgstr "**若 $\\bar a_s \\le 0$，则规划无界。** $x_B(t)$ 的每个分量关于 $t$ 不减，因此对所有 $t \\ge 0$，$x(t)$ 都可行，而 $z_B + t\\,\\bar c_s \\to -\\infty$。此时 `Lp::simplex_iteration` 以 `Problem is unbounded` abort。"
+
+#: manual/design/core.md:115
+msgid "Otherwise feasibility requires $\\bar b_i - t\\, \\bar a_{is} \\ge 0$ for every row with $\\bar a_{is} > 0$, so the largest step is"
+msgstr "否则，可行性要求对每个 $\\bar a_{is} > 0$ 的行有 $\\bar b_i - t\\, \\bar a_{is} \\ge 0$，因此最大步长为"
+
+#: manual/design/core.md:121
+msgid "the *minimum ratio test*. A row $r$ attaining the minimum leaves the basis: its basic variable reaches zero at $t^\\ast$. Pivoting on $(r, s)$ moves to the new basis $B' = B \\setminus \\{B_r\\} \\cup \\{s\\}$, whose basic solution is $x(t^\\ast) \\ge 0$, so feasibility is preserved, and whose objective value is"
+msgstr "即*最小比值检验*。取到最小值的行 $r$ 出基：其基变量在 $t^\\ast$ 处降为零。在 $(r, s)$ 上转轴就移到新基 $B' = B \\setminus \\{B_r\\} \\cup \\{s\\}$，其基本解为 $x(t^\\ast) \\ge 0$，因此保持可行，其目标值为"
+
+#: manual/design/core.md:127
+msgid "The solver takes the topmost row on ties."
+msgstr "相同时求解器取最上面的行。"
+
+#: manual/design/core.md:129
+msgid "Termination and degeneracy"
+msgstr "终止性与退化"
+
+#: manual/design/core.md:131
+msgid "If every pivot has $t^\\ast > 0$ (the program is *non-degenerate*), the objective strictly decreases, no basis repeats, and the method stops after at most $\\binom{n}{m}$ pivots. When $\\bar b_r = 0$ for the leaving row, $t^\\ast = 0$: the basis changes but the point and the objective do not. A sequence of such degenerate pivots can return to an earlier basis and repeat forever. Dantzig's rule with lowest-index tie-breaking, which is what this package implements, is known to cycle on small examples.[^cycling] The package has no anti-cycling rule; a run stops after `max_iterations` pivots (1000 by default) and prints a message, and the tableau it returns is then not optimal."
+msgstr "若每次转轴都有 $t^\\ast > 0$（规划*非退化*），目标严格下降，基不会重复，方法至多经过 $\\binom{n}{m}$ 次转轴即停止。当出基行的 $\\bar b_r = 0$ 时，$t^\\ast = 0$：基改变了，但点和目标值都不变。一串这样的退化转轴可能回到先前的基并无限重复。本包实现的“Dantzig 规则 + 最小下标打破平局”已知会在小例子上出现循环。[^cycling] 本包没有防循环规则；一次运行在 `max_iterations` 次转轴（默认 1000）后停止并打印消息，此时返回的单纯形表不是最优的。"
+
+#: manual/design/core.md:133
+msgid "E. M. L. Beale, \"Cycling in the dual simplex algorithm\", *Naval Research Logistics Quarterly* 2 (1955), gives a cycling example with three constraints. R. G. Bland, \"New finite pivoting rules for the simplex method\", *Mathematics of Operations Research* 2 (1977), proves that choosing, among the candidates, the entering and the leaving variable with the smallest index prevents cycling."
+msgstr "E. M. L. Beale，\"Cycling in the dual simplex algorithm\"，*Naval Research Logistics Quarterly* 2（1955），给出了一个含三个约束的循环例子。R. G. Bland，\"New finite pivoting rules for the simplex method\"，*Mathematics of Operations Research* 2（1977），证明了在候选者中总选择下标最小的进基变量和出基变量可以防止循环。"
+
+#: manual/design/core.md:135
+msgid "Design decisions"
+msgstr "设计决策"
+
+#: manual/design/core.md:137
+msgid "Two phases with artificial variables"
+msgstr "带人工变量的两阶段法"
+
+#: manual/design/core.md:139
+msgid "**Problem.** The simplex method starts from a basic feasible solution, and a program in standard form does not come with one."
+msgstr "**问题。** 单纯形法需要从一个基本可行解出发，而标准形规划并不自带这样的解。"
+
+#: manual/design/core.md:141
+msgid "**Options.** (a) The big-M method: add artificial variables with a large cost $M$ to the original objective. (b) The two-phase method: first find a feasible basis with an auxiliary objective, then optimise. (c) Require the user to supply a feasible basis."
+msgstr "**可选方案。** (a) 大 M 法：在原目标中加入代价为大数 $M$ 的人工变量。(b) 两阶段法：先用辅助目标找到可行基，再进行优化。(c) 要求用户提供可行基。"
+
+#: manual/design/core.md:143
+msgid "**Choice.** (b). Big-M needs a numeric value of $M$ that is large enough for the program but small enough not to swamp the other coefficients in floating point; the two-phase method needs no such constant, and its first phase also decides feasibility."
+msgstr "**选择。** (b)。大 M 法需要一个数值 $M$：对该规划足够大，又要足够小，以免在浮点运算中淹没其他系数；两阶段法不需要这样的常数，并且其第一阶段还能判定可行性。"
+
+#: manual/design/core.md:145
+msgid "**Phase 1.** For every constraint row $i$ that has no usable unit column, add an artificial variable $a_i \\ge 0$ with coefficient $1$ in row $i$. Let $R$ be the set of these rows. Phase 1 solves"
+msgstr "**第一阶段。** 对每个没有可用单位列的约束行 $i$，添加一个在第 $i$ 行系数为 $1$ 的人工变量 $a_i \\ge 0$。设 $R$ 为这些行的集合。第一阶段求解"
+
+#: manual/design/core.md:151
+msgid "Its initial basis consists of the artificial columns and the existing unit columns, with the basic solution $x_B = b \\ge 0$, which is feasible because `to_standard` made $b$ non-negative."
+msgstr "其初始基由人工列和已有的单位列组成，基本解为 $x_B = b \\ge 0$；由于 `to_standard` 已使 $b$ 非负，它是可行的。"
+
+#: manual/design/core.md:153
+msgid "*The original program is feasible exactly when the optimum of phase 1 is $w^\\ast = 0$.* If $x$ is feasible for $Ax = b$, then $(x, a = 0)$ is feasible for phase 1 with $w = 0$, and $w \\ge 0$ always, so $w^\\ast = 0$. Conversely, $w^\\ast = 0$ with $a \\ge 0$ forces $a = 0$, so the optimal $x$ satisfies $Ax = b$."
+msgstr "*原规划可行当且仅当第一阶段的最优值 $w^\\ast = 0$。* 若 $x$ 满足 $Ax = b$，则 $(x, a = 0)$ 是第一阶段的可行解且 $w = 0$，而总有 $w \\ge 0$，所以 $w^\\ast = 0$。反之，$w^\\ast = 0$ 且 $a \\ge 0$ 迫使 $a = 0$，因此最优的 $x$ 满足 $Ax = b$。"
+
+#: manual/design/core.md:155
+msgid "**Canonical form of the phase 1 tableau.** Row 0 of the phase 1 objective starts as $[\\,0 \\mid \\mathbf 1^\\top \\mid 0\\,]$, which is not canonical because the basic artificial columns have cost $1$. Applying the formula $y^\\top = c_B^\\top A_B^{-1}$ with $A_B = I$ gives $y = \\mathbf 1_R$, so the canonical row 0 is"
+msgstr "**第一阶段单纯形表的典范形式。** 第一阶段目标的第 0 行起初为 $[\\,0 \\mid \\mathbf 1^\\top \\mid 0\\,]$；由于基中的人工列代价为 $1$，它不是典范的。以 $A_B = I$ 代入公式 $y^\\top = c_B^\\top A_B^{-1}$ 得 $y = \\mathbf 1_R$，因此典范的第 0 行为"
+
+#: manual/design/core.md:161
+msgid "obtained by subtracting each artificial row from row 0. `Lp::phase_1` performs exactly these subtractions before calling `simplex_iteration`."
+msgstr "即从第 0 行中减去每个人工行所得。`Lp::phase_1` 在调用 `simplex_iteration` 之前恰好执行这些减法。"
+
+#: manual/design/core.md:163
+msgid ""
+"**Phase 2.** If $w^\\ast \\n"
+"e 0$ (beyond the tolerance below), `Lp::phase_2` aborts: the program is infeasible. Otherwise it drops the artificial columns, writes the original costs $c$ into row 0, and makes row 0 canonical again by subtracting $c_j$ times the row of each basic column $j$, which is the same elimination as above. Then it runs `simplex_iteration` from the feasible basis found by phase 1."
+msgstr "**第二阶段。** 若 $w^\\ast \\ne 0$（超出下述容差），`Lp::phase_2` 会 abort：规划不可行。否则它删去人工列，把原代价 $c$ 写入第 0 行，并对每个基列 $j$ 减去其所在行的 $c_j$ 倍，使第 0 行重新成为典范形式，这与上面的消元相同。然后它从第一阶段找到的可行基出发运行 `simplex_iteration`。"
+
+#: manual/design/core.md:165
+msgid "Reusing unit columns as the initial basis"
+msgstr "复用单位列作为初始基"
+
+#: manual/design/core.md:167
+msgid "A slack variable of a `<=` row with $b \\ge 0$ has a column equal to a unit vector, so it can start in the basis without an artificial variable. The private helper that builds the phase 1 tableau recognises a column as a unit column when one entry equals $1$ and all other entries in the constraint rows are $0$, and adds artificial variables only for the remaining rows. A program whose constraints are all `<=` with non-negative right-hand sides therefore needs no artificial variables at all, and phase 1 is skipped in effect: its tableau keeps the original objective, so phase 1 already optimises it."
+msgstr "对于 $b \\ge 0$ 的 `<=` 行，其松弛变量的列等于单位向量，因此无需人工变量即可作为初始基变量。构造第一阶段单纯形表的私有辅助函数在某列有一项等于 $1$、且在约束行中其余项都为 $0$ 时把它识别为单位列，并只为其余的行添加人工变量。因此，约束全为 `<=` 且右端项非负的规划完全不需要人工变量，第一阶段实际上被跳过：其单纯形表保留原目标，所以第一阶段已经在优化它。"
+
+#: manual/design/core.md:169
+msgid "Dense tableau"
+msgstr "稠密单纯形表"
+
+#: manual/design/core.md:171
+msgid "The tableau is a dense `@mutable.Matrix`. Each pivot costs $(m + 1)(n + 1)$ multiply–subtract operations, $O(mn)$. A revised simplex method with a factorised basis would cost less per iteration on sparse programs, but the dense tableau shows every quantity of the derivation above as an entry of one matrix, which serves the teaching goal of the package and keeps the code short."
+msgstr "单纯形表是稠密的 `@mutable.Matrix`。每次转轴需要 $(m + 1)(n + 1)$ 次乘减运算，即 $O(mn)$。对稀疏规划而言，带基分解的修正单纯形法每次迭代代价更低；但稠密单纯形表把上述推导中的每个量都表示为同一个矩阵的元素，这符合本包的教学目标，也让代码保持简短。"
+
+#: manual/design/core.md:173
+msgid "Aborting instead of returning errors"
+msgstr "以 abort 代替返回错误"
+
+#: manual/design/core.md:175
+msgid "Infeasible and unbounded programs, a zero pivot, an unknown objective sense and an unknown relation string end the program with `abort`. The package predates the Luna-Flow convention of returning `Result` with a structured error. Callers cannot recover from these outcomes; see the boundaries below."
+msgstr "不可行和无界的规划、零主元、未知的优化方向以及未知的关系字符串都会以 `abort` 终止程序。本包早于 Luna-Flow 返回带结构化错误的 `Result` 的约定。调用者无法从这些情况中恢复；参见下文的边界。"
+
+#: manual/design/core.md:179
+msgid "The simplex iterations compare entries with zero exactly: a reduced cost of $-10^{-17}$ produced by rounding counts as negative and triggers another pivot. Phase 2 uses the trait `ApproximatelyZero` in two places: to decide whether $w^\\ast$ is zero, and to recognise unit columns. For `Double` the threshold is $|x| < 10^{-15}$, an absolute bound."
+msgstr "单纯形迭代把各项与零做精确比较：由舍入产生的 $-10^{-17}$ 的检验数被视为负数，并触发又一次转轴。第二阶段在两处使用 trait `ApproximatelyZero`：判定 $w^\\ast$ 是否为零，以及识别单位列。对 `Double`，阈值为 $|x| < 10^{-15}$，这是一个绝对界。"
+
+#: manual/design/core.md:181
+msgid "Rounding errors in a pivot are relative to the size of the entries involved. One update $t_{ij} - t_{is}\\, t_{rj}$ in floating point satisfies"
+msgstr "转轴中的舍入误差与所涉及元素的大小成比例。浮点运算中的一次更新 $t_{ij} - t_{is}\\, t_{rj}$ 满足"
+
+#: manual/design/core.md:187
+msgid "so its absolute error is bounded by about $u\\,(|t_{ij}| + 2|t_{is}\\, t_{rj}|)$. After $k$ pivots on entries of magnitude around $M$, the error in $w^\\ast$ is of order $k\\,u\\,M$. The threshold $10^{-15} \\approx 9u$ is therefore appropriate for well-scaled programs with entries near $1$ and few pivots. The tests show residuals such as $w^\\ast = -4.44 \\times 10^{-16} = -4u$. For coefficients in the thousands, the residual can exceed the threshold and a feasible program is reported as infeasible. A relative tolerance scaled by the size of $b$ would avoid this, but it is not implemented."
+msgstr "因此其绝对误差大约以 $u\\,(|t_{ij}| + 2|t_{is}\\, t_{rj}|)$ 为界。在量级约为 $M$ 的元素上进行 $k$ 次转轴后，$w^\\ast$ 的误差量级为 $k\\,u\\,M$。因此阈值 $10^{-15} \\approx 9u$ 适用于元素接近 $1$、转轴次数少的良好缩放的规划。测试中出现过 $w^\\ast = -4.44 \\times 10^{-16} = -4u$ 这样的残差。当系数达到数千时，残差可能超过阈值，可行的规划会被报告为不可行。按 $b$ 的大小缩放的相对容差可以避免这一点，但尚未实现。"
+
+#: manual/design/core.md:189
+msgid "Correctness and invariants"
+msgstr "正确性与不变量"
+
+#: manual/design/core.md:191
+msgid "The solver maintains these invariants between pivots:"
+msgstr "求解器在转轴之间维持以下不变量："
+
+#: manual/design/core.md:193
+msgid "**Canonical form.** Every basic column of the constraint rows is a unit vector, and row 0 is zero in every basic column. `Lp::pivot` preserves this by construction, `Lp::phase_1` establishes it for the artificial basis, and `Lp::phase_2` re-establishes it after replacing row 0."
+msgstr "**典范形式。** 约束行中的每个基列都是单位向量，且第 0 行在每个基列上为零。`Lp::pivot` 由构造保持这一点，`Lp::phase_1` 为人工基建立它，`Lp::phase_2` 在替换第 0 行后重新建立它。"
+
+#: manual/design/core.md:194
+msgid "**Primal feasibility.** The right-hand sides $\\bar b$ are non-negative. `to_standard` makes $b \\ge 0$, and the ratio test keeps it, as derived above."
+msgstr "**原始可行性。** 右端项 $\\bar b$ 非负。`to_standard` 使 $b \\ge 0$，而比值检验如上所推导保持它。"
+
+#: manual/design/core.md:195
+msgid "**Objective in row 0.** The last entry of row 0 is $-z_B$."
+msgstr "**第 0 行中的目标。** 第 0 行的最后一项是 $-z_B$。"
+
+#: manual/design/core.md:197
+msgid "Under these invariants, the stopping tests are correct as derived above: no negative reduced cost means optimal, and a negative reduced cost with a non-positive column means unbounded."
+msgstr "在这些不变量下，停止判据如上所推导是正确的：没有负检验数意味着最优，而负检验数配上非正列意味着无界。"
+
+#: manual/design/core.md:199
+msgid "The implementation has known defects that break these guarantees in specific cases. They are listed here so that users can avoid them; the code is unchanged."
+msgstr "实现中存在一些已知缺陷，会在特定情形下破坏这些保证。这里列出它们以便用户规避；代码本身未作修改。"
+
+#: manual/design/core.md:201
+msgid "**Objective row alignment.** `Lp` builds row 0 with `Obj_func::to_vector`, which takes the stored coefficients in the order of the variable names and skips zero coefficients. Row 0 then disagrees with the column order whenever an objective coefficient is zero or the variables are not declared in name order, and the solver optimises a permuted objective. For example, minimising $x_2$ subject to $x_1 \\ge 1$, $x_2 \\ge 2$ returns $1$ instead of $2$."
+msgstr "**目标行对齐。** `Lp` 用 `Obj_func::to_vector` 构造第 0 行，它按变量名顺序取已存储的系数并跳过零系数。因此只要某个目标系数为零，或变量未按名称顺序声明，第 0 行就与列顺序不一致，求解器优化的是被打乱的目标。例如，在 $x_1 \\ge 1$、$x_2 \\ge 2$ 下最小化 $x_2$，返回 $1$ 而不是 $2$。"
+
+#: manual/design/core.md:202
+msgid "**Basis recognition.** Phase 2 recognises basic variables as unit columns and takes the first such column in each row. When two columns are equal unit vectors, the reported solution can name the wrong variable even though the objective value is right."
+msgstr "**基的识别。** 第二阶段把单位列识别为基变量，并在每行取第一个这样的列。当两列是相同的单位向量时，即使目标值正确，报告的解也可能指错变量。"
+
+#: manual/design/core.md:203
+msgid "**Degenerate artificial variables.** If an artificial variable remains basic at value zero after phase 1, phase 2 drops its column without pivoting it out, and that row has no basic column during phase 2."
+msgstr "**退化的人工变量。** 若第一阶段结束后某个人工变量仍以零值留在基中，第二阶段会直接删去其列而不先将其转出，该行在第二阶段中就没有基列。"
+
+#: manual/design/core.md:204
+msgid "**Artificial index.** `Lp::phase_1` receives `0` as the artificial column of a row that has none, which it cannot distinguish from column 0. If the phase 1 objective coefficient of column 0 happens to be $1$ at that moment, a row is subtracted from row 0 that should not be."
+msgstr "**人工变量索引。** 对没有人工变量的行，`Lp::phase_1` 收到的人工列为 `0`，它无法与第 0 列区分。若此时第 0 列的第一阶段目标系数恰为 $1$，就会从第 0 行中减去不该减的行。"
+
+#: manual/design/core.md:206
+msgid "Alternatives rejected"
+msgstr "被否决的方案"
+
+#: manual/design/core.md:208
+msgid "**Big-M method.** Rejected for the numeric reasons given under \"Two phases with artificial variables\"."
+msgstr "**大 M 法。** 出于“带人工变量的两阶段法”中所述的数值原因而被否决。"
+
+#: manual/design/core.md:209
+msgid "**Bland's rule.** It guarantees termination, but it often needs many more pivots than Dantzig's rule on non-degenerate programs. The package keeps Dantzig's rule and bounds the number of iterations instead."
+msgstr "**Bland 规则。** 它保证终止，但在非退化规划上通常比 Dantzig 规则需要多得多的转轴。本包保留 Dantzig 规则，转而限制迭代次数。"
+
+#: manual/design/core.md:210
+msgid "**Revised simplex and interior-point methods.** They scale better to large sparse programs, but they hide the tableau, which the package exposes on purpose."
+msgstr "**修正单纯形法与内点法。** 它们在大型稀疏规划上扩展性更好，但会隐藏单纯形表，而本包有意公开单纯形表。"
+
+#: manual/design/core.md:211
+msgid "**Enforcing variable bounds by substitution.** Bounds $l \\le x \\le u$ can be reduced to the standard form by $x = l + x'$ and an extra constraint $x' \\le u - l$. The package stores bounds for display only and leaves such constraints to the user."
+msgstr "**通过代换实施变量边界。** 边界 $l \\le x \\le u$ 可以通过 $x = l + x'$ 和额外约束 $x' \\le u - l$ 化为标准形。本包只为显示而保存边界，此类约束交由用户添加。"
+
+#: manual/design/core.md:213
 msgid "Boundaries"
 msgstr "边界"
 
-#: manual/design/core.md:36
-msgid "Errors are not values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program."
-msgstr "错误不以值的形式返回。不可行或无界的线性规划、零主元以及非法参数都会使程序中止。"
+#: manual/design/core.md:215
+msgid "The package deliberately does not:"
+msgstr "本包刻意不做以下事情："
 
-#: manual/design/core.md:37
-msgid "Variable bounds other than $x \\ge 0$ are not enforced."
-msgstr "除 $x \\ge 0$ 以外的变量界不会被强制执行。"
+#: manual/design/core.md:217
+msgid "return errors as values. Infeasible and unbounded programs, a zero pivot and invalid arguments abort the program;"
+msgstr "以值的形式返回错误。不可行和无界的规划、零主元以及非法参数都会使程序 abort；"
 
-#: manual/design/core.md:38
-msgid "There is no anti-cycling rule beyond the iteration limit of 1000 per simplex run."
-msgstr "除了每次单纯形运行 1000 次的迭代上限外，没有防止循环的规则。"
+#: manual/design/core.md:218
+msgid "enforce variable bounds other than $x \\ge 0$;"
+msgstr "实施 $x \\ge 0$ 以外的变量边界；"
 
-#: manual/design/core.md:39
-msgid "The tableau is dense; the package does not exploit sparsity."
-msgstr "单纯形表是稠密的；本包不利用稀疏性。"
+#: manual/design/core.md:219
+msgid "prevent cycling beyond the iteration limit of 1000 per simplex run;"
+msgstr "在每次单纯形运行 1000 次迭代的上限之外防止循环；"
 
-#: manual/design/core.md:40
-msgid "Integer and mixed-integer programming are out of scope."
-msgstr "整数规划与混合整数规划不在本包范围内。"
+#: manual/design/core.md:220
+msgid "exploit sparsity, warm starts or a factorised basis;"
+msgstr "利用稀疏性、热启动或基分解；"
+
+#: manual/design/core.md:221
+msgid "compute dual values or sensitivity ranges, although the vector $y = (A_B^{-1})^\\top c_B$ of the final basis is implicit in the tableau;"
+msgstr "计算对偶值或灵敏度区间，尽管最终基的向量 $y = (A_B^{-1})^\\top c_B$ 已隐含在单纯形表中；"
+
+#: manual/design/core.md:222
+msgid "solve integer, mixed-integer or nonlinear programs."
+msgstr "求解整数、混合整数或非线性规划。"
 
 #: manual/index.md:1
 msgid "linear-program"
@@ -603,140 +938,488 @@ msgid "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https:
 msgstr "[![img](https://img.shields.io/badge/Maintainer-KCN--judu-violet)](https://github.com/KCN-judu) [![img](https://img.shields.io/badge/Collaborator-CAIMEOX-purple)](https://github.com/CAIMEOX) [![img](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/Luna-Flow/linear-program/blob/main/LICENSE) ![img](https://img.shields.io/badge/State-active-success)"
 
 #: manual/index.md:5
-msgid "Introduction"
-msgstr "简介"
+msgid "linear-program is a [MoonBit](https://www.moonbitlang.com/) library for writing linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://lunaflow.cn/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://lunaflow.cn/en/linear-algebra/). Every step of the solver is public, so the library also serves to follow the simplex method by hand."
+msgstr "linear-program 是一个用于编写线性规划并以两阶段单纯形法求解的 [MoonBit](https://www.moonbitlang.com/) 库。系数在 [luna-generic](https://lunaflow.cn/en/luna-generic/) 的代数 trait 上泛型，单纯形表是 [linear-algebra](https://lunaflow.cn/en/linear-algebra/) 的可变矩阵。求解器的每一步都是公开的，因此该库也可用来手动跟踪单纯形法。"
 
 #: manual/index.md:7
-msgid "linear-program is a [**MoonBit**](https://www.moonbitlang.cn/) library for defining linear programs and solving them with the two-phase simplex method. Coefficients are generic over the algebraic traits of [luna-generic](https://luna-flow.github.io/en/luna-generic/), and the simplex tableau is a mutable matrix from [linear-algebra](https://luna-flow.github.io/en/linear-algebra/)."
-msgstr "linear-program 是一个使用 [**MoonBit**](https://www.moonbitlang.cn/) 编写的库，用于定义线性规划并以两阶段单纯形法求解。系数类型基于 [luna-generic](https://luna-flow.github.io/en/luna-generic/) 的代数 trait 泛型化，单纯形表则是 [linear-algebra](https://luna-flow.github.io/en/linear-algebra/) 中的可变矩阵。"
+msgid "Packages"
+msgstr "包"
 
 #: manual/index.md:9
-msgid "Features"
-msgstr "功能"
+msgid "All public names live in the single package at `src`, documented as `core`."
+msgstr "所有公开名称都位于 `src` 下的唯一一个包中，文档中称为 `core`。"
 
 #: manual/index.md:11
-msgid "Decision variables, linear expressions, objective functions and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`)."
-msgstr "决策变量、线性表达式、目标函数与约束（`Variable`、`Poly`、`Obj_func`、`Constraint`）。"
+msgid "Package"
+msgstr "包"
 
-#: manual/index.md:12
-msgid "Programs built from coefficient arrays (`Lp::new`, `Lp::cons_from_Array`) or from a coefficient matrix (`Lp::from_matrix`)."
-msgstr "由系数数组（`Lp::new`、`Lp::cons_from_Array`）或系数矩阵（`Lp::from_matrix`）构造线性规划。"
+#: manual/index.md:11
+msgid "Contents"
+msgstr "目录"
+
+#: manual/index.md:11
+msgid "API"
+msgstr "API"
+
+#: manual/index.md:11
+msgid "Tutorial"
+msgstr "教程"
+
+#: manual/index.md:11
+msgid "Design"
+msgstr "设计"
 
 #: manual/index.md:13
-msgid "Conversion to standard form with slack and surplus variables (`Lp::to_standard`)."
-msgstr "借助松弛变量与剩余变量转换为标准形（`Lp::to_standard`）。"
+msgid "`core` (`src`, import path `linear-program`)"
+msgstr "`core`（`src`，导入路径 `linear-program`）"
 
-#: manual/index.md:14
-msgid "A two-phase simplex solver (`Lp::two_stage`) whose steps are also public: `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1` and `Lp::phase_2`."
-msgstr "两阶段单纯形求解器（`Lp::two_stage`），其各个步骤同样公开：`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1` 与 `Lp::phase_2`。"
+#: manual/index.md:13
+msgid "Variables, linear expressions, objectives and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`); programs and standard form (`Lp`, `Lp::to_standard`); the two-phase simplex solver (`Lp::two_stage`, `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1`, `Lp::phase_2`); the tolerance trait `ApproximatelyZero`."
+msgstr "变量、线性表达式、目标函数与约束（`Variable`、`Poly`、`Obj_func`、`Constraint`）；规划与标准形（`Lp`、`Lp::to_standard`）；两阶段单纯形求解器（`Lp::two_stage`、`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1`、`Lp::phase_2`）；容差 trait `ApproximatelyZero`。"
 
-#: manual/index.md:16
-msgid "All public names live in the single package at `src`. The [API reference](api/core.md) lists them, the [design notes](design/core.md) explain the model and the solver, and the [tutorial](tutorial/core.md) solves two small programs from start to finish."
-msgstr "所有公开名称都位于 `src` 下的唯一包中。[API 参考](api/core.md)列出了它们，[设计说明](design/core.md)解释了模型与求解器，[教程](tutorial/core.md)则从头到尾求解了两个小规模的线性规划。"
+#: manual/index.md:13
+msgid "[API](api/core.md)"
+msgstr "[API](api/core.md)"
+
+#: manual/index.md:13
+msgid "[Tutorial](tutorial/core.md)"
+msgstr "[教程](tutorial/core.md)"
+
+#: manual/index.md:13
+msgid "[Design](design/core.md)"
+msgstr "[设计](design/core.md)"
+
+#: manual/index.md:15
+msgid "Reading paths"
+msgstr "阅读路径"
+
+#: manual/index.md:17
+msgid "**New to linear programming.** Work through the [tutorial](tutorial/core.md): it solves a production problem, then a minimisation with `>=` constraints, then pivots a tableau by hand. Keep the [design notes](design/core.md) open for the meaning of standard form, reduced costs and the two phases."
+msgstr "**初学线性规划。** 学习[教程](tutorial/core.md)：它先求解一个生产问题，再求解一个含 `>=` 约束的最小化问题，最后手动在单纯形表上转轴。同时打开[设计说明](design/core.md)，查阅标准形、检验数和两个阶段的含义。"
 
 #: manual/index.md:18
-msgid "How to contribute"
-msgstr "如何参与贡献"
+msgid "**Using the solver.** The [tutorial](tutorial/core.md) quick start and its list of common pitfalls are enough to solve small programs. The [API reference](api/core.md) states the exact behaviour of every function, including what aborts."
+msgstr "**使用求解器。** [教程](tutorial/core.md)的快速入门和常见陷阱列表足以求解小型规划。[API 参考](api/core.md)说明了每个函数的确切行为，包括哪些情况会 abort。"
 
-#: manual/index.md:20
-msgid "We welcome contributions from the community, external developers, and individual enthusiasts! Whether you want to fix a bug, add a new feature, or improve the documentation, your participation is highly encouraged. To help you contribute smoothly, here are some simple steps:"
-msgstr "我们非常欢迎社区、外部开发者以及个人爱好者的贡献！无论你是想解决某个 bug、增加新功能，还是改进文档，都非常欢迎你的参与。为了帮助你顺利贡献，以下是一些简单的步骤："
+#: manual/index.md:19
+msgid "**Contributing.** Read the [design notes](design/core.md), especially the invariants and the known defects, then the [contribution guidelines](contributing.md)."
+msgstr "**参与贡献。** 阅读[设计说明](design/core.md)，尤其是其中的不变量和已知缺陷，然后阅读[贡献指南](contributing.md)。"
 
-#: manual/index.md:22
-msgid "Please choose a task from the current `issue` list that interests you. We recommend selecting something you are interested in or familiar with, as it will make it easier to get started and enjoy the process."
-msgstr "请从当前的`issue`列表中挑选一个你感兴趣的任务。我们建议选择自己有兴趣或熟悉的内容，这样你会更容易上手，也能享受其中的过程。"
+#: manual/index.md:21
+msgid "Toolchain and installation"
+msgstr "工具链与安装"
 
 #: manual/index.md:23
-msgid "Fork our project and create a new branch in your personal repository. This way, you can start working on your changes without affecting the main project."
-msgstr "Fork 我们的项目，并在你的个人仓库中创建一个新的分支。这样，你就可以在自己的分支上开始进行开发工作，而不会影响到主项目的进展。"
-
-#: manual/index.md:24
-msgid "During development, please adhere to the coding style and guidelines in the [contribution guidelines](contributing.md). If your changes involve new features or bug fixes, please make sure to perform thorough testing to ensure everything works as expected."
-msgstr "在编写代码过程中，请尽量遵循[贡献指南](contributing.md)中的代码风格和规范。如果你的修改涉及到新功能或修复 bug，请确保进行充分的测试，确保一切正常运行。"
+msgid "The library requires MoonBit with `moonc` 0.10 or newer and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
+msgstr "本库需要 `moonc` 0.10 或更新版本的 MoonBit，并依赖 `Luna-Flow/luna-generic` 0.3.3 与 `Luna-Flow/linear-algebra` 0.4.7。"
 
 #: manual/index.md:25
-msgid "Once you're done, submit your PR and provide a clear description of your changes to help us understand the modifications you've made. This will help us review and merge your code more quickly."
-msgstr "完成后，请提交你的 PR，并在提交时提供一个清晰的描述，帮助我们了解你所做的更改。这样有助于更快地进行代码审查和合并。"
-
-#: manual/index.md:26
-msgid "We will review your PR and may suggest improvements to ensure code quality. After approval, your contributions will be merged into the main branch."
-msgstr "我们会对你的 PR 进行审查，并可能会提出一些改进意见，这只是为了确保代码质量。待审查通过后，我们会将你的贡献合并到主分支中。"
+msgid "[!NOTE] The module is named `linear-program`, without the `Luna-Flow/` namespace, so it cannot be added from mooncakes under the Luna-Flow organisation. Add a checkout of the repository to the `members` of your `moon.work` and list `\"linear-program@0.1.0\"` in the `import` block of your `moon.mod`. The [tutorial](tutorial/core.md) shows the complete setup."
+msgstr "[!NOTE] 模块名为 `linear-program`，没有 `Luna-Flow/` 命名空间，因此无法以 Luna-Flow 组织的名义从 mooncakes 添加。请把仓库的本地检出加入 `moon.work` 的 `members`，并在 `moon.mod` 的 `import` 块中列出 `\"linear-program@0.1.0\"`。[教程](tutorial/core.md)给出了完整配置。"
 
 #: manual/index.md:28
-msgid "Thank you again for your participation and contributions! Every effort helps make this project better. We look forward to seeing your great code!"
-msgstr "再次感谢你的参与和贡献！每一份努力都能让这个项目变得更好。我们期待看到你的精彩代码！"
+msgid "Import the package in your `moon.pkg`:"
+msgstr "在 `moon.pkg` 中导入该包："
+
+#: manual/index.md:37
+msgid "Before opening a pull request, run `moon fmt`, `moon check --target all`, `moon info` and `moon test`, or the `ready_to_pr.sh` script."
+msgstr "提交 pull request 之前，请运行 `moon fmt`、`moon check --target all`、`moon info` 和 `moon test`，或运行 `ready_to_pr.sh` 脚本。"
 
 #: manual/tutorial/core.md:1
 msgid "core tutorial"
 msgstr "core 教程"
 
 #: manual/tutorial/core.md:3
-msgid "This tutorial solves two small linear programs: one written with coefficient arrays and one written as a matrix. The examples are taken from the tests in [`src/linequest.mbt`](../../../src/linequest.mbt) and run inside the package; from another package, prefix the names with the alias under which you import linear-program."
-msgstr "本教程求解两个小规模线性规划：一个用系数数组书写，另一个写成矩阵。示例取自 [`src/linequest.mbt`](../../../src/linequest.mbt) 中的测试，在包内部运行；若在其他包中使用，请在名称前加上导入 linear-program 时所用的别名。"
+msgid "This tutorial shows you how to write a linear program, bring it into standard form and solve it with the two-phase simplex method of linear-program. It starts with a two-variable production problem and ends with driving the simplex method by hand on a tableau. The mathematics behind each step is in the [design notes](../design/core.md)."
+msgstr "本教程介绍如何编写线性规划、将其化为标准形，并用 linear-program 的两阶段单纯形法求解。它从一个两变量的生产问题开始，最后在单纯形表上手动执行单纯形法。每一步背后的数学见[设计说明](../design/core.md)。"
 
 #: manual/tutorial/core.md:5
-msgid "Defining a program from arrays"
-msgstr "用数组定义线性规划"
+msgid "Quick start"
+msgstr "快速入门"
 
 #: manual/tutorial/core.md:7
-msgid "A program is defined in five steps:"
-msgstr "定义一个线性规划分为五步："
+msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace, and is not published on mooncakes under the Luna-Flow organisation yet. Use it from a local checkout: add the checkout, together with checkouts of its dependencies [luna-generic](https://lunaflow.cn/en/luna-generic/) and [linear-algebra](https://lunaflow.cn/en/linear-algebra/), to the `members` of your `moon.work`, and list it in the `import` block of your `moon.mod`:"
+msgstr "该模块名为 `linear-program`，没有 `Luna-Flow/` 命名空间，目前也尚未以 Luna-Flow 组织的名义发布到 mooncakes。请从本地检出使用：把该检出及其依赖 [luna-generic](https://lunaflow.cn/en/luna-generic/) 与 [linear-algebra](https://lunaflow.cn/en/linear-algebra/) 的检出加入 `moon.work` 的 `members`，并在 `moon.mod` 的 `import` 块中列出它："
 
-#: manual/tutorial/core.md:9
-msgid "define the variables;"
-msgstr "定义变量；"
+#: manual/tutorial/core.md:16
+msgid "Then import the package in your `moon.pkg`:"
+msgstr "然后在 `moon.pkg` 中导入该包："
 
-#: manual/tutorial/core.md:10
-msgid "define the objective function;"
-msgstr "定义目标函数；"
+#: manual/tutorial/core.md:26
+msgid "The smallest useful program maximises $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$, $x_1 + 3x_2 \\le 10$ and $x_1, x_2 \\ge 0$:"
+msgstr "最小的实用程序在 $2x_1 + x_2 \\le 12$、$x_1 + 3x_2 \\le 10$ 和 $x_1, x_2 \\ge 0$ 的约束下最大化 $3x_1 + 4x_2$："
 
-#: manual/tutorial/core.md:11
-msgid "define the equality constraints;"
-msgstr "定义等式约束；"
+#: manual/tutorial/core.md:41
+msgid "The optimum is $x_1 = 5.2$, $x_2 = 1.6$ with value $22$, up to rounding. The solution has four entries because `to_standard` adds one slack variable per inequality, and the value is negated because the standard form minimises $-3x_1 - 4x_2$."
+msgstr "最优解为 $x_1 = 5.2$、$x_2 = 1.6$，最优值为 $22$（忽略舍入误差）。解有四个分量，是因为 `to_standard` 为每个不等式添加了一个松弛变量；值取了负号，是因为标准形最小化的是 $-3x_1 - 4x_2$。"
 
-#: manual/tutorial/core.md:12
-msgid "define the inequality constraints;"
-msgstr "定义不等式约束；"
+#: manual/tutorial/core.md:43
+msgid "Everyday tasks"
+msgstr "日常任务"
 
-#: manual/tutorial/core.md:13
-msgid "combine them into a linear program."
-msgstr "将它们组合成一个线性规划。"
+#: manual/tutorial/core.md:45
+msgid "Write a program and read it back"
+msgstr "编写规划并读回"
 
-#: manual/tutorial/core.md:30
-msgid "Each equality row is `(coefficients, b)` and each inequality row is `(coefficients, relation, b)` with `\">=\"` or `\"<=\"` as the relation."
-msgstr "每个等式行为 `(coefficients, b)`，每个不等式行为 `(coefficients, relation, b)`，关系符为 `\">=\"` 或 `\"<=\"`。"
+#: manual/tutorial/core.md:47
+msgid "Variables carry a name and bounds; the objective carries a sense and coefficients; constraints are rows of coefficients. `Show` prints the program in the usual notation:"
+msgstr "变量带有名称和边界；目标函数带有优化方向和系数；约束是系数行。`Show` 以常见记法打印规划："
 
-#: manual/tutorial/core.md:32
-msgid "Solving a maximisation problem"
-msgstr "求解最大化问题"
+#: manual/tutorial/core.md:75
+msgid "An equality row is `(coefficients, b)`; an inequality row is `(coefficients, relation, b)` with the relation written exactly as `\">=\"` or `\"<=\"`. The `nonneg` helper is used by the remaining examples."
+msgstr "等式行为 `(coefficients, b)`；不等式行为 `(coefficients, relation, b)`，关系必须恰好写作 `\">=\"` 或 `\"<=\"`。后续示例都会用到辅助函数 `nonneg`。"
 
-#: manual/tutorial/core.md:34
-msgid "Maximise $3x_1 + 4x_2$ subject to $2x_1 + x_2 \\le 12$ and $x_1 + 3x_2 \\le 10$:"
-msgstr "在 $2x_1 + x_2 \\le 12$ 与 $x_1 + 3x_2 \\le 10$ 的约束下最大化 $3x_1 + 4x_2$："
+#: manual/tutorial/core.md:77
+msgid "Bring a program into standard form"
+msgstr "将规划化为标准形"
 
-#: manual/tutorial/core.md:51
-msgid "`to_standard` adds the slack variables `y1` and `y2`, so the solution has four entries: $x_1 = 5.2$, $x_2 = 1.6$ and both slacks zero. The standard form minimises $-3x_1 - 4x_2$, so the maximum of the original objective is the negated value, $22$."
-msgstr "`to_standard` 添加了松弛变量 `y1` 与 `y2`，因此解有四个分量：$x_1 = 5.2$、$x_2 = 1.6$，两个松弛变量均为零。标准形最小化的是 $-3x_1 - 4x_2$，所以原目标的最大值是返回值取负，即 $22$。"
+#: manual/tutorial/core.md:79
+msgid "The solver works on $\\min c^\\top x$ subject to $Ax = b$, $b \\ge 0$, $x \\ge 0$. `to_standard` produces it, and the accessors return $c$, $A$ and $b$:"
+msgstr "求解器处理的是在 $Ax = b$、$b \\ge 0$、$x \\ge 0$ 约束下的 $\\min c^\\top x$。`to_standard` 生成这种形式，访问函数返回 $c$、$A$ 和 $b$："
 
-#: manual/tutorial/core.md:53
-msgid "Defining a program as a matrix"
-msgstr "用矩阵定义线性规划"
+#: manual/tutorial/core.md:102
+msgid "Each `>=` row received a surplus variable with coefficient $-1$, so $2x_1 + x_2 \\ge 12$ became $2x_1 + x_2 - y_1 = 12$ with $y_1 \\ge 0$."
+msgstr "每个 `>=` 行都获得了一个系数为 $-1$ 的剩余变量，因此 $2x_1 + x_2 \\ge 12$ 变成了 $2x_1 + x_2 - y_1 = 12$，且 $y_1 \\ge 0$。"
 
-#: manual/tutorial/core.md:55
-msgid "When every constraint is an equality, the whole program fits in one matrix. Row 0 holds the objective coefficients and every other row holds the coefficients and the right-hand side of one constraint. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
-msgstr "当所有约束都是等式时，整个线性规划可以写进一个矩阵。第 0 行存放目标函数系数，其余每行存放一个约束的系数与右端项。下面的线性规划在 $x_1 + 2x_2 + 3x_3 = 10$ 与 $2x_1 + x_2 + x_3 = 8$ 的约束下最小化 $-x_1 - 2x_2 - 3x_3$："
+#: manual/tutorial/core.md:104
+msgid "Solve a minimisation problem"
+msgstr "求解最小化问题"
 
-#: manual/tutorial/core.md:74
-msgid "The result is the pair of the variable values and the optimal value: $x = (2, 4, 0)$ with minimum $-10$, up to rounding."
-msgstr "结果是变量取值与最优值组成的二元组：在舍入误差范围内，$x = (2, 4, 0)$，最小值为 $-10$。"
+#: manual/tutorial/core.md:106
+msgid "A minimisation problem needs no sign change: the returned value is the minimum."
+msgstr "最小化问题不需要变号：返回值就是最小值。"
 
-#: manual/tutorial/core.md:76
+#: manual/tutorial/core.md:119
+msgid "No slack column is a unit column here, so phase 1 adds two artificial variables, drives them to zero, and phase 2 then minimises the real objective from the feasible point phase 1 found."
+msgstr "这里没有任何松弛列是单位列，因此第一阶段添加两个人工变量并将其驱动到零，随后第二阶段从第一阶段找到的可行点出发最小化真正的目标。"
+
+#: manual/tutorial/core.md:121
+msgid "Write a program with equality constraints as a matrix"
+msgstr "用矩阵编写含等式约束的规划"
+
+#: manual/tutorial/core.md:123
+msgid "When every constraint is an equality, the whole program fits in one matrix: row 0 holds the objective coefficients and every further row holds one constraint $[a_i \\mid b_i]$. This program minimises $-x_1 - 2x_2 - 3x_3$ subject to $x_1 + 2x_2 + 3x_3 = 10$ and $2x_1 + x_2 + x_3 = 8$:"
+msgstr "当所有约束都是等式时，整个规划可以放进一个矩阵：第 0 行存放目标系数，其后每行存放一个约束 $[a_i \\mid b_i]$。下面的规划在 $x_1 + 2x_2 + 3x_3 = 10$ 与 $2x_1 + x_2 + x_3 = 8$ 的约束下最小化 $-x_1 - 2x_2 - 3x_3$："
+
+#: manual/tutorial/core.md:150
+msgid "The optimum is $x = (2, 4, 0)$ with value $-10$. The last entry of row 0 is ignored by `from_matrix`."
+msgstr "最优解为 $x = (2, 4, 0)$，最优值为 $-10$。`from_matrix` 会忽略第 0 行的最后一项。"
+
+#: manual/tutorial/core.md:152
+msgid "Build expressions term by term"
+msgstr "逐项构造表达式"
+
+#: manual/tutorial/core.md:154
+msgid "`Poly` and `Obj_func` can also be built one term at a time, which is convenient when coefficients come from data:"
+msgstr "`Poly` 与 `Obj_func` 也可以逐项构造，这在系数来自数据时很方便："
+
+#: manual/tutorial/core.md:171
+msgid "`add_term_inplace` adds to an existing coefficient, so `x1` ends with $3 + 1 = 4$."
+msgstr "`add_term_inplace` 会累加到已有系数上，因此 `x1` 最终为 $3 + 1 = 4$。"
+
+#: manual/tutorial/core.md:173
+msgid "Going further"
+msgstr "进阶"
+
+#: manual/tutorial/core.md:175
+msgid "Drive the simplex method by hand"
+msgstr "手动执行单纯形法"
+
+#: manual/tutorial/core.md:177
+msgid "The steps of `two_stage` are public. When a program is already in canonical form, for example because every constraint is `<=` with $b \\ge 0$ and the slack columns form an identity, you can write the tableau yourself and pivot on it. Row 0 holds the reduced costs and $-z$:"
+msgstr "`two_stage` 的各个步骤都是公开的。当规划已经处于典范形式时（例如所有约束都是 $b \\ge 0$ 的 `<=`，且松弛列构成单位矩阵），你可以自己写出单纯形表并在其上转轴。第 0 行存放检验数和 $-z$："
+
+#: manual/tutorial/core.md:203
+msgid "After the first pivot the objective has improved from $0$ to $40/3$; the remaining negative reduced cost of $x_1$ says that one more pivot improves it further, to $22$. Pass `debug=true` to `simplex_iteration` to print every pivot."
+msgstr "第一次转轴之后，目标从 $0$ 改进到 $40/3$；$x_1$ 仍有负的检验数，说明再转轴一次可以进一步改进到 $22$。向 `simplex_iteration` 传入 `debug=true` 可以打印每次转轴。"
+
+#: manual/tutorial/core.md:205
+msgid "Use another coefficient type"
+msgstr "使用其他系数类型"
+
+#: manual/tutorial/core.md:207
+msgid "Every function is generic in the coefficient type `V`. The solver needs `Zero`, `One`, `Compare`, the arithmetic operators, `Show` and `ApproximatelyZero`. To use your own exact number type, implement those traits for it, including the tolerance trait, which for an exact type is plain equality with zero:"
+msgstr "每个函数都在系数类型 `V` 上泛型。求解器需要 `Zero`、`One`、`Compare`、算术运算符、`Show` 和 `ApproximatelyZero`。要使用自己的精确数类型，请为其实现这些 trait，包括容差 trait；对精确类型而言，它就是与零的普通相等比较："
+
+#: manual/tutorial/core.md:215
+msgid "With exact arithmetic the solver returns exact results and the tolerance never matters."
+msgstr "使用精确算术时，求解器返回精确结果，容差也就无关紧要。"
+
+#: manual/tutorial/core.md:217
+msgid "Check the result yourself"
+msgstr "自行检查结果"
+
+#: manual/tutorial/core.md:219
+msgid "`two_stage` aborts on infeasible and unbounded programs instead of returning an error, so validate the input before calling it when the program comes from user data. After solving, substitute the solution back into the constraints of the standard form to confirm feasibility:"
+msgstr "`two_stage` 遇到不可行和无界的规划时会 abort 而不是返回错误，因此当规划来自用户数据时，请在调用前验证输入。求解之后，把解代回标准形的约束以确认可行性："
+
+#: manual/tutorial/core.md:240
+msgid "Common pitfalls"
+msgstr "常见陷阱"
+
+#: manual/tutorial/core.md:242
+msgid "**The returned value belongs to the standard form.** `to_standard` turns every program into a minimisation, so for a maximisation problem negate the value returned by `two_stage`."
+msgstr "**返回值属于标准形。** `to_standard` 把每个规划都变成最小化问题，因此对于最大化问题，请对 `two_stage` 的返回值取负。"
+
+#: manual/tutorial/core.md:243
+msgid "**The solution includes slack variables.** Its length is the number of variables of the standard form; your own variables come first, in declaration order."
+msgstr "**解包含松弛变量。** 其长度是标准形的变量个数；你自己的变量按声明顺序排在最前面。"
+
+#: manual/tutorial/core.md:244
+msgid "**Objective coefficients must line up.** Because of a known defect, the objective row is filled from the non-zero coefficients in the order of the variable names. Give every variable a non-zero objective coefficient and declare variables in name order (`x1`, `x2`, ..., not `x2` before `x10`), or the solver optimises a different objective."
+msgstr "**目标系数必须对齐。** 由于一个已知缺陷，目标行是按变量名顺序由非零系数填充的。请给每个变量一个非零目标系数，并按名称顺序声明变量（`x1`、`x2`……，不要把 `x2` 放在 `x10` 之前），否则求解器会优化另一个目标。"
+
+#: manual/tutorial/core.md:245
+msgid "**Bounds are not enforced.** `Variable::new(\"x\", 0.0, 100.0)` stores the bound $100$, but the solver only assumes $x \\ge 0$. Add an explicit constraint `([1.0, ...], \"<=\", 100.0)` for an upper bound."
+msgstr "**边界不会被实施。** `Variable::new(\"x\", 0.0, 100.0)` 保存了上界 $100$，但求解器只假定 $x \\ge 0$。如需上界，请显式添加约束 `([1.0, ...], \"<=\", 100.0)`。"
+
+#: manual/tutorial/core.md:246
+msgid "**Infeasible and unbounded programs abort.** There is no `Result` to inspect."
+msgstr "**不可行和无界的规划会 abort。** 没有可供检查的 `Result`。"
+
+#: manual/tutorial/core.md:247
+msgid "**Use `Double` coefficients.** `Int` satisfies the trait bounds, but integer division truncates, so pivoting on `Int` gives wrong results."
+msgstr "**使用 `Double` 系数。** `Int` 满足 trait 约束，但整数除法会截断，因此在 `Int` 上转轴会得到错误结果。"
+
+#: manual/tutorial/core.md:248
+msgid "**Tolerance is absolute.** Phase 2 treats $|x| < 10^{-15}$ as zero. For programs with large coefficients, rounding errors can exceed this threshold and an infeasibility can be reported for a feasible program; rescale the rows so that coefficients are of moderate size."
+msgstr "**容差是绝对的。** 第二阶段把 $|x| < 10^{-15}$ 视为零。对于系数较大的规划，舍入误差可能超过该阈值，可行的规划可能被报告为不可行；请缩放各行，使系数大小适中。"
+
+#: manual/tutorial/core.md:249
+msgid "**Do not name variables `y1`, `y2`, ...** `to_standard` uses these names for slack variables, and variables are identified by name."
+msgstr "**不要把变量命名为 `y1`、`y2`……** `to_standard` 用这些名称表示松弛变量，而变量是按名称识别的。"
+
+#: manual/tutorial/core.md:251
 msgid "Next steps"
 msgstr "下一步"
 
-#: manual/tutorial/core.md:78
-msgid "The [API reference](../api/core.md) lists every function used here and the lower-level steps `Lp::phase_1`, `Lp::phase_2` and `Lp::simplex_iteration`. The [design notes](../design/core.md) explain the standard form and the two phases."
-msgstr "[API 参考](../api/core.md)列出了这里用到的所有函数，以及较底层的步骤 `Lp::phase_1`、`Lp::phase_2` 和 `Lp::simplex_iteration`。[设计说明](../design/core.md)解释了标准形与两个阶段。"
+#: manual/tutorial/core.md:253
+msgid "The [API reference](../api/core.md) documents every type and function, including `Lp::phase_1` and `Lp::phase_2`."
+msgstr "[API 参考](../api/core.md)记录了每个类型和函数，包括 `Lp::phase_1` 与 `Lp::phase_2`。"
+
+#: manual/tutorial/core.md:254
+msgid "The [design notes](../design/core.md) derive the standard form, the optimality and unboundedness tests and the two phases."
+msgstr "[设计说明](../design/core.md)推导了标准形、最优性与无界性判据以及两个阶段。"
+
+#: manual/tutorial/core.md:255
+msgid "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) provides the `Matrix` type used for tableaux, and [luna-generic](https://lunaflow.cn/en/luna-generic/) the traits that bound the coefficient type."
+msgstr "[linear-algebra](https://lunaflow.cn/en/linear-algebra/) 提供了用于单纯形表的 `Matrix` 类型，[luna-generic](https://lunaflow.cn/en/luna-generic/) 提供了约束系数类型的 trait。"
+
+#~ msgid "The package at `src` is the whole public surface of linear-program. Its interface file is [`src/linear-program.mbti`](../../../src/linear-program.mbti). The coefficient type `V` is generic; the solver needs the traits listed in each signature, and `Double` satisfies all of them."
+#~ msgstr "`src` 下的包构成了 linear-program 的全部公开接口，其接口文件为 [`src/linear-program.mbti`](../../../src/linear-program.mbti)。系数类型 `V` 是泛型的；求解器需要各签名中列出的 trait，`Double` 满足所有这些 trait。"
+
+#~ msgid "`Variable::new(name, low, up)` creates a variable. Two variables are equal when their names are equal, and they are ordered by name. `Show` prints the name; `show_all` prints the name with its bounds, for example `x1 : [0, 100]`. `One::one()` is the unnamed variable that `Poly::from_var_array` uses for a constant term."
+#~ msgstr "`Variable::new(name, low, up)` 创建一个变量。两个变量的名称相同即视为相等，并按名称排序。`Show` 输出名称；`show_all` 输出名称及其上下界，例如 `x1 : [0, 100]`。`One::one()` 是一个无名变量，`Poly::from_var_array` 用它表示常数项。"
+
+#~ msgid "The bounds are stored and printed, but the solver does not read them: every variable is treated as non-negative. `Lp::to_standard` names the variables it adds `y1`, `y2`, ..., so do not use these names for your own variables."
+#~ msgstr "上下界会被保存并输出，但求解器并不读取它们：所有变量都按非负处理。`Lp::to_standard` 会把它添加的变量命名为 `y1`、`y2`、……，因此请勿将这些名称用于自己的变量。"
+
+#~ msgid "Function"
+#~ msgstr "函数"
+
+#~ msgid "Meaning"
+#~ msgstr "含义"
+
+#~ msgid "The empty expression."
+#~ msgstr "空表达式。"
+
+#~ msgid "Adds `coeff` to the coefficient of `var` and removes the term when the sum is zero."
+#~ msgstr "将 `coeff` 加到 `var` 的系数上，和为零时删除该项。"
+
+#~ msgid "The stored coefficients in the order of the variable names."
+#~ msgstr "按变量名称顺序排列的已存储系数。"
+
+#~ msgid "One coefficient per entry of `vars`, with zero for a variable that does not occur."
+#~ msgstr "`vars` 中每一项对应一个系数，未出现的变量记为零。"
+
+#~ msgid "`Show` prints an expression such as `3.5x1 + 1.5x2 + -2x3`, and `-poly` negates every coefficient."
+#~ msgstr "`Show` 输出形如 `3.5x1 + 1.5x2 + -2x3` 的表达式，`-poly` 对每个系数取负。"
+
+#~ msgid "`true` for a maximisation objective."
+#~ msgstr "最大化目标时为 `true`。"
+
+#~ msgid "The coefficients of `to_array`, padded with zeros to length `n + 1`, the width of a tableau row."
+#~ msgstr "`to_array` 的系数，用零补齐到长度 `n + 1`，即单纯形表一行的宽度。"
+
+#~ msgid "`Show` prints the sense and the expression, for example `max  3.5x1 + 1.5x2 + -2x3`."
+#~ msgstr "`Show` 输出方向与表达式，例如 `max  3.5x1 + 1.5x2 + -2x3`。"
+
+#~ msgid "The empty set."
+#~ msgstr "空集合。"
+
+#~ msgid "Appends `poly = b`."
+#~ msgstr "追加 `poly = b`。"
+
+#~ msgid "Appends `poly relation b`; `relation` should be `\">=\"` or `\"<=\"`."
+#~ msgstr "追加 `poly relation b`；`relation` 应为 `\">=\"` 或 `\"<=\"`。"
+
+#~ msgid "Replaces the equality at the 1-based position `i`; aborts when `i` is out of range."
+#~ msgstr "替换从 1 开始计数的第 `i` 个等式；`i` 越界时中止。"
+
+#~ msgid "Replaces the inequality at the 1-based position `i`; aborts when `i` is out of range."
+#~ msgstr "替换从 1 开始计数的第 `i` 个不等式；`i` 越界时中止。"
+
+#~ msgid "`Show` prints the set after `s.t.`, one constraint per line."
+#~ msgstr "`Show` 在 `s.t.` 之后输出约束集合，每行一个约束。"
+
+#~ msgid "Every function returns a new program and leaves its argument unchanged."
+#~ msgstr "每个函数都返回一个新的线性规划，不修改其参数。"
+
+#~ msgid "A program with objective `obj`, variables `vars` and no constraints."
+#~ msgstr "目标函数为 `obj`、变量为 `vars` 且没有约束的线性规划。"
+
+#~ msgid "The program with its constraints replaced, as in `Constraint::from_array`."
+#~ msgstr "约束被替换后的线性规划，替换方式同 `Constraint::from_array`。"
+
+#~ msgid "The program with new objective coefficients and the same sense."
+#~ msgstr "目标函数系数更新而方向不变的线性规划。"
+
+#~ msgid "A program from a matrix: row 0 without its last entry gives the objective, every other row `[a..., b]` gives the equality `a · x = b`."
+#~ msgstr "由矩阵构造的线性规划：去掉最后一项的第 0 行给出目标函数，其余每行 `[a..., b]` 给出等式 `a · x = b`。"
+
+#~ msgid "The equivalent program in standard form: a minimisation objective, equality constraints only, and non-negative right-hand sides. Each inequality receives a slack or surplus variable `y1`, `y2`, ... appended to the variables."
+#~ msgstr "等价的标准形线性规划：最小化目标、仅含等式约束、右端项非负。每个不等式会得到一个松弛或剩余变量 `y1`、`y2`、……，并追加到变量列表末尾。"
+
+#~ msgid "The constraint coefficients $A$ of the program matrix."
+#~ msgstr "规划矩阵中的约束系数 $A$。"
+
+#~ msgid "Row 0 of the program matrix without its last entry."
+#~ msgstr "规划矩阵去掉最后一项的第 0 行。"
+
+#~ msgid "The right-hand sides $b$ of the program matrix."
+#~ msgstr "规划矩阵的右端项 $b$。"
+
+#~ msgid "`Lp::phase_1` and `Lp::phase_2`"
+#~ msgstr "`Lp::phase_1` 与 `Lp::phase_2`"
+
+#~ msgid "`Lp::phase_2(vars, objective, tableau)` drops the artificial columns of the phase 1 tableau, restores the original `objective`, runs `simplex_iteration` again and returns the basic solution with the value in the objective row. It aborts when phase 1 did not reach zero, because the program then has no feasible solution."
+#~ msgstr "`Lp::phase_2(vars, objective, tableau)` 去掉第一阶段单纯形表中的人工变量列，恢复原目标 `objective`，再次运行 `simplex_iteration`，并返回基本解以及目标行中的值。若第一阶段未达到零，则说明线性规划没有可行解，此时中止。"
+
+#~ msgid "`ApproximatelyZero` decides whether a value is zero for the purposes of the solver."
+#~ msgstr "`ApproximatelyZero` 判定一个值在求解器看来是否为零。"
+
+#~ msgid "Representation"
+#~ msgstr "表示"
+
+#~ msgid "A program is described twice. The symbolic description is an objective (`Obj_func`) and a constraint set (`Constraint`), both built from linear expressions (`Poly`) over named variables. The numeric description is the program matrix: row 0 holds the objective coefficients, every other row holds one equality constraint, and the last column holds the right-hand sides."
+#~ msgstr "一个线性规划有两种描述。符号描述由目标函数（`Obj_func`）和约束集合（`Constraint`）组成，二者都由具名变量上的线性表达式（`Poly`）构成。数值描述是规划矩阵：第 0 行存放目标函数系数，其余每行存放一个等式约束，最后一列存放右端项。"
+
+#~ msgid "Every function that builds an `Lp` rebuilds the matrix from the symbolic description, and `Lp::from_matrix` goes the other way. A program can therefore be written either way and printed in readable form with `Show`."
+#~ msgstr "每个构造 `Lp` 的函数都会根据符号描述重建矩阵，而 `Lp::from_matrix` 则反向进行。因此，线性规划可以用任一种方式书写，并能通过 `Show` 以可读形式输出。"
+
+#~ msgid "A linear expression is a sorted map from variables to coefficients. Variables are identified and ordered by name alone, and zero coefficients are never stored, so adding a term that cancels an existing one removes it."
+#~ msgstr "线性表达式是从变量到系数的有序映射。变量仅凭名称识别和排序，零系数从不保存，因此添加一个与已有项相消的项会将其删除。"
+
+#~ msgid "Standard form"
+#~ msgstr "标准形"
+
+#~ msgid "The solver works on the standard form"
+#~ msgstr "求解器作用于标准形"
+
+#~ msgid "`Lp::to_standard` produces it: a maximisation objective is negated, a constraint with a negative right-hand side is multiplied by $-1$, and every inequality receives its own slack or surplus variable, named `y1`, `y2`, ... in order. Variable bounds are kept for display, but the standard form assumes $x \\ge 0$ for every variable."
+#~ msgstr "`Lp::to_standard` 负责生成标准形：最大化目标取负，右端项为负的约束乘以 $-1$，每个不等式各自获得一个松弛或剩余变量，依次命名为 `y1`、`y2`、……。变量的上下界仅用于显示，标准形对每个变量都假定 $x \\ge 0$。"
+
+#~ msgid "Two-phase simplex"
+#~ msgstr "两阶段单纯形法"
+
+#~ msgid "`Lp::two_stage` solves the standard form in two phases on a dense tableau."
+#~ msgstr "`Lp::two_stage` 在稠密单纯形表上分两个阶段求解标准形。"
+
+#~ msgid "Phase 1 adds an artificial variable to every row that has no unit column yet and minimises the sum of the artificial variables (`Lp::phase_1`). A non-zero optimum means that the program is infeasible."
+#~ msgstr "第一阶段为每个尚无单位列的行添加一个人工变量，并最小化人工变量之和（`Lp::phase_1`）。最优值非零意味着线性规划不可行。"
+
+#~ msgid "Phase 2 drops the artificial columns, restores the original objective, eliminates the basic columns from the objective row and runs the simplex method again (`Lp::phase_2`)."
+#~ msgstr "第二阶段去掉人工变量列，恢复原目标函数，从目标行中消去基变量列，并再次运行单纯形法（`Lp::phase_2`）。"
+
+#~ msgid "Both phases use `Lp::simplex_iteration`: Dantzig's rule picks the column with the most negative objective coefficient, the minimum ratio test picks the row, and `Lp::pivot` performs a Gauss–Jordan step. The steps are public so that a tableau can be examined or driven by hand."
+#~ msgstr "两个阶段都使用 `Lp::simplex_iteration`：Dantzig 规则选取目标系数最负的列，最小比值检验选取行，`Lp::pivot` 执行一步 Gauss–Jordan 消元。这些步骤都是公开的，便于检查单纯形表或手动推进求解。"
+
+#~ msgid "Floating-point tableaux rarely produce exact zeros, so phase 2 compares values with `ApproximatelyZero`, which treats a `Double` below $10^{-15}$ in absolute value as zero."
+#~ msgstr "浮点单纯形表很少产生精确的零，因此第二阶段使用 `ApproximatelyZero` 比较数值，它把绝对值小于 $10^{-15}$ 的 `Double` 视为零。"
+
+#~ msgid "The tableau is dense; the package does not exploit sparsity."
+#~ msgstr "单纯形表是稠密的；本包不利用稀疏性。"
+
+#~ msgid "Integer and mixed-integer programming are out of scope."
+#~ msgstr "整数规划与混合整数规划不在本包范围内。"
+
+#~ msgid "Introduction"
+#~ msgstr "简介"
+
+#~ msgid "Features"
+#~ msgstr "功能"
+
+#~ msgid "Decision variables, linear expressions, objective functions and constraints (`Variable`, `Poly`, `Obj_func`, `Constraint`)."
+#~ msgstr "决策变量、线性表达式、目标函数与约束（`Variable`、`Poly`、`Obj_func`、`Constraint`）。"
+
+#~ msgid "Programs built from coefficient arrays (`Lp::new`, `Lp::cons_from_Array`) or from a coefficient matrix (`Lp::from_matrix`)."
+#~ msgstr "由系数数组（`Lp::new`、`Lp::cons_from_Array`）或系数矩阵（`Lp::from_matrix`）构造线性规划。"
+
+#~ msgid "Conversion to standard form with slack and surplus variables (`Lp::to_standard`)."
+#~ msgstr "借助松弛变量与剩余变量转换为标准形（`Lp::to_standard`）。"
+
+#~ msgid "A two-phase simplex solver (`Lp::two_stage`) whose steps are also public: `Lp::pivot`, `Lp::simplex_iteration`, `Lp::phase_1` and `Lp::phase_2`."
+#~ msgstr "两阶段单纯形求解器（`Lp::two_stage`），其各个步骤同样公开：`Lp::pivot`、`Lp::simplex_iteration`、`Lp::phase_1` 与 `Lp::phase_2`。"
+
+#~ msgid "All public names live in the single package at `src`. The [API reference](api/core.md) lists them, the [design notes](design/core.md) explain the model and the solver, and the [tutorial](tutorial/core.md) solves two small programs from start to finish."
+#~ msgstr "所有公开名称都位于 `src` 下的唯一包中。[API 参考](api/core.md)列出了它们，[设计说明](design/core.md)解释了模型与求解器，[教程](tutorial/core.md)则从头到尾求解了两个小规模的线性规划。"
+
+#~ msgid "How to contribute"
+#~ msgstr "如何参与贡献"
+
+#~ msgid "We welcome contributions from the community, external developers, and individual enthusiasts! Whether you want to fix a bug, add a new feature, or improve the documentation, your participation is highly encouraged. To help you contribute smoothly, here are some simple steps:"
+#~ msgstr "我们非常欢迎社区、外部开发者以及个人爱好者的贡献！无论你是想解决某个 bug、增加新功能，还是改进文档，都非常欢迎你的参与。为了帮助你顺利贡献，以下是一些简单的步骤："
+
+#~ msgid "Please choose a task from the current `issue` list that interests you. We recommend selecting something you are interested in or familiar with, as it will make it easier to get started and enjoy the process."
+#~ msgstr "请从当前的`issue`列表中挑选一个你感兴趣的任务。我们建议选择自己有兴趣或熟悉的内容，这样你会更容易上手，也能享受其中的过程。"
+
+#~ msgid "Fork our project and create a new branch in your personal repository. This way, you can start working on your changes without affecting the main project."
+#~ msgstr "Fork 我们的项目，并在你的个人仓库中创建一个新的分支。这样，你就可以在自己的分支上开始进行开发工作，而不会影响到主项目的进展。"
+
+#~ msgid "During development, please adhere to the coding style and guidelines in the [contribution guidelines](contributing.md). If your changes involve new features or bug fixes, please make sure to perform thorough testing to ensure everything works as expected."
+#~ msgstr "在编写代码过程中，请尽量遵循[贡献指南](contributing.md)中的代码风格和规范。如果你的修改涉及到新功能或修复 bug，请确保进行充分的测试，确保一切正常运行。"
+
+#~ msgid "Once you're done, submit your PR and provide a clear description of your changes to help us understand the modifications you've made. This will help us review and merge your code more quickly."
+#~ msgstr "完成后，请提交你的 PR，并在提交时提供一个清晰的描述，帮助我们了解你所做的更改。这样有助于更快地进行代码审查和合并。"
+
+#~ msgid "We will review your PR and may suggest improvements to ensure code quality. After approval, your contributions will be merged into the main branch."
+#~ msgstr "我们会对你的 PR 进行审查，并可能会提出一些改进意见，这只是为了确保代码质量。待审查通过后，我们会将你的贡献合并到主分支中。"
+
+#~ msgid "Thank you again for your participation and contributions! Every effort helps make this project better. We look forward to seeing your great code!"
+#~ msgstr "再次感谢你的参与和贡献！每一份努力都能让这个项目变得更好。我们期待看到你的精彩代码！"
+
+#~ msgid "This tutorial solves two small linear programs: one written with coefficient arrays and one written as a matrix. The examples are taken from the tests in [`src/linequest.mbt`](../../../src/linequest.mbt) and run inside the package; from another package, prefix the names with the alias under which you import linear-program."
+#~ msgstr "本教程求解两个小规模线性规划：一个用系数数组书写，另一个写成矩阵。示例取自 [`src/linequest.mbt`](../../../src/linequest.mbt) 中的测试，在包内部运行；若在其他包中使用，请在名称前加上导入 linear-program 时所用的别名。"
+
+#~ msgid "Defining a program from arrays"
+#~ msgstr "用数组定义线性规划"
+
+#~ msgid "A program is defined in five steps:"
+#~ msgstr "定义一个线性规划分为五步："
+
+#~ msgid "define the variables;"
+#~ msgstr "定义变量；"
+
+#~ msgid "define the objective function;"
+#~ msgstr "定义目标函数；"
+
+#~ msgid "define the equality constraints;"
+#~ msgstr "定义等式约束；"
+
+#~ msgid "define the inequality constraints;"
+#~ msgstr "定义不等式约束；"
+
+#~ msgid "combine them into a linear program."
+#~ msgstr "将它们组合成一个线性规划。"
+
+#~ msgid "Solving a maximisation problem"
+#~ msgstr "求解最大化问题"
+
+#~ msgid "The result is the pair of the variable values and the optimal value: $x = (2, 4, 0)$ with minimum $-10$, up to rounding."
+#~ msgstr "结果是变量取值与最优值组成的二元组：在舍入误差范围内，$x = (2, 4, 0)$，最小值为 $-10$。"
+
+#~ msgid "The [API reference](../api/core.md) lists every function used here and the lower-level steps `Lp::phase_1`, `Lp::phase_2` and `Lp::simplex_iteration`. The [design notes](../design/core.md) explain the standard form and the two phases."
+#~ msgstr "[API 参考](../api/core.md)列出了这里用到的所有函数，以及较底层的步骤 `Lp::phase_1`、`Lp::phase_2` 和 `Lp::simplex_iteration`。[设计说明](../design/core.md)解释了标准形与两个阶段。"
 
 #~ msgid "Table of Contents"
 #~ msgstr "目录"
@@ -845,9 +1528,6 @@ msgstr "[API 参考](../api/core.md)列出了这里用到的所有函数，以�
 
 #~ msgid "If the module is intentionally incomplete, say so here instead of documenting speculative APIs."
 #~ msgstr "如果模块仍然不完整，也要明确写出，不要伪造未来 API。"
-
-#~ msgid "Contents"
-#~ msgstr "目录"
 
 #, fuzzy
 #~ msgid "[Introduction](#introduction)"
