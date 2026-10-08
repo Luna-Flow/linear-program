@@ -3,7 +3,7 @@ name = "linear-program"
 version = "0.1.0"
 
 import {
-  "Luna-Flow/luna-generic@0.3.3",
+  "Luna-Flow/luna-generic@0.4.0",
   "Luna-Flow/linear-algebra@0.4.7",
 }
 
