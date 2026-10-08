@@ -7,7 +7,7 @@ All notable changes to this project are documented in this file.
 ### Changed
 
 - Migrated to MoonBit 0.10 (`moonc` 0.10 or newer is required).
-- Dependencies bumped from `Luna-Flow/luna-generic` 0.2.0-alpha-1 and `Luna-Flow/linear-algebra` 0.1.5-beta-1 to `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7.
+- Dependencies bumped from `Luna-Flow/luna-generic` 0.2.0-alpha-1 and `Luna-Flow/linear-algebra` 0.1.5-beta-1 to `Luna-Flow/luna-generic` 0.4.0 and `Luna-Flow/linear-algebra` 0.4.7. The package uses only `Zero`, `One` and `Semiring` from luna-generic, so nothing deprecated in luna-generic 0.4.0 is used and no code change is needed.
 - The manifests moved from `moon.mod.json` and `moon.pkg.json` to the `moon.mod` and `moon.pkg` formats.
 - The interface file is now `src/pkg.generated.mbti`; the stale `src/linear-program.mbti` was removed.
 - `typealias` and `traitalias` declarations were replaced by `using` imports, and `Poly` is now a struct wrapping a `SortedMap`. The public API is unchanged apart from the points below.
