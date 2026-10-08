@@ -51,7 +51,8 @@ MoonBit toolchain with `moonc` 0.10 or newer. Dependencies: `Luna-Flow/luna-gene
 ## Documentation
 
 - Online manual (English, Chinese, Japanese): <https://lunaflow.cn/en/linear-program/>
-- English source: [`doc/manual/index.md`](doc/manual/index.md), with API, tutorial and design pages.
+- English source: [`doc/manual/index.md`](doc/manual/index.md), with the [tutorial](doc/manual/tutorial/core.md), the [API reference](doc/manual/api/core.md) and the [design notes](doc/manual/design/core.md).
+- The solver has known defects that can return a wrong optimum, a point that violates a constraint or a false "unbounded"; the API reference lists them with examples. Check every solution against the constraints.
 - Changes between versions: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Contributing

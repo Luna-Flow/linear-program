@@ -22,6 +22,8 @@ All notable changes to this project are documented in this file.
 - Documentation rewritten (API, tutorial and design pages for `core`, and the manual overview) with zh_CN and ja_JP translations. The design notes derive the standard form, reduced costs, the optimality and unboundedness tests and the two phases, and list known defects of the solver.
 - Fixed the API page link to the interface file.
 - The README describes the current version only.
+- The manual follows the luna-generic layout (overview with Install, Pages, exported items and reading paths; API Purpose and Importing; tutorial task table; design Constraints).
+- Logic review of the manual against the code. `ApproximatelyZero` is read-only outside the package, so the tutorial no longer shows a custom coefficient type. Newly documented defects, each reproduced: an artificial variable left basic after phase 1 makes phase 2 return a point that violates a constraint or abort as unbounded; a starting unit column with a non-zero cost leaves row 0 non-canonical and can abort as unbounded; Beale's example cycles until the iteration limit. The design notes derive why each defect breaks the ratio or the stopping test.
 
 ## 0.1.0
 
