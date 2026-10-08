@@ -5,14 +5,17 @@ struct Constraint[V] {
 }
 
 ///|
-pub impl[V : Show + Eq + Semiring] Show for Constraint[V] with output(self, l) {
+pub impl[V : Show + Eq + Semiring] Show for Constraint[V] with fn output(
+  self,
+  l,
+) {
   l.write_string("s.t. ")
   for x in self.eq_poly {
     l
     ..write_object(x.0)
     ..write_string(" = ")
     ..write_object(x.1)
-    ..write_string("\n     ")
+    .write_string("\n     ")
   }
   for x in self.ineq_poly {
     l
@@ -21,7 +24,7 @@ pub impl[V : Show + Eq + Semiring] Show for Constraint[V] with output(self, l) {
     ..write_string(x.1)
     ..write_char(' ')
     ..write_object(x.2)
-    ..write_string("\n    ")
+    .write_string("\n    ")
   }
 }
 
@@ -30,7 +33,7 @@ pub impl[V : Show + Eq + Semiring] Show for Constraint[V] with output(self, l) {
 pub fn[V] Constraint::new() -> Constraint[V] {
   let ep : Array[(Poly[V], V)] = []
   let iep : Array[(Poly[V], String, V)] = []
-  { eq_poly: ep, ineq_poly: iep }
+  { eq_poly: ep, ineq_poly: iep, }
 }
 
 ///|
@@ -82,9 +85,9 @@ pub fn[V] Constraint::change_ineqpoly(
 
 ///|
 test "add_eqpoly" {
-  let x1 : Variable = { name: "x1", low_bound: -1.0, up_bound: 1.0 }
-  let x2 : Variable = { name: "x2", low_bound: -1.0, up_bound: 1.0 }
-  let x3 : Variable = { name: "x3", low_bound: -1.0, up_bound: 1.0 }
+  let x1 : Variable = { name: "x1", low_bound: -1.0, up_bound: 1.0, }
+  let x2 : Variable = { name: "x2", low_bound: -1.0, up_bound: 1.0, }
+  let x3 : Variable = { name: "x3", low_bound: -1.0, up_bound: 1.0, }
   let con = Constraint::new()
   let poly = Poly::new()
   poly.add_term_inplace(x1, 3.5)
@@ -115,8 +118,8 @@ test "add_eqpoly" {
 
 ///|
 pub fn[V : Eq + Semiring] Constraint::from_array(
-  eq_array~ : Array[(Array[V], V)] = [],
-  ineq_array~ : Array[(Array[V], String, V)] = [],
+  eq_array? : Array[(Array[V], V)] = [],
+  ineq_array? : Array[(Array[V], String, V)] = [],
   vars : Array[Variable],
 ) -> Constraint[V] {
   let c = Constraint::new()

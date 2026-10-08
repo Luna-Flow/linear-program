@@ -11,7 +11,7 @@ struct Obj_func[V] {
 }
 
 ///|
-pub impl[V : Eq + Show + Semiring] Show for Obj_func[V] with output(self, l) {
+pub impl[V : Eq + Show + Semiring] Show for Obj_func[V] with fn output(self, l) {
   l
   ..write_string(
     match self.sense {
@@ -19,7 +19,7 @@ pub impl[V : Eq + Show + Semiring] Show for Obj_func[V] with output(self, l) {
       Maximize => "max  "
     },
   )
-  ..write_object(self.obj_poly)
+  .write_object(self.obj_poly)
 }
 
 ///|
@@ -36,7 +36,7 @@ pub fn[V] Obj_func::new(s : String) -> Obj_func[V] {
 
 ///|
 pub fn[V] Obj_func::set_poly(self : Obj_func[V], poly : Poly[V]) -> Obj_func[V] {
-  { sense: self.sense, obj_poly: poly }
+  { sense: self.sense, obj_poly: poly, }
 }
 
 ///|
@@ -63,7 +63,7 @@ pub fn[V : Eq + Semiring + Zero + Neg] Obj_func::to_min(
 ) -> Obj_func[V] {
   match self.sense {
     Minimize => self
-    Maximize => { sense: Minimize, obj_poly: -self.obj_poly }
+    Maximize => { sense: Minimize, obj_poly: -self.obj_poly, }
   }
 }
 
@@ -74,13 +74,13 @@ pub fn[V : Zero] Obj_func::to_vector(
 ) -> Array[V] {
   let res = self.obj_poly.to_array()
   while res.length() <= var_num {
-    res.push(V::zero())
+    res.push(Zero::zero())
   }
   res
 }
 
 ///|
-pub fn[V] judge_max(self : Obj_func[V]) -> Bool {
+pub fn[V] Obj_func::judge_max(self : Obj_func[V]) -> Bool {
   match self.sense {
     Maximize => true
     Minimize => false
@@ -89,9 +89,9 @@ pub fn[V] judge_max(self : Obj_func[V]) -> Bool {
 
 ///|
 test "show" {
-  let x1 : Variable = { name: "x1", low_bound: -1.0, up_bound: 1.0 }
-  let x2 : Variable = { name: "x2", low_bound: -1.0, up_bound: 1.0 }
-  let x3 : Variable = { name: "x3", low_bound: -1.0, up_bound: 1.0 }
+  let x1 : Variable = { name: "x1", low_bound: -1.0, up_bound: 1.0, }
+  let x2 : Variable = { name: "x2", low_bound: -1.0, up_bound: 1.0, }
+  let x3 : Variable = { name: "x3", low_bound: -1.0, up_bound: 1.0, }
   let poly = Poly::new()
   poly.add_term_inplace(x1, 3.5)
   poly.add_term_inplace(x2, 1.5)

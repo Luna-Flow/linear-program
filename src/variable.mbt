@@ -6,33 +6,33 @@ struct Variable {
 }
 
 ///|
-pub impl Show for Variable with to_string(self) -> String {
+pub impl Show for Variable with fn to_string(self) -> String {
   self.name
 }
 
 ///|
-pub impl Show for Variable with output(self, logger) -> Unit {
+pub impl Show for Variable with fn output(self, logger) -> Unit {
   logger.write_string(self.name)
 }
 
 ///|
-pub impl One for Variable with one() -> Variable {
-  { name: "", low_bound: @double.min_value, up_bound: @double.max_value }
+pub impl One for Variable with fn one() -> Variable {
+  { name: "", low_bound: @double.min_value, up_bound: @double.max_value, }
 }
 
 ///|
-pub impl Compare for Variable with compare(self, other) -> Int {
+pub impl Compare for Variable with fn compare(self, other) -> Int {
   self.name.compare(other.name)
 }
 
 ///|
-pub impl Eq for Variable with op_equal(self, other) -> Bool {
+pub impl Eq for Variable with fn equal(self, other) -> Bool {
   self.name == other.name
 }
 
 ///|
 pub fn Variable::new(n : String, l : Double, u : Double) -> Variable {
-  { name: n, low_bound: l, up_bound: u }
+  { name: n, low_bound: l, up_bound: u, }
 }
 
 ///|
