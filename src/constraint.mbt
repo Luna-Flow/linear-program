@@ -59,7 +59,7 @@ pub fn[V] Constraint::add_ineqpoly(
 ///|
 pub fn[V] Constraint::change_eqpoly(
   self : Constraint[V],
-  index : Int,
+  index : Int32,
   poly : Poly[V],
   b : V,
 ) -> Unit {
@@ -72,7 +72,7 @@ pub fn[V] Constraint::change_eqpoly(
 ///|
 pub fn[V] Constraint::change_ineqpoly(
   self : Constraint[V],
-  index : Int,
+  index : Int32,
   poly : Poly[V],
   s : String,
   b : V,
@@ -118,8 +118,8 @@ test "add_eqpoly" {
 
 ///|
 pub fn[V : Eq + Semiring] Constraint::from_array(
-  eq_array? : Array[(Array[V], V)] = [],
-  ineq_array? : Array[(Array[V], String, V)] = [],
+  eq_array~ : Array[(Array[V], V)] = [],
+  ineq_array~ : Array[(Array[V], String, V)] = [],
   vars : Array[Variable],
 ) -> Constraint[V] {
   let c = Constraint::new()

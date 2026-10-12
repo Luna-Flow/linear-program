@@ -13,7 +13,7 @@ pub trait ApproximatelyZero {
 }
 
 ///|
-pub impl ApproximatelyZero for Int with fn is_zero_eps(x) {
+pub impl ApproximatelyZero for Int32 with fn is_zero_eps(x) {
   x == 0
 }
 

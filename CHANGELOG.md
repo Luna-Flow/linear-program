@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Changed
+- Builds with the latest MoonBit toolchain (moon 0.1.20261012, moonc 0.10.15): `Luna-Flow/linear-algebra` is raised to 0.5.1 (the earlier versions depend on packages that ship the legacy `moon.mod.json`, which the new toolchain rejects) and the sources follow the formatter of that toolchain.
 
 - Migrated to MoonBit 0.10 (`moonc` 0.10 or newer is required).
 - Dependencies bumped from `Luna-Flow/luna-generic` 0.2.0-alpha-1 and `Luna-Flow/linear-algebra` 0.1.5-beta-1 to `Luna-Flow/luna-generic` 0.4.0 and `Luna-Flow/linear-algebra` 0.4.7. The package uses only `Zero`, `One` and `Semiring` from luna-generic, so nothing deprecated in luna-generic 0.4.0 is used and no code change is needed.
