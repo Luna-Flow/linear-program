@@ -21,7 +21,7 @@ pub impl One for Variable with fn one() -> Variable {
 }
 
 ///|
-pub impl Compare for Variable with fn compare(self, other) -> Int {
+pub impl Compare for Variable with fn compare(self, other) -> Int32 {
   self.name.compare(other.name)
 }
 

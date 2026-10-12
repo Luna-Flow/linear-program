@@ -49,8 +49,8 @@ pub fn[V : Compare + Semiring + Zero] Lp::reset_obj_byarray(
 /// the lable in ineq_array must be ">=" or "<="
 pub fn[V : Eq + Semiring] Lp::cons_from_Array(
   self : Lp[V],
-  eq_array? : Array[(Array[V], V)] = [],
-  ineq_array? : Array[(Array[V], String, V)] = [],
+  eq_array~ : Array[(Array[V], V)] = [],
+  ineq_array~ : Array[(Array[V], String, V)] = [],
 ) -> Lp[V] {
   let new_constraint = Constraint::from_array(eq_array~, ineq_array~, self.vars)
   {
@@ -122,8 +122,8 @@ test "Lp_from_Matrix" {
 ///|
 pub fn[V] Lp::get_coeff_matrix(self : Lp[V]) -> Matrix[V] {
   Matrix::make(self.matrix.row() - 1, self.matrix.col() - 1, fn(
-    col_index : Int,
-    row_index : Int,
+    col_index : Int32,
+    row_index : Int32,
   ) -> V {
     self.matrix[col_index + 1][row_index]
   })
@@ -309,7 +309,7 @@ test "show" {
 /// return fmt (artificial_matrix, init_solve, artificial_index)
 fn[V : Zero + Compare + One] Lp::add_artificial(
   self : Lp[V],
-) -> (Matrix[V], Array[V], Array[Int]) {
+) -> (Matrix[V], Array[V], Array[Int32]) {
   let coeff = self.get_coeff_matrix()
   let b_array = self.get_b_vector()
   let init_solve : Array[V] = Array::make(self.vars.length(), Zero::zero())
@@ -468,8 +468,8 @@ test "artificial_matrix" {
 ///|
 pub fn[V : Zero + Compare + Div + Mul + Sub] Lp::pivot(
   matrix : Matrix[V],
-  row : Int,
-  col : Int,
+  row : Int32,
+  col : Int32,
 ) -> Unit {
   let m_row = matrix.row()
   let m_col = matrix.col()
@@ -520,8 +520,8 @@ test "pivot" {
 /// universal simplex interation function
 pub fn[V : Zero + Compare + Sub + Mul + Div + Show] Lp::simplex_iteration(
   matrix : Matrix[V],
-  max_iterations? : Int = 1000,
-  debug? : Bool = false,
+  max_iterations~ : Int32 = 1000,
+  debug~ : Bool = false,
 ) -> Unit {
   let row = matrix.row()
   let col = matrix.col()
@@ -587,7 +587,7 @@ pub fn[V : Zero + Compare + Sub + Mul + Div + Show] Lp::simplex_iteration(
 ///|
 pub fn[V : Zero + One + Compare + Sub + Compare + Div + Mul + Show] Lp::phase_1(
   p1_matrix : Matrix[V],
-  artificial_index : Array[Int],
+  artificial_index : Array[Int32],
 ) -> Matrix[V] {
   let col = p1_matrix.col()
   for index, col_num in artificial_index {
