@@ -5,6 +5,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Changed
+- Require MoonBit `moonc` 0.10.20 or later, verified with `moon 0.1.20261104` and `moonc v0.10.20`: `derive(...)` clauses are now `#derive(...)` attributes, which older 0.10 compilers ignore. No public API changed.
 - Builds with the latest MoonBit toolchain (moon 0.1.20261012, moonc 0.10.15): `Luna-Flow/linear-algebra` is raised to 0.5.1 (the earlier versions depend on packages that ship the legacy `moon.mod.json`, which the new toolchain rejects) and the sources follow the formatter of that toolchain.
 
 - Migrated to MoonBit 0.10 (`moonc` 0.10 or newer is required).

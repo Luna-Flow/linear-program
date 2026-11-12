@@ -21,7 +21,7 @@ import {
 }
 ```
 
-Then import `"linear-program"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7.
+Then import `"linear-program"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7.
 
 ## Pages
 

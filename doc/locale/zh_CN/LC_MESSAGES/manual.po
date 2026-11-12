@@ -1044,8 +1044,8 @@ msgid "The module is named `linear-program`, without the `Luna-Flow/` namespace,
 msgstr "模块名为 `linear-program`，没有 `Luna-Flow/` 命名空间，因此尚未以 `Luna-Flow/linear-program` 发布到 mooncakes，`moon add` 无法获取它。请改用本地检出：把它与 `luna-generic`、`linear-algebra` 的检出一起加入 `moon.work` 的 `members`，并在 `moon.mod` 的 `import` 块中列出它："
 
 #: manual/index.md:24
-msgid "Then import `\"linear-program\"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10 or later (`moonc` ≥ 0.10) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
-msgstr "然后在 `moon.pkg` 中导入 `\"linear-program\"`；[教程](tutorial/core.md#quick-start)给出完整配置。本库需要 MoonBit 工具链 0.10 或更高版本（`moonc` ≥ 0.10），并依赖 `Luna-Flow/luna-generic` 0.3.3 与 `Luna-Flow/linear-algebra` 0.4.7。"
+msgid "Then import `\"linear-program\"` in your `moon.pkg`; the [tutorial](tutorial/core.md#quick-start) shows the complete setup. The library needs the MoonBit toolchain 0.10.20 or later (`moonc` ≥ 0.10.20) and depends on `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7."
+msgstr "然后在 `moon.pkg` 中导入 `\"linear-program\"`；[教程](tutorial/core.md#quick-start)给出完整配置。本库需要 MoonBit 工具链 0.10.20 或更高版本（`moonc` ≥ 0.10.20），并依赖 `Luna-Flow/luna-generic` 0.3.3 与 `Luna-Flow/linear-algebra` 0.4.7。"
 
 #: manual/index.md:26
 msgid "Pages"
