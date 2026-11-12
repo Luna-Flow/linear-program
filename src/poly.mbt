@@ -1,5 +1,6 @@
 ///|
-struct Poly[V](@sorted_map.SortedMap[Variable, V]) derive(Eq)
+#derive(Eq)
+struct Poly[V](@sorted_map.SortedMap[Variable, V])
 
 ///|
 pub impl[V : Eq + Show + Semiring + One] Show for Poly[V] with fn output(

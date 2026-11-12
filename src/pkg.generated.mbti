@@ -51,7 +51,8 @@ pub fn[V : Eq + Show + @luna-generic.Semiring] Obj_func::to_string(Self[V]) -> S
 pub fn[V : @luna-generic.Zero] Obj_func::to_vector(Self[V], Int32) -> Array[V]
 pub impl[V : Eq + Show + @luna-generic.Semiring] Show for Obj_func[V]
 
-type Poly[V] derive(Eq)
+#derive(Eq)
+type Poly[V]
 pub fn[V : Eq + @luna-generic.Semiring + @luna-generic.Zero] Poly::add_term_inplace(Self[V], Variable, V) -> Unit
 pub fn[V : Eq + @luna-generic.Semiring + @luna-generic.Zero] Poly::copy(Self[V]) -> Self[V]
 pub fn[V : Eq] Poly::equal(Self[V], Self[V]) -> Bool
