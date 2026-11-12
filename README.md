@@ -46,7 +46,7 @@ test {
 
 ## Requirements
 
-MoonBit toolchain with `moonc` 0.10 or newer. Dependencies: `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7.
+MoonBit toolchain with `moonc` 0.10.20 or later (verified with `moon 0.1.20261104` and `moonc v0.10.20`; older 0.10 compilers ignore `#derive`). Dependencies: `Luna-Flow/luna-generic` 0.3.3 and `Luna-Flow/linear-algebra` 0.4.7.
 
 ## Documentation
 
